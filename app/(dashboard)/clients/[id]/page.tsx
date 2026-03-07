@@ -9,6 +9,7 @@ import { formatCurrency, formatDate, formatDateTime, formatPhone, formatRelative
 import type { Client, Policy, Activity, Deal, Task, Claim } from '@/lib/types';
 import { POLICY_TYPES, CARRIERS } from '@/lib/types';
 import { SmartPolicyForm } from '@/components/forms/smart-policy-form';
+import { TaskTemplateDialog } from '@/components/forms/task-template-dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +21,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { ArrowLeft, Phone, Mail, MapPin, Calendar, Plus, FileText, TrendingUp, Shield, SquareCheck as CheckSquare, Clock, TriangleAlert as AlertTriangle, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, MapPin, Calendar, Plus, Zap, FileText, TrendingUp, Shield, SquareCheck as CheckSquare, Clock, TriangleAlert as AlertTriangle, ExternalLink } from 'lucide-react';
 
 const statusColors: Record<string, string> = {
   Lead: 'bg-blue-100 text-blue-700',
@@ -50,6 +51,7 @@ export default function ClientProfilePage() {
   const [showActivityForm, setShowActivityForm] = useState(false);
   const [showPolicyForm, setShowPolicyForm] = useState(false);
   const [showTaskForm, setShowTaskForm] = useState(false);
+  const [showTaskTemplates, setShowTaskTemplates] = useState(false);
 
   useEffect(() => {
     loadClient();
@@ -316,9 +318,14 @@ export default function ClientProfilePage() {
         <TabsContent value="tasks" className="mt-4">
           <div className="flex justify-between items-center mb-3">
             <h3 className="font-semibold">Tasks</h3>
-            <Button size="sm" onClick={() => setShowTaskForm(true)} className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
-              <Plus className="mr-1 h-3.5 w-3.5" /> Add Task
-            </Button>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => setShowTaskTemplates(true)} className="gap-1">
+                <Zap className="h-3.5 w-3.5 text-[#1E40AF]" /> Templates
+              </Button>
+              <Button size="sm" onClick={() => setShowTaskForm(true)} className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
+                <Plus className="mr-1 h-3.5 w-3.5" /> Add Task
+              </Button>
+            </div>
           </div>
           {tasks.length === 0 ? (
             <Card><CardContent className="py-8 text-center text-sm text-muted-foreground">No tasks</CardContent></Card>
@@ -400,6 +407,14 @@ export default function ClientProfilePage() {
       <TaskFormDialog
         open={showTaskForm}
         onOpenChange={setShowTaskForm}
+        clientId={client.id}
+        userId={user?.id || ''}
+        onSaved={loadClient}
+      />
+
+      <TaskTemplateDialog
+        open={showTaskTemplates}
+        onOpenChange={setShowTaskTemplates}
         clientId={client.id}
         userId={user?.id || ''}
         onSaved={loadClient}

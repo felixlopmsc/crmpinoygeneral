@@ -17,7 +17,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { Plus, SquareCheck as CheckSquare, TriangleAlert as AlertTriangle, Clock, Calendar, Filter, Trash2 } from 'lucide-react';
+import { TaskTemplateDialog } from '@/components/forms/task-template-dialog';
+import { Plus, Zap, SquareCheck as CheckSquare, TriangleAlert as AlertTriangle, Clock, Calendar, Filter, Trash2 } from 'lucide-react';
 
 const priorityColors: Record<string, string> = {
   Low: 'bg-gray-100 text-gray-700',
@@ -32,6 +33,7 @@ export default function TasksPage() {
   const [clients, setClients] = useState<Pick<Client, 'id' | 'first_name' | 'last_name'>[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
   const [viewFilter, setViewFilter] = useState('active');
 
   const loadTasks = useCallback(async () => {
@@ -104,9 +106,14 @@ export default function TasksPage() {
             {overdueTasks.length === 0 && todayTasks.length === 0 && `${tasks.length} tasks`}
           </p>
         </div>
-        <Button onClick={handleOpenForm} className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
-          <Plus className="mr-1 h-4 w-4" /> Add Task
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowTemplates(true)} className="gap-1.5">
+            <Zap className="h-4 w-4 text-[#1E40AF]" /> Templates
+          </Button>
+          <Button onClick={handleOpenForm} className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
+            <Plus className="mr-1 h-4 w-4" /> Add Task
+          </Button>
+        </div>
       </div>
 
       <div className="flex gap-2 flex-wrap">
@@ -173,6 +180,13 @@ export default function TasksPage() {
           <TaskForm clients={clients} onSave={handleSave} onCancel={() => setShowForm(false)} />
         </DialogContent>
       </Dialog>
+
+      <TaskTemplateDialog
+        open={showTemplates}
+        onOpenChange={setShowTemplates}
+        userId={user?.id || ''}
+        onSaved={loadTasks}
+      />
     </div>
   );
 }
