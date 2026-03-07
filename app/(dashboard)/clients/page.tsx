@@ -39,6 +39,12 @@ export default function ClientsPage() {
   const [editingClient, setEditingClient] = useState<Client | null>(null);
 
   const loadClients = useCallback(async () => {
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
+    if (!currentSession) {
+      setLoading(false);
+      return;
+    }
+
     let query = supabase
       .from('clients')
       .select('*')
@@ -58,8 +64,10 @@ export default function ClientsPage() {
   }, [search, statusFilter]);
 
   useEffect(() => {
-    loadClients();
-  }, [loadClients]);
+    if (session) {
+      loadClients();
+    }
+  }, [loadClients, session]);
 
   const handleSave = async (formData: Partial<Client>) => {
     if (editingClient) {
