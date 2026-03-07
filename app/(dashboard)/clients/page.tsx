@@ -29,7 +29,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function ClientsPage() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const searchParams = useSearchParams();
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,9 +73,14 @@ export default function ClientsPage() {
       }
       toast.success('Client updated');
     } else {
+      const agentId = user?.id || session?.user?.id;
+      if (!agentId) {
+        toast.error('You must be logged in to create a client');
+        return;
+      }
       const { error } = await supabase.from('clients').insert({
         ...formData,
-        assigned_agent_id: user?.id,
+        assigned_agent_id: agentId,
       });
       if (error) {
         toast.error(error.message);
