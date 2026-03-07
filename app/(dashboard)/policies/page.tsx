@@ -12,7 +12,9 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Filter, Car, Chrome as Home, Briefcase, Heart, Umbrella, Building2 } from 'lucide-react';
+import { SmartPolicyForm } from '@/components/forms/smart-policy-form';
+import { useAuth } from '@/lib/auth-context';
+import { Search, Filter, Plus, Car, Chrome as Home, Briefcase, Heart, Umbrella, Building2 } from 'lucide-react';
 
 const policyStatusColors: Record<string, string> = {
   Active: 'bg-emerald-100 text-emerald-700',
@@ -31,11 +33,13 @@ const typeIcons: Record<string, any> = {
 };
 
 export default function PoliciesPage() {
+  const { user } = useAuth();
   const [policies, setPolicies] = useState<(Policy & { client: Client })[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [showPolicyForm, setShowPolicyForm] = useState(false);
 
   const loadPolicies = useCallback(async () => {
     let query = supabase
@@ -68,11 +72,16 @@ export default function PoliciesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Policies</h1>
-        <p className="text-sm text-muted-foreground">
-          {activePolicies} active policies - {formatCurrency(totalPremium)} total premium
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Policies</h1>
+          <p className="text-sm text-muted-foreground">
+            {activePolicies} active policies - {formatCurrency(totalPremium)} total premium
+          </p>
+        </div>
+        <Button onClick={() => setShowPolicyForm(true)} className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
+          <Plus className="mr-1 h-4 w-4" /> Add Policy
+        </Button>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
@@ -152,6 +161,13 @@ export default function PoliciesPage() {
           </div>
         </Card>
       )}
+
+      <SmartPolicyForm
+        open={showPolicyForm}
+        onOpenChange={setShowPolicyForm}
+        userId={user?.id || ''}
+        onSaved={loadPolicies}
+      />
     </div>
   );
 }

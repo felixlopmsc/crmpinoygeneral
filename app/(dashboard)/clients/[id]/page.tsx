@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth-context';
 import { formatCurrency, formatDate, formatDateTime, formatPhone, formatRelativeDate, getInitials, daysUntil } from '@/lib/format';
 import type { Client, Policy, Activity, Deal, Task, Claim } from '@/lib/types';
 import { POLICY_TYPES, CARRIERS } from '@/lib/types';
+import { SmartPolicyForm } from '@/components/forms/smart-policy-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -388,7 +389,7 @@ export default function ClientProfilePage() {
         onSaved={loadClient}
       />
 
-      <PolicyFormDialog
+      <SmartPolicyForm
         open={showPolicyForm}
         onOpenChange={setShowPolicyForm}
         clientId={client.id}
@@ -459,94 +460,6 @@ function ActivityFormDialog({ open, onOpenChange, clientId, userId, onSaved }: {
   );
 }
 
-function PolicyFormDialog({ open, onOpenChange, clientId, userId, onSaved }: { open: boolean; onOpenChange: (o: boolean) => void; clientId: string; userId: string; onSaved: () => void }) {
-  const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
-    policy_number: '', carrier: '', policy_type: 'Auto', coverage_type: '',
-    effective_date: '', expiration_date: '', annual_premium: '',
-    commission_rate: '', payment_frequency: 'Monthly', notes: '',
-  });
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    const premium = parseFloat(form.annual_premium) || 0;
-    const rate = parseFloat(form.commission_rate) || 0;
-    const { error } = await supabase.from('policies').insert({
-      client_id: clientId,
-      policy_number: form.policy_number,
-      carrier: form.carrier,
-      policy_type: form.policy_type,
-      coverage_type: form.coverage_type,
-      effective_date: form.effective_date,
-      expiration_date: form.expiration_date,
-      annual_premium: premium,
-      commission_rate: rate,
-      commission_amount: (premium * rate) / 100,
-      payment_frequency: form.payment_frequency,
-      notes: form.notes,
-      assigned_agent_id: userId,
-    });
-    if (error) toast.error(error.message);
-    else { toast.success('Policy created'); onOpenChange(false); onSaved(); }
-    setSaving(false);
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>Add Policy</DialogTitle></DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Policy Type</Label>
-              <Select value={form.policy_type} onValueChange={(v) => setForm({ ...form, policy_type: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{POLICY_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Carrier</Label>
-              <Select value={form.carrier || 'none'} onValueChange={(v) => setForm({ ...form, carrier: v === 'none' ? '' : v })}>
-                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Select carrier</SelectItem>
-                  {CARRIERS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Policy Number</Label>
-            <Input value={form.policy_number} onChange={(e) => setForm({ ...form, policy_number: e.target.value })} />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5"><Label>Effective Date</Label><Input type="date" value={form.effective_date} onChange={(e) => setForm({ ...form, effective_date: e.target.value })} required /></div>
-            <div className="space-y-1.5"><Label>Expiration Date</Label><Input type="date" value={form.expiration_date} onChange={(e) => setForm({ ...form, expiration_date: e.target.value })} required /></div>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="space-y-1.5"><Label>Annual Premium</Label><Input type="number" step="0.01" value={form.annual_premium} onChange={(e) => setForm({ ...form, annual_premium: e.target.value })} required /></div>
-            <div className="space-y-1.5"><Label>Commission %</Label><Input type="number" step="0.1" value={form.commission_rate} onChange={(e) => setForm({ ...form, commission_rate: e.target.value })} /></div>
-            <div className="space-y-1.5">
-              <Label>Payment</Label>
-              <Select value={form.payment_frequency} onValueChange={(v) => setForm({ ...form, payment_frequency: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {['Monthly', 'Quarterly', 'Semi-Annual', 'Annual'].map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="space-y-1.5"><Label>Notes</Label><Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} /></div>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white" disabled={saving}>{saving ? 'Saving...' : 'Create Policy'}</Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 function TaskFormDialog({ open, onOpenChange, clientId, userId, onSaved }: { open: boolean; onOpenChange: (o: boolean) => void; clientId: string; userId: string; onSaved: () => void }) {
   const [saving, setSaving] = useState(false);
