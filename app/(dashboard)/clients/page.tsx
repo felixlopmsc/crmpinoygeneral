@@ -81,7 +81,8 @@ export default function ClientsPage() {
       }
       toast.success('Client updated');
     } else {
-      const agentId = user?.id || session?.user?.id;
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      const agentId = currentSession?.user?.id;
       if (!agentId) {
         toast.error('You must be logged in to create a client');
         return;
