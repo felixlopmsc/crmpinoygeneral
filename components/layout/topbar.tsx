@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import NotificationDropdown from '@/components/layout/notification-dropdown';
+import TutorialDropdown from '@/components/layout/tutorial-dropdown';
 
 export default function Topbar() {
   const { user, signOut } = useAuth();
@@ -42,7 +43,8 @@ export default function Topbar() {
         />
       </form>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
+        <TutorialDropdown />
         <NotificationDropdown />
 
         <DropdownMenu>
@@ -59,11 +61,11 @@ export default function Topbar() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem className="gap-2">
+            <DropdownMenuItem className="gap-2" onClick={() => router.push('/profile')}>
               <User className="h-4 w-4" />
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem className="gap-2">
+            <DropdownMenuItem className="gap-2" onClick={() => router.push('/settings')}>
               <Settings className="h-4 w-4" />
               Settings
             </DropdownMenuItem>

@@ -198,10 +198,9 @@ export interface EmailCampaign {
 export const POLICY_TYPES = ['Auto', 'Home', 'Renters', 'Business', 'Life', 'Umbrella'] as const;
 
 export const CARRIERS = [
-  'State Farm', 'Allstate', 'Progressive', 'GEICO', 'Liberty Mutual',
-  'Farmers', 'Nationwide', 'Travelers', 'USAA', 'Hartford',
+  'Progressive', 'Liberty Mutual', 'Nationwide', 'Travelers', 'Hartford',
   'Mercury', 'Kemper', 'Bristol West', 'National General', 'Safeco',
-  'Foremost', 'Dairyland', 'AAA', 'Other'
+  'Foremost', 'Dairyland', 'Other'
 ] as const;
 
 export const CLIENT_STATUSES = ['Lead', 'Active', 'Inactive', 'Archived'] as const;
