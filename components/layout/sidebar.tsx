@@ -40,8 +40,8 @@ export default function Sidebar() {
           <Image
             src="/Copy_of_Pinoy_General_Insurance_Logo_(800_×_800_px).png"
             alt="Pinoy General Insurance"
-            width={collapsed ? 44 : 52}
-            height={collapsed ? 44 : 52}
+            width={collapsed ? 44 : 64}
+            height={collapsed ? 44 : 64}
             className="flex-shrink-0"
           />
           {!collapsed && (
