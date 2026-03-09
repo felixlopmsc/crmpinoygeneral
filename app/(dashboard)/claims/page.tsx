@@ -17,7 +17,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { Plus, Shield, Filter } from 'lucide-react';
+import { Plus, Shield, Filter, Zap, Info } from 'lucide-react';
+import { CLAIM_TYPE_BY_POLICY, generateClaimNumber } from '@/lib/form-autocomplete';
 
 const statusColors: Record<string, string> = {
   Filed: 'bg-blue-100 text-blue-700',
@@ -163,13 +164,51 @@ function ClaimForm({ clients, onSave, onCancel, preselectedClientId }: {
   clients: (Client & { policies?: Policy[] })[]; onSave: (data: any) => Promise<void>; onCancel: () => void; preselectedClientId: string;
 }) {
   const [saving, setSaving] = useState(false);
+  const [autoFilledFields, setAutoFilledFields] = useState<Set<string>>(new Set());
   const [form, setForm] = useState({
-    client_id: preselectedClientId, policy_id: '', claim_number: '', claim_date: '',
+    client_id: preselectedClientId, policy_id: '', claim_number: '', claim_date: new Date().toISOString().split('T')[0],
     claim_type: 'Auto Accident', description: '', claim_amount: '', adjuster_name: '', adjuster_phone: '',
   });
 
   const selectedClient = clients.find((c) => c.id === form.client_id);
   const clientPolicies = (selectedClient as any)?.policies || [];
+  const selectedPolicy = clientPolicies.find((p: Policy) => p.id === form.policy_id);
+
+  const claimTypes = selectedPolicy
+    ? (CLAIM_TYPE_BY_POLICY[selectedPolicy.policy_type] || ['Other'])
+    : ['Auto Accident', 'Property Damage', 'Theft', 'Injury', 'Liability', 'Other'];
+
+  const handlePolicySelect = (policyId: string) => {
+    if (policyId === 'none') {
+      setForm({ ...form, policy_id: '' });
+      return;
+    }
+    const policy = clientPolicies.find((p: Policy) => p.id === policyId);
+    const newAutoFilled = new Set(autoFilledFields);
+    const updates: Record<string, string> = { policy_id: policyId };
+
+    if (policy) {
+      const types = CLAIM_TYPE_BY_POLICY[policy.policy_type];
+      if (types && types.length > 0) {
+        updates.claim_type = types[0];
+        newAutoFilled.add('claim_type');
+      }
+      if (!form.claim_number) {
+        updates.claim_number = generateClaimNumber(policy.policy_type);
+        newAutoFilled.add('claim_number');
+      }
+    }
+
+    setAutoFilledFields(newAutoFilled);
+    setForm({ ...form, ...updates });
+  };
+
+  const handleGenerateClaimNumber = () => {
+    const policyType = selectedPolicy?.policy_type || '';
+    const num = generateClaimNumber(policyType);
+    setForm({ ...form, claim_number: num });
+    setAutoFilledFields((s) => new Set(s).add('claim_number'));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -186,44 +225,117 @@ function ClaimForm({ clients, onSave, onCancel, preselectedClientId }: {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-1.5">
         <Label>Client</Label>
-        <Select value={form.client_id || 'none'} onValueChange={(v) => setForm({ ...form, client_id: v === 'none' ? '' : v, policy_id: '' })}>
+        <Select value={form.client_id || 'none'} onValueChange={(v) => {
+          setForm({ ...form, client_id: v === 'none' ? '' : v, policy_id: '', claim_number: '' });
+          setAutoFilledFields(new Set());
+        }}>
           <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="none">Select client</SelectItem>
-            {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.first_name} {c.last_name}</SelectItem>)}
+            {clients.map((c) => (
+              <SelectItem key={c.id} value={c.id}>
+                {c.first_name} {c.last_name}
+                {(c as any).policies?.length > 0 && ` (${(c as any).policies.length} policies)`}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
+
       {clientPolicies.length > 0 && (
         <div className="space-y-1.5">
-          <Label>Policy</Label>
-          <Select value={form.policy_id || 'none'} onValueChange={(v) => setForm({ ...form, policy_id: v === 'none' ? '' : v })}>
+          <Label className="flex items-center gap-1.5">
+            Policy
+            {selectedPolicy && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 border border-emerald-200">
+                <Zap className="h-2.5 w-2.5" /> auto-fills claim type
+              </span>
+            )}
+          </Label>
+          <Select value={form.policy_id || 'none'} onValueChange={handlePolicySelect}>
             <SelectTrigger><SelectValue placeholder="Select policy" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="none">Select policy</SelectItem>
-              {clientPolicies.map((p: Policy) => <SelectItem key={p.id} value={p.id}>{p.policy_type} - {p.carrier} {p.policy_number && `(#${p.policy_number})`}</SelectItem>)}
+              {clientPolicies.map((p: Policy) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.policy_type} - {p.carrier} {p.policy_number && `(#${p.policy_number})`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {selectedPolicy && (
+            <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+              <Info className="h-2.5 w-2.5" />
+              {selectedPolicy.carrier} {selectedPolicy.policy_type} - {selectedPolicy.coverage_type || 'Standard'}
+            </p>
+          )}
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label>Claim Number</Label>
+          <div className="relative">
+            <Input
+              value={form.claim_number}
+              onChange={(e) => {
+                setForm({ ...form, claim_number: e.target.value });
+                setAutoFilledFields((s) => { const n = new Set(s); n.delete('claim_number'); return n; });
+              }}
+              placeholder="CLM-25-00001"
+              className={autoFilledFields.has('claim_number') ? 'border-emerald-300 bg-emerald-50/30 pr-8' : ''}
+            />
+            {!form.claim_number && (
+              <button
+                type="button"
+                onClick={handleGenerateClaimNumber}
+                className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 rounded-md bg-muted/80 px-1.5 py-0.5 text-[10px] text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              >
+                <Zap className="h-3 w-3 text-[#1E40AF]" /> Generate
+              </button>
+            )}
+            {autoFilledFields.has('claim_number') && form.claim_number && (
+              <Zap className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-emerald-500" />
+            )}
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Claim Date</Label>
+          <Input type="date" value={form.claim_date} onChange={(e) => setForm({ ...form, claim_date: e.target.value })} required />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label className="flex items-center gap-1.5">
+            Type
+            {autoFilledFields.has('claim_type') && <Zap className="h-3 w-3 text-emerald-500" />}
+          </Label>
+          <Select value={form.claim_type} onValueChange={(v) => {
+            setForm({ ...form, claim_type: v });
+            setAutoFilledFields((s) => { const n = new Set(s); n.delete('claim_type'); return n; });
+          }}>
+            <SelectTrigger className={autoFilledFields.has('claim_type') ? 'border-emerald-300 bg-emerald-50/30' : ''}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {claimTypes.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
-      )}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5"><Label>Claim Number</Label><Input value={form.claim_number} onChange={(e) => setForm({ ...form, claim_number: e.target.value })} /></div>
-        <div className="space-y-1.5"><Label>Claim Date</Label><Input type="date" value={form.claim_date} onChange={(e) => setForm({ ...form, claim_date: e.target.value })} required /></div>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <Label>Type</Label>
-          <Select value={form.claim_type} onValueChange={(v) => setForm({ ...form, claim_type: v })}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>{['Auto Accident', 'Property Damage', 'Theft', 'Injury', 'Liability', 'Other'].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
-          </Select>
+          <Label>Amount</Label>
+          <Input type="number" step="0.01" value={form.claim_amount} onChange={(e) => setForm({ ...form, claim_amount: e.target.value })} placeholder="0.00" />
         </div>
-        <div className="space-y-1.5"><Label>Amount</Label><Input type="number" step="0.01" value={form.claim_amount} onChange={(e) => setForm({ ...form, claim_amount: e.target.value })} /></div>
       </div>
-      <div className="space-y-1.5"><Label>Description</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} /></div>
+
+      <div className="space-y-1.5">
+        <Label>Description</Label>
+        <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} placeholder="Describe the incident..." />
+      </div>
       <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5"><Label>Adjuster Name</Label><Input value={form.adjuster_name} onChange={(e) => setForm({ ...form, adjuster_name: e.target.value })} /></div>
-        <div className="space-y-1.5"><Label>Adjuster Phone</Label><Input value={form.adjuster_phone} onChange={(e) => setForm({ ...form, adjuster_phone: e.target.value })} /></div>
+        <div className="space-y-1.5"><Label>Adjuster Name</Label><Input value={form.adjuster_name} onChange={(e) => setForm({ ...form, adjuster_name: e.target.value })} placeholder="John Smith" /></div>
+        <div className="space-y-1.5"><Label>Adjuster Phone</Label><Input value={form.adjuster_phone} onChange={(e) => setForm({ ...form, adjuster_phone: e.target.value })} placeholder="(555) 555-5555" /></div>
       </div>
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>

@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { getInitials } from '@/lib/format';
@@ -104,13 +104,41 @@ export default function ProfilePage() {
             <div className="flex flex-col items-center text-center">
               <div className="relative group">
                 <Avatar className="h-24 w-24">
+                  {user.avatar_url && <AvatarImage src={user.avatar_url} alt={user.full_name || 'User'} />}
                   <AvatarFallback className="bg-[#1E40AF] text-2xl text-white">
                     {getInitials(user.full_name || user.email)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                <label className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                   <Camera className="h-6 w-6 text-white" />
-                </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (file.size > 2 * 1024 * 1024) {
+                        toast.error('Image must be under 2MB');
+                        return;
+                      }
+                      const ext = file.name.split('.').pop();
+                      const path = `avatars/${user.id}.${ext}`;
+                      const { error: uploadError } = await supabase.storage
+                        .from('avatars')
+                        .upload(path, file, { upsert: true });
+                      if (uploadError) {
+                        toast.error('Upload failed: ' + uploadError.message);
+                        return;
+                      }
+                      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
+                      const avatarUrl = urlData.publicUrl + '?t=' + Date.now();
+                      await supabase.from('users').update({ avatar_url: avatarUrl }).eq('id', user.id);
+                      toast.success('Avatar updated');
+                      window.location.reload();
+                    }}
+                  />
+                </label>
               </div>
               <h3 className="mt-4 text-lg font-semibold">{user.full_name || 'No name set'}</h3>
               <p className="text-sm text-muted-foreground">{user.email}</p>

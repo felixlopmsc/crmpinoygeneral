@@ -18,7 +18,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { TaskTemplateDialog } from '@/components/forms/task-template-dialog';
-import { Plus, Zap, SquareCheck as CheckSquare, TriangleAlert as AlertTriangle, Clock, Calendar, Filter, Trash2 } from 'lucide-react';
+import { Plus, Zap, SquareCheck as CheckSquare, TriangleAlert as AlertTriangle, Clock, Calendar, Filter, Trash2, Sparkles } from 'lucide-react';
+import { TASK_SUGGESTIONS, getTaskSuggestionsForClient, type TaskSuggestion } from '@/lib/form-autocomplete';
 
 const priorityColors: Record<string, string> = {
   Low: 'bg-gray-100 text-gray-700',
@@ -193,7 +194,37 @@ export default function TasksPage() {
 
 function TaskForm({ clients, onSave, onCancel }: { clients: Pick<Client, 'id' | 'first_name' | 'last_name'>[]; onSave: (data: any) => Promise<void>; onCancel: () => void }) {
   const [saving, setSaving] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [form, setForm] = useState({ title: '', description: '', due_date: '', priority: 'Medium', related_client_id: '' });
+
+  const selectedClient = clients.find((c) => c.id === form.related_client_id);
+  const clientName = selectedClient ? `${selectedClient.first_name} ${selectedClient.last_name}` : '';
+
+  const suggestions: TaskSuggestion[] = selectedCategory
+    ? (TASK_SUGGESTIONS[selectedCategory] || [])
+    : [];
+
+  const clientSuggestions = clientName ? getTaskSuggestionsForClient(clientName) : [];
+
+  const applySuggestion = (s: TaskSuggestion) => {
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + s.dueDaysFromNow);
+    setForm({
+      ...form,
+      title: s.title,
+      description: s.description,
+      priority: s.priority,
+      due_date: dueDate.toISOString().split('T')[0],
+    });
+    setShowSuggestions(false);
+  };
+
+  const setQuickDueDate = (daysFromNow: number) => {
+    const date = new Date();
+    date.setDate(date.getDate() + daysFromNow);
+    setForm({ ...form, due_date: date.toISOString().split('T')[0] });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -208,10 +239,105 @@ function TaskForm({ clients, onSave, onCancel }: { clients: Pick<Client, 'id' | 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-1.5"><Label>Title</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></div>
-      <div className="space-y-1.5"><Label>Description</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} /></div>
+      {showSuggestions && !form.title && (
+        <div className="space-y-2">
+          <Label className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <Sparkles className="h-3 w-3 text-[#1E40AF]" /> Quick Add
+          </Label>
+          <div className="flex flex-wrap gap-1.5">
+            {Object.keys(TASK_SUGGESTIONS).map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
+                className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-all ${
+                  selectedCategory === cat
+                    ? 'border-[#1E40AF] bg-[#1E40AF]/5 text-[#1E40AF]'
+                    : 'hover:border-[#1E40AF] hover:bg-[#1E40AF]/5'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+          {suggestions.length > 0 && (
+            <div className="space-y-1 mt-2">
+              {suggestions.map((s, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => applySuggestion(s)}
+                  className="w-full flex items-center gap-3 rounded-lg border px-3 py-2 text-left hover:border-[#1E40AF] hover:bg-[#1E40AF]/5 transition-all group"
+                >
+                  <Zap className="h-3.5 w-3.5 text-muted-foreground group-hover:text-[#1E40AF] shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium">{s.title}</p>
+                    <p className="text-[10px] text-muted-foreground">{s.description}</p>
+                  </div>
+                  <Badge className={`${priorityColors[s.priority]} text-[10px] shrink-0`}>{s.priority}</Badge>
+                </button>
+              ))}
+            </div>
+          )}
+          {clientSuggestions.length > 0 && !selectedCategory && (
+            <div className="space-y-1 mt-2">
+              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-1">For {clientName}</p>
+              {clientSuggestions.map((s, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => applySuggestion(s)}
+                  className="w-full flex items-center gap-3 rounded-lg border px-3 py-2 text-left hover:border-[#1E40AF] hover:bg-[#1E40AF]/5 transition-all group"
+                >
+                  <Zap className="h-3.5 w-3.5 text-muted-foreground group-hover:text-[#1E40AF] shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium">{s.title}</p>
+                    <p className="text-[10px] text-muted-foreground">{s.description}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="space-y-1.5">
+        <Label>Title</Label>
+        <Input
+          value={form.title}
+          onChange={(e) => { setForm({ ...form, title: e.target.value }); if (e.target.value) setShowSuggestions(false); else setShowSuggestions(true); }}
+          placeholder="What needs to be done?"
+          required
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label>Description</Label>
+        <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} placeholder="Additional details..." />
+      </div>
+
       <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5"><Label>Due Date</Label><Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} /></div>
+        <div className="space-y-1.5">
+          <Label>Due Date</Label>
+          <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
+          <div className="flex gap-1 mt-1">
+            {[
+              { label: 'Today', days: 0 },
+              { label: 'Tomorrow', days: 1 },
+              { label: '3 days', days: 3 },
+              { label: '1 week', days: 7 },
+            ].map((q) => (
+              <button
+                key={q.label}
+                type="button"
+                onClick={() => setQuickDueDate(q.days)}
+                className="rounded-md bg-muted/60 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              >
+                {q.label}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="space-y-1.5">
           <Label>Priority</Label>
           <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v })}>
@@ -220,9 +346,13 @@ function TaskForm({ clients, onSave, onCancel }: { clients: Pick<Client, 'id' | 
           </Select>
         </div>
       </div>
+
       <div className="space-y-1.5">
         <Label>Related Client</Label>
-        <Select value={form.related_client_id || 'none'} onValueChange={(v) => setForm({ ...form, related_client_id: v === 'none' ? '' : v })}>
+        <Select value={form.related_client_id || 'none'} onValueChange={(v) => {
+          setForm({ ...form, related_client_id: v === 'none' ? '' : v });
+          if (v !== 'none' && !form.title) setShowSuggestions(true);
+        }}>
           <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="none">None</SelectItem>
@@ -230,6 +360,7 @@ function TaskForm({ clients, onSave, onCancel }: { clients: Pick<Client, 'id' | 
           </SelectContent>
         </Select>
       </div>
+
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
         <Button type="submit" className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white" disabled={saving}>{saving ? 'Saving...' : 'Create Task'}</Button>

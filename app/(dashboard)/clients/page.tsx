@@ -18,8 +18,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Plus, Search, Phone, Mail, MapPin, Filter } from 'lucide-react';
+import { Plus, Search, Phone, Mail, MapPin, Filter, Zap } from 'lucide-react';
 import { getInitials } from '@/lib/format';
+import { formatPhoneInput, formatZipInput, US_STATES } from '@/lib/form-autocomplete';
 
 const statusColors: Record<string, string> = {
   Lead: 'bg-blue-100 text-blue-700',
@@ -233,6 +234,8 @@ function ClientFormDialog({
   onSave: (data: Partial<Client>) => Promise<void>;
 }) {
   const [saving, setSaving] = useState(false);
+  const [emailSuggestion, setEmailSuggestion] = useState('');
+  const [showStateSuggestions, setShowStateSuggestions] = useState(false);
   const [form, setForm] = useState({
     first_name: '',
     last_name: '',
@@ -273,7 +276,24 @@ function ClientFormDialog({
         address_zip: '', status: 'Lead', source: '', notes: '',
       });
     }
+    setEmailSuggestion('');
   }, [client, open]);
+
+  useEffect(() => {
+    if (!client && form.first_name && form.last_name && !form.email) {
+      setEmailSuggestion(`${form.first_name.toLowerCase()}.${form.last_name.toLowerCase()}@pinoygeneralinsurance.com`);
+    } else {
+      setEmailSuggestion('');
+    }
+  }, [form.first_name, form.last_name, form.email, client]);
+
+  const filteredStates = form.address_state
+    ? US_STATES.filter(
+        (s) =>
+          s.code.toLowerCase().includes(form.address_state.toLowerCase()) ||
+          s.name.toLowerCase().includes(form.address_state.toLowerCase())
+      )
+    : US_STATES;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -301,16 +321,38 @@ function ClientFormDialog({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="email">Email *</Label>
-            <Input id="email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+            <div className="relative">
+              <Input id="email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+              {emailSuggestion && !form.email && (
+                <button
+                  type="button"
+                  onClick={() => { setForm({ ...form, email: emailSuggestion }); setEmailSuggestion(''); }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 rounded-md bg-muted/80 px-2 py-0.5 text-[11px] text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                >
+                  <Zap className="h-3 w-3 text-[#1E40AF]" />
+                  <span className="max-w-[180px] truncate">{emailSuggestion}</span>
+                </button>
+              )}
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="phone">Phone *</Label>
-              <Input id="phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(555) 555-5555" />
+              <Input
+                id="phone"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: formatPhoneInput(e.target.value) })}
+                placeholder="(555) 555-5555"
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="phone_2">Phone 2</Label>
-              <Input id="phone_2" value={form.phone_2} onChange={(e) => setForm({ ...form, phone_2: e.target.value })} />
+              <Input
+                id="phone_2"
+                value={form.phone_2}
+                onChange={(e) => setForm({ ...form, phone_2: formatPhoneInput(e.target.value) })}
+                placeholder="(555) 555-5555"
+              />
             </div>
           </div>
           <div className="space-y-1.5">
@@ -319,20 +361,49 @@ function ClientFormDialog({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="street">Street Address</Label>
-            <Input id="street" value={form.address_street} onChange={(e) => setForm({ ...form, address_street: e.target.value })} />
+            <Input id="street" value={form.address_street} onChange={(e) => setForm({ ...form, address_street: e.target.value })} placeholder="123 Main St" />
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="city">City</Label>
               <Input id="city" value={form.address_city} onChange={(e) => setForm({ ...form, address_city: e.target.value })} />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 relative">
               <Label htmlFor="state">State</Label>
-              <Input id="state" value={form.address_state} onChange={(e) => setForm({ ...form, address_state: e.target.value })} />
+              <Input
+                id="state"
+                value={form.address_state}
+                onChange={(e) => { setForm({ ...form, address_state: e.target.value }); setShowStateSuggestions(true); }}
+                onFocus={() => setShowStateSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowStateSuggestions(false), 200)}
+                placeholder="CA"
+              />
+              {showStateSuggestions && filteredStates.length > 0 && form.address_state.length >= 1 && form.address_state.length < 3 && (
+                <div className="absolute z-50 mt-1 w-48 rounded-lg border bg-white shadow-lg max-h-32 overflow-y-auto">
+                  {filteredStates.slice(0, 8).map((s) => (
+                    <button
+                      key={s.code}
+                      type="button"
+                      className="w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-muted/50 text-left"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => { setForm({ ...form, address_state: s.code }); setShowStateSuggestions(false); }}
+                    >
+                      <span className="font-medium">{s.code}</span>
+                      <span className="text-muted-foreground">{s.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="zip">ZIP</Label>
-              <Input id="zip" value={form.address_zip} onChange={(e) => setForm({ ...form, address_zip: e.target.value })} />
+              <Input
+                id="zip"
+                value={form.address_zip}
+                onChange={(e) => setForm({ ...form, address_zip: formatZipInput(e.target.value) })}
+                placeholder="90210"
+                maxLength={5}
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">

@@ -36,12 +36,12 @@ export default function Sidebar() {
           collapsed ? 'w-[68px]' : 'w-[240px]'
         )}
       >
-        <div className={cn('flex h-16 items-center border-b border-border px-3', collapsed ? 'justify-center' : 'gap-3')}>
+        <Link href="/dashboard" className={cn('flex items-center border-b border-border px-3 transition-colors hover:bg-muted/50', collapsed ? 'justify-center h-[72px]' : 'gap-3 h-[72px]')}>
           <Image
             src="/Copy_of_Pinoy_General_Insurance_Logo_(800_×_800_px).png"
             alt="Pinoy General Insurance"
-            width={40}
-            height={40}
+            width={collapsed ? 44 : 52}
+            height={collapsed ? 44 : 52}
             className="flex-shrink-0"
           />
           {!collapsed && (
@@ -50,7 +50,7 @@ export default function Sidebar() {
               <p className="truncate text-[11px] text-muted-foreground">Insurance CRM</p>
             </div>
           )}
-        </div>
+        </Link>
 
         <nav className="flex-1 overflow-y-auto p-2 scrollbar-thin">
           <ul className="space-y-0.5">

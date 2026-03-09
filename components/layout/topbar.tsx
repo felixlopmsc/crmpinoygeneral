@@ -7,7 +7,7 @@ import { getInitials } from '@/lib/format';
 import { Search, LogOut, User, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,6 +51,7 @@ export default function Topbar() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="gap-2 px-2">
               <Avatar className="h-8 w-8">
+                {user?.avatar_url && <AvatarImage src={user.avatar_url} alt={user.full_name || 'User'} />}
                 <AvatarFallback className="bg-[#1E40AF] text-xs text-white">
                   {user ? getInitials(user.full_name || user.email) : 'U'}
                 </AvatarFallback>
