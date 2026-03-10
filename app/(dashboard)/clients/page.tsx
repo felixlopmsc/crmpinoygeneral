@@ -18,9 +18,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Plus, Search, Phone, Mail, MapPin, Filter, Zap } from 'lucide-react';
+import { Plus, Search, Phone, Mail, MapPin, Filter, Zap, Upload } from 'lucide-react';
 import { getInitials } from '@/lib/format';
 import { formatPhoneInput, formatZipInput, US_STATES } from '@/lib/form-autocomplete';
+import { BulkClientImportDialog } from '@/components/forms/bulk-client-import';
 
 const statusColors: Record<string, string> = {
   Lead: 'bg-blue-100 text-blue-700',
@@ -37,6 +38,7 @@ export default function ClientsPage() {
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showForm, setShowForm] = useState(searchParams.get('new') === 'true');
+  const [showImport, setShowImport] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
 
   const loadClients = useCallback(async () => {
@@ -110,10 +112,16 @@ export default function ClientsPage() {
           <h1 className="text-2xl font-bold">Clients</h1>
           <p className="text-sm text-muted-foreground">{clients.length} clients found</p>
         </div>
-        <Button onClick={() => { setEditingClient(null); setShowForm(true); }} className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
-          <Plus className="mr-1 h-4 w-4" />
-          Add Client
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowImport(true)}>
+            <Upload className="mr-1 h-4 w-4" />
+            Import CSV
+          </Button>
+          <Button onClick={() => { setEditingClient(null); setShowForm(true); }} className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
+            <Plus className="mr-1 h-4 w-4" />
+            Add Client
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
@@ -217,6 +225,12 @@ export default function ClientsPage() {
         onOpenChange={(open) => { setShowForm(open); if (!open) setEditingClient(null); }}
         client={editingClient}
         onSave={handleSave}
+      />
+
+      <BulkClientImportDialog
+        open={showImport}
+        onOpenChange={setShowImport}
+        onComplete={loadClients}
       />
     </div>
   );

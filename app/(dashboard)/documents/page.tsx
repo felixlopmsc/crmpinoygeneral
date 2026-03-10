@@ -12,7 +12,10 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, FolderOpen, FileText, Download, Filter } from 'lucide-react';
+import { Search, FolderOpen, FileText, Download, Filter, Upload, Trash2, ExternalLink } from 'lucide-react';
+import { toast } from 'sonner';
+import { DocumentUploadDialog } from '@/components/forms/document-upload-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 const typeColors: Record<string, string> = {
   Application: 'bg-blue-100 text-blue-700',
@@ -25,10 +28,13 @@ const typeColors: Record<string, string> = {
 };
 
 export default function DocumentsPage() {
+  const { session } = useAuth();
   const [documents, setDocuments] = useState<(Document & { client?: any })[]>([]);
+  const [clients, setClients] = useState<{ id: string; first_name: string; last_name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [showUpload, setShowUpload] = useState(false);
 
   const loadDocuments = useCallback(async () => {
     let query = supabase
@@ -52,7 +58,25 @@ export default function DocumentsPage() {
     setLoading(false);
   }, [search, typeFilter]);
 
-  useEffect(() => { loadDocuments(); }, [loadDocuments]);
+  const loadClients = useCallback(async () => {
+    const { data } = await supabase
+      .from('clients')
+      .select('id, first_name, last_name')
+      .order('first_name');
+    setClients(data || []);
+  }, []);
+
+  useEffect(() => { loadDocuments(); loadClients(); }, [loadDocuments, loadClients]);
+
+  const handleDelete = async (doc: Document & { client?: any }) => {
+    const { error } = await supabase.from('documents').delete().eq('id', doc.id);
+    if (error) {
+      toast.error('Failed to delete document');
+      return;
+    }
+    toast.success('Document deleted');
+    loadDocuments();
+  };
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -62,9 +86,15 @@ export default function DocumentsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Documents</h1>
-        <p className="text-sm text-muted-foreground">{documents.length} documents</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Documents</h1>
+          <p className="text-sm text-muted-foreground">{documents.length} documents</p>
+        </div>
+        <Button onClick={() => setShowUpload(true)} className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
+          <Upload className="mr-1 h-4 w-4" />
+          Upload Documents
+        </Button>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
@@ -84,7 +114,16 @@ export default function DocumentsPage() {
       {loading ? (
         <div className="space-y-2">{[1, 2, 3].map((i) => <div key={i} className="h-14 animate-pulse rounded bg-muted" />)}</div>
       ) : documents.length === 0 ? (
-        <Card><CardContent className="py-16 text-center"><FolderOpen className="h-10 w-10 text-muted-foreground/40 mx-auto mb-2" /><p className="text-lg font-medium">No documents found</p><p className="text-sm text-muted-foreground mt-1">Upload documents from client profiles</p></CardContent></Card>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <FolderOpen className="h-10 w-10 text-muted-foreground/40 mb-2" />
+            <p className="text-lg font-medium">No documents found</p>
+            <p className="text-sm text-muted-foreground mt-1">Upload your first document to get started</p>
+            <Button onClick={() => setShowUpload(true)} className="mt-4 bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
+              <Upload className="mr-1 h-4 w-4" /> Upload Documents
+            </Button>
+          </CardContent>
+        </Card>
       ) : (
         <Card>
           <div className="overflow-x-auto">
@@ -96,6 +135,7 @@ export default function DocumentsPage() {
                   <TableHead>Type</TableHead>
                   <TableHead>Size</TableHead>
                   <TableHead>Uploaded</TableHead>
+                  <TableHead className="w-20"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -117,6 +157,44 @@ export default function DocumentsPage() {
                     <TableCell><Badge className={`${typeColors[doc.document_type] || typeColors.Other} text-[10px]`}>{doc.document_type || 'Other'}</Badge></TableCell>
                     <TableCell className="text-muted-foreground">{formatFileSize(doc.file_size)}</TableCell>
                     <TableCell className="text-muted-foreground">{formatDate(doc.created_at.split('T')[0])}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        {doc.file_path && (
+                          <a
+                            href={doc.file_path}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1.5 rounded hover:bg-muted transition-colors"
+                          >
+                            <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                          </a>
+                        )}
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <button className="p-1.5 rounded hover:bg-red-50 transition-colors">
+                              <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-red-600" />
+                            </button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Document</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete &quot;{doc.file_name}&quot;? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(doc)}
+                                className="bg-red-600 hover:bg-red-700 text-white"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -124,6 +202,13 @@ export default function DocumentsPage() {
           </div>
         </Card>
       )}
+
+      <DocumentUploadDialog
+        open={showUpload}
+        onOpenChange={setShowUpload}
+        onComplete={loadDocuments}
+        clients={clients}
+      />
     </div>
   );
 }

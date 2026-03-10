@@ -9,7 +9,8 @@ import type { Task, Deal, Policy, Activity, Client } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, FileText, TrendingUp, DollarSign, Plus, ArrowRight, CircleCheck as CheckCircle2, Clock, TriangleAlert as AlertTriangle, Phone, Mail, CalendarDays, FileCheck } from 'lucide-react';
+import { Users, FileText, TrendingUp, DollarSign, Plus, ArrowRight, CircleCheck as CheckCircle2, Clock, TriangleAlert as AlertTriangle, Phone, Mail, CalendarDays, FileCheck, Upload } from 'lucide-react';
+import { BulkClientImportDialog } from '@/components/forms/bulk-client-import';
 
 interface DashboardStats {
   totalClients: number;
@@ -31,6 +32,7 @@ export default function DashboardPage() {
   const [recentActivities, setRecentActivities] = useState<(Activity & { client: Client })[]>([]);
   const [dealsByStage, setDealsByStage] = useState<Record<string, { count: number; value: number }>>({});
   const [loading, setLoading] = useState(true);
+  const [showImport, setShowImport] = useState(false);
 
   useEffect(() => {
     loadDashboard();
@@ -114,6 +116,10 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => setShowImport(true)}>
+            <Upload className="mr-1 h-4 w-4" />
+            Import
+          </Button>
           <Button asChild size="sm" className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
             <Link href="/clients?new=true">
               <Plus className="mr-1 h-4 w-4" />
@@ -346,6 +352,12 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <BulkClientImportDialog
+        open={showImport}
+        onOpenChange={setShowImport}
+        onComplete={loadDashboard}
+      />
     </div>
   );
 }
