@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
-import { Upload, FileText, CheckCircle2, XCircle, Trash2, File, Image, FileSpreadsheet, X } from 'lucide-react';
+import { Upload, FileText, CircleCheck as CheckCircle2, Circle as XCircle, Trash2, File, Image, FileSpreadsheet, X } from 'lucide-react';
 
 interface QueuedFile {
   file: File;

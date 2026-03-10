@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
-import { Upload, FileSpreadsheet, CheckCircle2, XCircle, AlertTriangle, Download, X } from 'lucide-react';
+import { Upload, FileSpreadsheet, CircleCheck as CheckCircle2, Circle as XCircle, TriangleAlert as AlertTriangle, Download, X } from 'lucide-react';
 
 interface ParsedClient {
   first_name: string;
