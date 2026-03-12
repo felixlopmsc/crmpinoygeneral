@@ -18,10 +18,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Plus, Search, Phone, Mail, MapPin, Filter, Zap, Upload } from 'lucide-react';
+import { Plus, Search, Phone, Mail, MapPin, Filter, Zap, Upload, Flame, Clock, Moon, DollarSign, Sparkles, TriangleAlert as AlertTriangle, X } from 'lucide-react';
 import { getInitials } from '@/lib/format';
 import { formatPhoneInput, formatZipInput, US_STATES } from '@/lib/form-autocomplete';
 import { BulkClientImportDialog } from '@/components/forms/bulk-client-import';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const statusColors: Record<string, string> = {
   Lead: 'bg-blue-100 text-blue-700',
@@ -29,6 +30,26 @@ const statusColors: Record<string, string> = {
   Inactive: 'bg-gray-100 text-gray-700',
   Archived: 'bg-red-100 text-red-700',
 };
+
+type SmartFilterKey = 'hotLeads' | 'expiringSoon' | 'noActivity' | 'highValue' | 'newThisWeek' | 'missingInfo';
+
+interface SmartFilterCounts {
+  hotLeads: number;
+  expiringSoon: number;
+  noActivity: number;
+  highValue: number;
+  newThisWeek: number;
+  missingInfo: number;
+}
+
+const SMART_FILTERS: { key: SmartFilterKey; label: string; icon: any; color: string; activeColor: string; description: string }[] = [
+  { key: 'hotLeads', label: 'Hot Leads', icon: Flame, color: 'text-orange-600', activeColor: 'bg-orange-50 border-orange-300 text-orange-700', description: 'Leads created in the last 7 days' },
+  { key: 'expiringSoon', label: 'Expiring Soon', icon: Clock, color: 'text-amber-600', activeColor: 'bg-amber-50 border-amber-300 text-amber-700', description: 'Clients with policies expiring in 60 days' },
+  { key: 'noActivity', label: 'No Activity', icon: Moon, color: 'text-gray-500', activeColor: 'bg-gray-100 border-gray-400 text-gray-700', description: 'No activity logged in the last 30 days' },
+  { key: 'highValue', label: 'High Value', icon: DollarSign, color: 'text-emerald-600', activeColor: 'bg-emerald-50 border-emerald-300 text-emerald-700', description: 'Total active premiums over $2,000/year' },
+  { key: 'newThisWeek', label: 'New This Week', icon: Sparkles, color: 'text-blue-600', activeColor: 'bg-blue-50 border-blue-300 text-blue-700', description: 'Added in the last 7 days' },
+  { key: 'missingInfo', label: 'Missing Info', icon: AlertTriangle, color: 'text-red-500', activeColor: 'bg-red-50 border-red-300 text-red-700', description: 'Missing phone, email, or address' },
+];
 
 export default function ClientsPage() {
   const { user, session } = useAuth();
@@ -40,6 +61,74 @@ export default function ClientsPage() {
   const [showForm, setShowForm] = useState(searchParams.get('new') === 'true');
   const [showImport, setShowImport] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [activeFilters, setActiveFilters] = useState<Set<SmartFilterKey>>(new Set());
+  const [filterCounts, setFilterCounts] = useState<SmartFilterCounts>({ hotLeads: 0, expiringSoon: 0, noActivity: 0, highValue: 0, newThisWeek: 0, missingInfo: 0 });
+  const [filterClientIds, setFilterClientIds] = useState<Record<SmartFilterKey, Set<string>>>({
+    hotLeads: new Set(), expiringSoon: new Set(), noActivity: new Set(),
+    highValue: new Set(), newThisWeek: new Set(), missingInfo: new Set(),
+  });
+  const [countsLoading, setCountsLoading] = useState(true);
+
+  const loadFilterCounts = useCallback(async () => {
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const sixtyDaysFromNow = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const today = now.toISOString().split('T')[0];
+
+    const [hotLeadsRes, expiringRes, allClientsRes, activitiesRes, highValueRes] = await Promise.all([
+      supabase.from('clients').select('id').eq('status', 'Lead').gte('created_at', sevenDaysAgo),
+      supabase.from('policies').select('client_id').eq('status', 'Active').gte('expiration_date', today).lte('expiration_date', sixtyDaysFromNow),
+      supabase.from('clients').select('id, phone, email, address_street, created_at'),
+      supabase.from('activities').select('client_id, activity_date').order('activity_date', { ascending: false }),
+      supabase.from('policies').select('client_id, annual_premium').eq('status', 'Active'),
+    ]);
+
+    const hotLeadIds = new Set((hotLeadsRes.data || []).map((r: any) => r.id));
+
+    const expiringClientIds = new Set((expiringRes.data || []).map((r: any) => r.client_id));
+
+    const allClients = allClientsRes.data || [];
+    const newThisWeekIds = new Set(allClients.filter((c: any) => c.created_at >= sevenDaysAgo).map((c: any) => c.id));
+    const missingInfoIds = new Set(allClients.filter((c: any) => !c.phone || !c.email || !c.address_street).map((c: any) => c.id));
+
+    const lastActivityByClient: Record<string, string> = {};
+    (activitiesRes.data || []).forEach((a: any) => {
+      if (!lastActivityByClient[a.client_id] || a.activity_date > lastActivityByClient[a.client_id]) {
+        lastActivityByClient[a.client_id] = a.activity_date;
+      }
+    });
+    const allClientIds = new Set(allClients.map((c: any) => c.id));
+    const noActivityIds = new Set<string>();
+    allClientIds.forEach((cid) => {
+      const last = lastActivityByClient[cid];
+      if (!last || last < thirtyDaysAgo) noActivityIds.add(cid);
+    });
+
+    const premiumByClient: Record<string, number> = {};
+    (highValueRes.data || []).forEach((p: any) => {
+      premiumByClient[p.client_id] = (premiumByClient[p.client_id] || 0) + (p.annual_premium || 0);
+    });
+    const highValueIds = new Set(Object.entries(premiumByClient).filter(([, v]) => v > 2000).map(([k]) => k));
+
+    setFilterCounts({
+      hotLeads: hotLeadIds.size,
+      expiringSoon: expiringClientIds.size,
+      noActivity: noActivityIds.size,
+      highValue: highValueIds.size,
+      newThisWeek: newThisWeekIds.size,
+      missingInfo: missingInfoIds.size,
+    });
+    setFilterClientIds({
+      hotLeads: hotLeadIds,
+      expiringSoon: expiringClientIds,
+      noActivity: noActivityIds,
+      highValue: highValueIds,
+      newThisWeek: newThisWeekIds,
+      missingInfo: missingInfoIds,
+    });
+    setCountsLoading(false);
+  }, []);
 
   const loadClients = useCallback(async () => {
     const { data: { session: currentSession } } = await supabase.auth.getSession();
@@ -61,16 +150,59 @@ export default function ClientsPage() {
       query = query.or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`);
     }
 
-    const { data } = await query.limit(50);
+    if (activeFilters.size > 0) {
+      let matchingIds: Set<string> | null = null;
+      activeFilters.forEach((filterKey) => {
+        const ids = filterClientIds[filterKey];
+        if (matchingIds === null) {
+          matchingIds = new Set(ids);
+        } else {
+          const intersection = new Set<string>();
+          matchingIds.forEach((id) => { if (ids.has(id)) intersection.add(id); });
+          matchingIds = intersection;
+        }
+      });
+
+      if (matchingIds && (matchingIds as Set<string>).size > 0) {
+        query = query.in('id', Array.from(matchingIds as Set<string>));
+      } else {
+        setClients([]);
+        setLoading(false);
+        return;
+      }
+    }
+
+    const { data } = await query.limit(100);
     setClients(data || []);
     setLoading(false);
-  }, [search, statusFilter]);
+  }, [search, statusFilter, activeFilters, filterClientIds]);
+
+  useEffect(() => {
+    if (session) {
+      loadFilterCounts();
+      const interval = setInterval(loadFilterCounts, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [session, loadFilterCounts]);
 
   useEffect(() => {
     if (session) {
       loadClients();
     }
   }, [loadClients, session]);
+
+  const toggleFilter = (key: SmartFilterKey) => {
+    setActiveFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const clearFilters = () => {
+    setActiveFilters(new Set());
+  };
 
   const handleSave = async (formData: Partial<Client>) => {
     if (editingClient) {
@@ -148,6 +280,49 @@ export default function ClientsPage() {
         </Select>
       </div>
 
+      <TooltipProvider delayDuration={300}>
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          {SMART_FILTERS.map((f) => {
+            const isActive = activeFilters.has(f.key);
+            const count = filterCounts[f.key];
+            return (
+              <Tooltip key={f.key}>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => toggleFilter(f.key)}
+                    className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all ${
+                      isActive
+                        ? f.activeColor
+                        : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-muted/50'
+                    }`}
+                  >
+                    <f.icon className={`h-3.5 w-3.5 ${isActive ? '' : f.color}`} />
+                    {f.label}
+                    {!countsLoading && (
+                      <Badge variant="secondary" className={`ml-0.5 h-4 min-w-[16px] px-1 text-[10px] ${isActive ? 'bg-white/60' : ''}`}>
+                        {count}
+                      </Badge>
+                    )}
+                    {countsLoading && (
+                      <span className="ml-0.5 h-3 w-4 animate-pulse rounded bg-muted inline-block" />
+                    )}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">{f.description}</TooltipContent>
+              </Tooltip>
+            );
+          })}
+          {activeFilters.size > 0 && (
+            <button
+              onClick={clearFilters}
+              className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-500 hover:bg-muted/50 hover:text-gray-700 transition-colors whitespace-nowrap"
+            >
+              <X className="h-3 w-3" /> Clear
+            </button>
+          )}
+        </div>
+      </TooltipProvider>
+
       {loading ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -160,11 +335,25 @@ export default function ClientsPage() {
             <div className="rounded-full bg-muted p-4 mb-4">
               <Search className="h-8 w-8 text-muted-foreground" />
             </div>
-            <p className="text-lg font-medium">No clients found</p>
-            <p className="text-sm text-muted-foreground mt-1">Add your first client to get started</p>
-            <Button onClick={() => setShowForm(true)} className="mt-4 bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
-              <Plus className="mr-1 h-4 w-4" /> Add Client
-            </Button>
+            {activeFilters.size > 0 ? (
+              <>
+                <p className="text-lg font-medium">No matching clients</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  No clients match the active filters: {Array.from(activeFilters).map((k) => SMART_FILTERS.find((f) => f.key === k)?.label).join(', ')}
+                </p>
+                <Button onClick={clearFilters} variant="outline" className="mt-4">
+                  <X className="mr-1 h-4 w-4" /> Clear Filters
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="text-lg font-medium">No clients found</p>
+                <p className="text-sm text-muted-foreground mt-1">Add your first client to get started</p>
+                <Button onClick={() => setShowForm(true)} className="mt-4 bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
+                  <Plus className="mr-1 h-4 w-4" /> Add Client
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       ) : (

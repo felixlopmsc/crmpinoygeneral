@@ -21,7 +21,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { ArrowLeft, Phone, Mail, MapPin, Calendar, Plus, Zap, FileText, TrendingUp, Shield, SquareCheck as CheckSquare, Clock, TriangleAlert as AlertTriangle, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, MapPin, Calendar, Plus, Zap, FileText, TrendingUp, Shield, SquareCheck as CheckSquare, Clock, TriangleAlert as AlertTriangle, ExternalLink, StickyNote, CalendarPlus, Menu } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const statusColors: Record<string, string> = {
   Lead: 'bg-blue-100 text-blue-700',
@@ -49,6 +55,7 @@ export default function ClientProfilePage() {
   const [claims, setClaims] = useState<(Claim & { policy?: Policy })[]>([]);
   const [loading, setLoading] = useState(true);
   const [showActivityForm, setShowActivityForm] = useState(false);
+  const [showNoteForm, setShowNoteForm] = useState(false);
   const [showPolicyForm, setShowPolicyForm] = useState(false);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showTaskTemplates, setShowTaskTemplates] = useState(false);
@@ -175,19 +182,70 @@ export default function ClientProfilePage() {
                 )}
               </div>
             </div>
-            <div className="flex gap-2 shrink-0">
-              {client.phone && (
-                <Button size="sm" variant="outline" asChild>
-                  <a href={`tel:${client.phone}`}><Phone className="mr-1 h-3.5 w-3.5" /> Call</a>
-                </Button>
-              )}
-              <Button size="sm" variant="outline" asChild>
-                <a href={`mailto:${client.email}`}><Mail className="mr-1 h-3.5 w-3.5" /> Email</a>
-              </Button>
-            </div>
           </div>
         </CardContent>
       </Card>
+
+      <div className="sticky top-0 z-30 -mx-4 md:-mx-6 px-4 md:px-6 py-3 bg-background/95 backdrop-blur-sm border-b border-border">
+        <div className="hidden sm:flex items-center gap-2">
+          {client.phone ? (
+            <Button size="sm" asChild className="bg-[#10B981] hover:bg-[#059669] text-white">
+              <a href={`tel:${client.phone}`}><Phone className="mr-1.5 h-3.5 w-3.5" /> Call</a>
+            </Button>
+          ) : (
+            <Button size="sm" disabled className="opacity-50"><Phone className="mr-1.5 h-3.5 w-3.5" /> Call</Button>
+          )}
+          {client.email ? (
+            <Button size="sm" variant="outline" asChild>
+              <a href={`mailto:${client.email}`}><Mail className="mr-1.5 h-3.5 w-3.5" /> Email</a>
+            </Button>
+          ) : (
+            <Button size="sm" variant="outline" disabled className="opacity-50"><Mail className="mr-1.5 h-3.5 w-3.5" /> Email</Button>
+          )}
+          <div className="w-px h-6 bg-border" />
+          <Button size="sm" variant="outline" onClick={() => setShowNoteForm(true)}>
+            <StickyNote className="mr-1.5 h-3.5 w-3.5" /> Add Note
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => setShowTaskForm(true)}>
+            <CalendarPlus className="mr-1.5 h-3.5 w-3.5" /> Schedule
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => setShowPolicyForm(true)}>
+            <FileText className="mr-1.5 h-3.5 w-3.5" /> Add Policy
+          </Button>
+        </div>
+        <div className="flex sm:hidden items-center gap-2">
+          {client.phone ? (
+            <Button size="sm" asChild className="bg-[#10B981] hover:bg-[#059669] text-white flex-1">
+              <a href={`tel:${client.phone}`}><Phone className="mr-1.5 h-3.5 w-3.5" /> Call</a>
+            </Button>
+          ) : (
+            <Button size="sm" disabled className="opacity-50 flex-1"><Phone className="mr-1.5 h-3.5 w-3.5" /> Call</Button>
+          )}
+          {client.email ? (
+            <Button size="sm" variant="outline" asChild className="flex-1">
+              <a href={`mailto:${client.email}`}><Mail className="mr-1.5 h-3.5 w-3.5" /> Email</a>
+            </Button>
+          ) : (
+            <Button size="sm" variant="outline" disabled className="opacity-50 flex-1"><Mail className="mr-1.5 h-3.5 w-3.5" /> Email</Button>
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" variant="outline"><Menu className="h-4 w-4" /></Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuItem onClick={() => setShowNoteForm(true)} className="gap-2">
+                <StickyNote className="h-3.5 w-3.5" /> Add Note
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowTaskForm(true)} className="gap-2">
+                <CalendarPlus className="h-3.5 w-3.5" /> Schedule
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowPolicyForm(true)} className="gap-2">
+                <FileText className="h-3.5 w-3.5" /> Add Policy
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
 
       <Tabs defaultValue="policies">
         <TabsList className="w-full justify-start overflow-x-auto">
@@ -419,6 +477,14 @@ export default function ClientProfilePage() {
         userId={user?.id || ''}
         onSaved={loadClient}
       />
+
+      <QuickNoteDialog
+        open={showNoteForm}
+        onOpenChange={setShowNoteForm}
+        clientId={client.id}
+        userId={user?.id || ''}
+        onSaved={loadClient}
+      />
     </div>
   );
 }
@@ -475,6 +541,49 @@ function ActivityFormDialog({ open, onOpenChange, clientId, userId, onSaved }: {
   );
 }
 
+
+function QuickNoteDialog({ open, onOpenChange, clientId, userId, onSaved }: { open: boolean; onOpenChange: (o: boolean) => void; clientId: string; userId: string; onSaved: () => void }) {
+  const [saving, setSaving] = useState(false);
+  const [note, setNote] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    const { error } = await supabase.from('activities').insert({
+      client_id: clientId,
+      activity_type: 'Note',
+      subject: note.slice(0, 80) + (note.length > 80 ? '...' : ''),
+      description: note,
+      activity_date: new Date().toISOString(),
+      created_by: userId,
+    });
+    if (error) toast.error(error.message);
+    else { toast.success('Note added'); onOpenChange(false); setNote(''); onSaved(); }
+    setSaving(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader><DialogTitle className="flex items-center gap-2"><StickyNote className="h-4 w-4 text-[#1E40AF]" /> Quick Note</DialogTitle></DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Type your note here..."
+            rows={4}
+            required
+            autoFocus
+          />
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="submit" className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white" disabled={saving}>{saving ? 'Saving...' : 'Save Note'}</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 function TaskFormDialog({ open, onOpenChange, clientId, userId, onSaved }: { open: boolean; onOpenChange: (o: boolean) => void; clientId: string; userId: string; onSaved: () => void }) {
   const [saving, setSaving] = useState(false);
