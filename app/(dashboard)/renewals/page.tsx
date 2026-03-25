@@ -11,17 +11,32 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/format';
 import { toast } from 'sonner';
-import { Phone, Mail, CalendarDays, TriangleAlert as AlertTriangle, Clock, CircleCheck as CheckCircle2, Circle as XCircle } from 'lucide-react';
+import { Phone, Mail, CalendarDays, TriangleAlert as AlertTriangle, Clock, CircleCheck as CheckCircle2, Circle as XCircle, Send, RefreshCw, MailCheck, MailX } from 'lucide-react';
 
 interface RenewalPolicy extends Policy {
   client: Client;
 }
 
+interface RenewalLog {
+  id: string;
+  reminder_type: string;
+  email_sent_to: string;
+  email_status: string;
+  email_subject: string;
+  error_message: string | null;
+  sent_at: string;
+  client: Client;
+  policy: Policy;
+}
+
 export default function RenewalsPage() {
   const [policies, setPolicies] = useState<RenewalPolicy[]>([]);
+  const [emailLogs, setEmailLogs] = useState<RenewalLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [triggering, setTriggering] = useState(false);
+  const [sendingForPolicy, setSendingForPolicy] = useState<string | null>(null);
 
-  useEffect(() => { loadRenewals(); }, []);
+  useEffect(() => { loadRenewals(); loadEmailLogs(); }, []);
 
   async function loadRenewals() {
     const today = new Date().toISOString().split('T')[0];
@@ -39,6 +54,70 @@ export default function RenewalsPage() {
     setLoading(false);
   }
 
+  async function loadEmailLogs() {
+    const { data } = await supabase
+      .from('renewal_log')
+      .select('*, client:clients(id, first_name, last_name), policy:policies(id, policy_type, carrier, policy_number)')
+      .order('sent_at', { ascending: false })
+      .limit(50);
+
+    setEmailLogs((data as any) || []);
+  }
+
+  async function triggerRenewalCheck() {
+    setTriggering(true);
+    try {
+      const apiUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/check-renewals`;
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      const result = await response.json();
+      if (response.ok) {
+        toast.success(`Renewal check complete: ${result.emails_sent} emails sent, ${result.checked} policies checked`);
+        loadRenewals();
+        loadEmailLogs();
+      } else {
+        toast.error(result.error || 'Failed to run renewal check');
+      }
+    } catch {
+      toast.error('Failed to connect to renewal service');
+    } finally {
+      setTriggering(false);
+    }
+  }
+
+  async function sendRenewalEmail(policyId: string) {
+    setSendingForPolicy(policyId);
+    try {
+      const apiUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/check-renewals`;
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ policy_id: policyId }),
+      });
+      const result = await response.json();
+      if (response.ok && result.emails_sent > 0) {
+        toast.success('Renewal email sent successfully');
+        loadEmailLogs();
+      } else if (response.ok && result.emails_sent === 0) {
+        toast.info('No new reminders to send for this policy');
+      } else {
+        toast.error(result.error || 'Failed to send renewal email');
+      }
+    } catch {
+      toast.error('Failed to connect to renewal service');
+    } finally {
+      setSendingForPolicy(null);
+    }
+  }
+
   const groups = [
     { label: 'Urgent (Next 7 Days)', min: 0, max: 7, color: 'border-l-red-500', bg: 'bg-red-50', icon: AlertTriangle, iconColor: 'text-red-600' },
     { label: 'This Month (8-30 Days)', min: 8, max: 30, color: 'border-l-amber-500', bg: 'bg-amber-50', icon: Clock, iconColor: 'text-amber-600' },
@@ -54,9 +133,24 @@ export default function RenewalsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Renewals</h1>
-        <p className="text-sm text-muted-foreground">{policies.length} policies expiring in next 90 days</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Renewals</h1>
+          <p className="text-sm text-muted-foreground">{policies.length} policies expiring in next 90 days</p>
+        </div>
+        <Button
+          onClick={triggerRenewalCheck}
+          disabled={triggering}
+          className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white"
+          size="sm"
+        >
+          {triggering ? (
+            <RefreshCw className="mr-1.5 h-4 w-4 animate-spin" />
+          ) : (
+            <Send className="mr-1.5 h-4 w-4" />
+          )}
+          {triggering ? 'Running Check...' : 'Run Renewal Check'}
+        </Button>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -126,6 +220,19 @@ export default function RenewalsPage() {
                           </div>
                         </div>
                         <div className="flex gap-2 shrink-0">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => { e.preventDefault(); sendRenewalEmail(policy.id); }}
+                            disabled={sendingForPolicy === policy.id}
+                            title="Send renewal reminder"
+                          >
+                            {sendingForPolicy === policy.id ? (
+                              <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Send className="h-3.5 w-3.5" />
+                            )}
+                          </Button>
                           {(policy.client as any)?.phone && (
                             <Button size="sm" variant="outline" asChild>
                               <a href={`tel:${(policy.client as any).phone}`}><Phone className="h-3.5 w-3.5" /></a>
@@ -150,6 +257,60 @@ export default function RenewalsPage() {
 
       {policies.length === 0 && (
         <Card><CardContent className="py-16 text-center"><CheckCircle2 className="h-10 w-10 text-emerald-500 mx-auto mb-2" /><p className="text-lg font-medium">No upcoming renewals</p><p className="text-sm text-muted-foreground">All policies are up to date for the next 90 days</p></CardContent></Card>
+      )}
+
+      {emailLogs.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              Email Log
+              <Badge variant="secondary" className="ml-1">{emailLogs.length}</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {emailLogs.map((log) => (
+                <div key={log.id} className="flex items-center gap-3 rounded-lg border p-3">
+                  <div className={`rounded-full p-1.5 shrink-0 ${log.email_status === 'sent' ? 'bg-emerald-100' : 'bg-red-100'}`}>
+                    {log.email_status === 'sent' ? (
+                      <MailCheck className="h-3.5 w-3.5 text-emerald-600" />
+                    ) : (
+                      <MailX className="h-3.5 w-3.5 text-red-600" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{log.email_subject}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-muted-foreground">
+                        To: {log.email_sent_to}
+                      </span>
+                      {log.client && (
+                        <span className="text-xs text-muted-foreground">
+                          ({(log.client as any).first_name} {(log.client as any).last_name})
+                        </span>
+                      )}
+                    </div>
+                    {log.error_message && (
+                      <p className="text-xs text-red-500 mt-0.5 truncate">{log.error_message}</p>
+                    )}
+                  </div>
+                  <div className="text-right shrink-0">
+                    <Badge
+                      variant={log.email_status === 'sent' ? 'secondary' : 'destructive'}
+                      className="text-[10px]"
+                    >
+                      {log.reminder_type.replace('_', ' ')}
+                    </Badge>
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      {formatDate(log.sent_at.split('T')[0])}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

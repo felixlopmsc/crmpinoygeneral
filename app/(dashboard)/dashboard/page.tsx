@@ -4,13 +4,14 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
-import { formatCurrency, formatDate, formatRelativeDate, getGreeting, daysUntil } from '@/lib/format';
-import type { Task, Deal, Policy, Activity, Client } from '@/lib/types';
+import { formatCurrency, formatRelativeDate, getGreeting, daysUntil } from '@/lib/format';
+import type { Task, Activity, Client } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, FileText, TrendingUp, DollarSign, Plus, ArrowRight, CircleCheck as CheckCircle2, Clock, TriangleAlert as AlertTriangle, Phone, Mail, CalendarDays, FileCheck, Upload } from 'lucide-react';
+import { Users, FileText, TrendingUp, DollarSign, Plus, ArrowRight, CircleCheck as CheckCircle2, Clock, TriangleAlert as AlertTriangle, Phone, Mail, CalendarDays, Upload } from 'lucide-react';
 import { BulkClientImportDialog } from '@/components/forms/bulk-client-import';
+import { UpcomingRenewalsWidget } from '@/components/dashboard/upcoming-renewals-widget';
 
 interface DashboardStats {
   totalClients: number;
@@ -28,7 +29,6 @@ export default function DashboardPage() {
     pendingCommissions: 0,
   });
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [upcomingRenewals, setUpcomingRenewals] = useState<(Policy & { client: Client })[]>([]);
   const [recentActivities, setRecentActivities] = useState<(Activity & { client: Client })[]>([]);
   const [dealsByStage, setDealsByStage] = useState<Record<string, { count: number; value: number }>>({});
   const [loading, setLoading] = useState(true);
@@ -39,14 +39,13 @@ export default function DashboardPage() {
   }, []);
 
   async function loadDashboard() {
-    const [clientsRes, policiesRes, dealsRes, commissionsRes, tasksRes, renewalsRes, activitiesRes] =
+    const [clientsRes, policiesRes, dealsRes, commissionsRes, tasksRes, activitiesRes] =
       await Promise.all([
         supabase.from('clients').select('id', { count: 'exact', head: true }),
         supabase.from('policies').select('id', { count: 'exact', head: true }).eq('status', 'Active'),
         supabase.from('deals').select('*').eq('status', 'Open'),
         supabase.from('commissions').select('commission_amount').eq('payment_status', 'Pending'),
         supabase.from('tasks').select('*, client:clients(id, first_name, last_name)').in('status', ['To Do', 'In Progress']).order('due_date', { ascending: true }).limit(5),
-        supabase.from('policies').select('*, client:clients(id, first_name, last_name, email, phone)').eq('status', 'Active').gte('expiration_date', new Date().toISOString().split('T')[0]).lte('expiration_date', new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]).order('expiration_date', { ascending: true }).limit(8),
         supabase.from('activities').select('*, client:clients(id, first_name, last_name)').order('activity_date', { ascending: false }).limit(10),
       ]);
 
@@ -69,7 +68,6 @@ export default function DashboardPage() {
       pendingCommissions,
     });
     setTasks((tasksRes.data as any) || []);
-    setUpcomingRenewals((renewalsRes.data as any) || []);
     setRecentActivities((activitiesRes.data as any) || []);
     setDealsByStage(stages);
     setLoading(false);
@@ -204,56 +202,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-base font-semibold">Upcoming Renewals</CardTitle>
-            <Button asChild variant="ghost" size="sm" className="text-xs">
-              <Link href="/renewals">View All <ArrowRight className="ml-1 h-3 w-3" /></Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {upcomingRenewals.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <FileCheck className="h-10 w-10 text-[#10B981] mb-2" />
-                <p className="text-sm font-medium">No upcoming renewals</p>
-                <p className="text-xs text-muted-foreground">All policies are up to date</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {upcomingRenewals.map((policy) => {
-                  const days = daysUntil(policy.expiration_date);
-                  return (
-                    <Link key={policy.id} href={`/clients/${policy.client_id}`}>
-                      <div className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50">
-                        <div className={`rounded-lg p-2 ${
-                          days <= 7 ? 'bg-red-100' : days <= 30 ? 'bg-amber-100' : 'bg-blue-50'
-                        }`}>
-                          <CalendarDays className={`h-4 w-4 ${
-                            days <= 7 ? 'text-red-600' : days <= 30 ? 'text-amber-600' : 'text-[#1E40AF]'
-                          }`} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {(policy.client as any)?.first_name} {(policy.client as any)?.last_name}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {policy.policy_type} - {policy.carrier}
-                          </p>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <p className={`text-xs font-medium ${days <= 7 ? 'text-red-600' : days <= 30 ? 'text-amber-600' : 'text-muted-foreground'}`}>
-                            {days <= 0 ? 'Expired' : `${days}d left`}
-                          </p>
-                          <p className="text-xs text-muted-foreground">{formatCurrency(policy.annual_premium)}</p>
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <UpcomingRenewalsWidget />
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-3">
