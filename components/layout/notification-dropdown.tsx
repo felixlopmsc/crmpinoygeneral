@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import { formatDistanceToNow } from 'date-fns';
+import { useRouter } from 'next/navigation';
 import { Bell, CircleCheck as CheckCircle2, Clock, TriangleAlert as AlertTriangle, Users, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,10 +21,12 @@ interface NotificationItem {
   description: string;
   timestamp: string;
   read: boolean;
+  href: string;
 }
 
 export default function NotificationDropdown() {
   const { session } = useAuth();
+  const router = useRouter();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [open, setOpen] = useState(false);
 
@@ -63,6 +66,7 @@ export default function NotificationDropdown() {
           description: task.title,
           timestamp: task.due_date || new Date().toISOString(),
           read: false,
+          href: '/tasks',
         });
       });
     }
@@ -78,6 +82,7 @@ export default function NotificationDropdown() {
           description: `${name} - renews ${formatDistanceToNow(new Date(renewal.renewal_date), { addSuffix: true })}`,
           timestamp: renewal.renewal_date,
           read: false,
+          href: renewal.client_id ? `/clients/${renewal.client_id}` : '/renewals',
         });
       });
     }
@@ -91,6 +96,7 @@ export default function NotificationDropdown() {
           description: `${client.first_name} ${client.last_name} added ${formatDistanceToNow(new Date(client.created_at), { addSuffix: true })}`,
           timestamp: client.created_at,
           read: false,
+          href: `/clients/${client.id}`,
         });
       });
     }
@@ -154,9 +160,13 @@ export default function NotificationDropdown() {
                 const Icon = iconMap[item.type];
                 const colors = colorMap[item.type];
                 return (
-                  <div
+                  <button
                     key={item.id}
-                    className="flex items-start gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
+                    onClick={() => {
+                      setOpen(false);
+                      router.push(item.href);
+                    }}
+                    className="flex w-full items-start gap-3 px-4 py-3 hover:bg-muted/50 transition-colors text-left cursor-pointer"
                   >
                     <div className={`mt-0.5 rounded-full p-1.5 ${colors}`}>
                       <Icon className="h-3.5 w-3.5" />
@@ -167,7 +177,7 @@ export default function NotificationDropdown() {
                         {item.description}
                       </p>
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
