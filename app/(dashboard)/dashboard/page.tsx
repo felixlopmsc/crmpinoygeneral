@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Users, FileText, TrendingUp, DollarSign, Plus, ArrowRight, CircleCheck as CheckCircle2, Clock, TriangleAlert as AlertTriangle, Phone, Mail, CalendarDays, Upload } from 'lucide-react';
 import { BulkClientImportDialog } from '@/components/forms/bulk-client-import';
 import { UpcomingRenewalsWidget } from '@/components/dashboard/upcoming-renewals-widget';
+import { CrossSellWidget } from '@/components/dashboard/cross-sell-widget';
 
 interface DashboardStats {
   totalClients: number;
@@ -301,6 +302,8 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <CrossSellWidget />
 
       <BulkClientImportDialog
         open={showImport}

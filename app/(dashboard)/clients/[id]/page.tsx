@@ -21,7 +21,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { ArrowLeft, Phone, Mail, MapPin, Calendar, Plus, Zap, FileText, TrendingUp, Shield, SquareCheck as CheckSquare, Clock, TriangleAlert as AlertTriangle, ExternalLink, StickyNote, CalendarPlus, Menu } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, MapPin, Calendar, Plus, Zap, FileText, TrendingUp, Shield, SquareCheck as CheckSquare, Clock, TriangleAlert as AlertTriangle, ExternalLink, StickyNote, CalendarPlus, Menu, DollarSign, Target } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,19 +59,21 @@ export default function ClientProfilePage() {
   const [showPolicyForm, setShowPolicyForm] = useState(false);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showTaskTemplates, setShowTaskTemplates] = useState(false);
+  const [crossSellOpps, setCrossSellOpps] = useState<any[]>([]);
 
   useEffect(() => {
     loadClient();
   }, [id]);
 
   async function loadClient() {
-    const [clientRes, policiesRes, activitiesRes, dealsRes, tasksRes, claimsRes] = await Promise.all([
+    const [clientRes, policiesRes, activitiesRes, dealsRes, tasksRes, claimsRes, crossSellRes] = await Promise.all([
       supabase.from('clients').select('*').eq('id', id).maybeSingle(),
       supabase.from('policies').select('*').eq('client_id', id).order('expiration_date', { ascending: false }),
       supabase.from('activities').select('*').eq('client_id', id).order('activity_date', { ascending: false }).limit(20),
       supabase.from('deals').select('*').eq('client_id', id).order('created_at', { ascending: false }),
       supabase.from('tasks').select('*').eq('related_client_id', id).order('due_date', { ascending: true }),
       supabase.from('claims').select('*, policy:policies(id, policy_number, policy_type, carrier)').eq('client_id', id).order('claim_date', { ascending: false }),
+      supabase.from('cross_sell_opportunities').select('*').eq('client_id', id).eq('status', 'open').order('estimated_value', { ascending: false }),
     ]);
 
     setClient(clientRes.data);
@@ -80,6 +82,7 @@ export default function ClientProfilePage() {
     setDeals(dealsRes.data || []);
     setTasks(tasksRes.data || []);
     setClaims((claimsRes.data as any) || []);
+    setCrossSellOpps(crossSellRes.data || []);
     setLoading(false);
   }
 
@@ -88,15 +91,7 @@ export default function ClientProfilePage() {
     return p.status === 'Active' && days >= 0 && days <= 30;
   });
 
-  const coverageGaps = (() => {
-    const types = new Set(policies.filter((p) => p.status === 'Active').map((p) => p.policy_type));
-    const suggestions: string[] = [];
-    if (types.has('Auto') && !types.has('Umbrella')) suggestions.push('Umbrella');
-    if (types.has('Home') && !types.has('Umbrella')) suggestions.push('Umbrella');
-    if (!types.has('Life') && types.size > 0) suggestions.push('Life');
-    if (types.has('Auto') && !types.has('Home') && !types.has('Renters')) suggestions.push('Home/Renters');
-    return suggestions.filter((v, i, a) => a.indexOf(v) === i);
-  })();
+  const crossSellTotal = crossSellOpps.reduce((sum: number, o: any) => sum + (o.estimated_value || 0), 0);
 
   if (loading) {
     return (
@@ -134,15 +129,46 @@ export default function ClientProfilePage() {
         </div>
       )}
 
-      {coverageGaps.length > 0 && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 flex items-center gap-3">
-          <TrendingUp className="h-5 w-5 text-[#1E40AF] shrink-0" />
-          <p className="text-sm text-blue-800">
-            Cross-sell opportunity: Client may need <strong>{coverageGaps.join(', ')}</strong> coverage.
-          </p>
-          <Button size="sm" variant="outline" className="ml-auto shrink-0 text-xs" asChild>
-            <Link href={`/deals?new=true&client=${client.id}`}>Create Deal</Link>
-          </Button>
+      {crossSellOpps.length > 0 && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <TrendingUp className="h-5 w-5 text-[#10B981] shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-emerald-800">
+                {crossSellOpps.length} Cross-Sell Opportunit{crossSellOpps.length > 1 ? 'ies' : 'y'}
+              </p>
+              <p className="text-xs text-emerald-700">
+                Potential additional premium: {formatCurrency(crossSellTotal)}/year
+              </p>
+            </div>
+            <Button size="sm" variant="outline" className="shrink-0 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-100" asChild>
+              <Link href={`/deals?new=true&client=${client.id}`}>Create Deal</Link>
+            </Button>
+          </div>
+          <div className="space-y-2">
+            {crossSellOpps.map((opp: any) => (
+              <div key={opp.id} className="flex items-center gap-3 rounded-md bg-white p-2.5 border border-emerald-100">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <Badge className={`text-[10px] ${
+                      opp.priority === 'high' ? 'bg-red-100 text-red-700' :
+                      opp.priority === 'medium' ? 'bg-amber-100 text-amber-700' :
+                      'bg-emerald-100 text-emerald-700'
+                    }`}>
+                      {opp.priority}
+                    </Badge>
+                    <span className="text-sm font-medium">{opp.recommended_coverage}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                    {opp.pitch_message}
+                  </p>
+                </div>
+                <span className="text-xs font-semibold text-[#10B981] shrink-0">
+                  +{formatCurrency(opp.estimated_value)}/yr
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

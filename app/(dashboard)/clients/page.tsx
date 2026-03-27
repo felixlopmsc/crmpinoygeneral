@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Plus, Search, Phone, Mail, MapPin, Filter, Zap, Upload, Flame, Clock, Moon, DollarSign, Sparkles, TriangleAlert as AlertTriangle, X } from 'lucide-react';
+import { Plus, Search, Phone, Mail, MapPin, Filter, Zap, Upload, Flame, Clock, Moon, DollarSign, Sparkles, TriangleAlert as AlertTriangle, X, TrendingUp } from 'lucide-react';
 import { getInitials } from '@/lib/format';
 import { formatPhoneInput, formatZipInput, US_STATES } from '@/lib/form-autocomplete';
 import { BulkClientImportDialog } from '@/components/forms/bulk-client-import';
@@ -31,7 +31,7 @@ const statusColors: Record<string, string> = {
   Archived: 'bg-red-100 text-red-700',
 };
 
-type SmartFilterKey = 'hotLeads' | 'expiringSoon' | 'noActivity' | 'highValue' | 'newThisWeek' | 'missingInfo';
+type SmartFilterKey = 'hotLeads' | 'expiringSoon' | 'noActivity' | 'highValue' | 'newThisWeek' | 'missingInfo' | 'crossSell';
 
 interface SmartFilterCounts {
   hotLeads: number;
@@ -40,6 +40,7 @@ interface SmartFilterCounts {
   highValue: number;
   newThisWeek: number;
   missingInfo: number;
+  crossSell: number;
 }
 
 const SMART_FILTERS: { key: SmartFilterKey; label: string; icon: any; color: string; activeColor: string; description: string }[] = [
@@ -49,6 +50,7 @@ const SMART_FILTERS: { key: SmartFilterKey; label: string; icon: any; color: str
   { key: 'highValue', label: 'High Value', icon: DollarSign, color: 'text-emerald-600', activeColor: 'bg-emerald-50 border-emerald-300 text-emerald-700', description: 'Total active premiums over $2,000/year' },
   { key: 'newThisWeek', label: 'New This Week', icon: Sparkles, color: 'text-blue-600', activeColor: 'bg-blue-50 border-blue-300 text-blue-700', description: 'Added in the last 7 days' },
   { key: 'missingInfo', label: 'Missing Info', icon: AlertTriangle, color: 'text-red-500', activeColor: 'bg-red-50 border-red-300 text-red-700', description: 'Missing phone, email, or address' },
+  { key: 'crossSell', label: 'Cross-Sell', icon: TrendingUp, color: 'text-teal-600', activeColor: 'bg-teal-50 border-teal-300 text-teal-700', description: 'Clients with open cross-sell opportunities' },
 ];
 
 export default function ClientsPage() {
@@ -62,10 +64,10 @@ export default function ClientsPage() {
   const [showImport, setShowImport] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [activeFilters, setActiveFilters] = useState<Set<SmartFilterKey>>(new Set());
-  const [filterCounts, setFilterCounts] = useState<SmartFilterCounts>({ hotLeads: 0, expiringSoon: 0, noActivity: 0, highValue: 0, newThisWeek: 0, missingInfo: 0 });
+  const [filterCounts, setFilterCounts] = useState<SmartFilterCounts>({ hotLeads: 0, expiringSoon: 0, noActivity: 0, highValue: 0, newThisWeek: 0, missingInfo: 0, crossSell: 0 });
   const [filterClientIds, setFilterClientIds] = useState<Record<SmartFilterKey, Set<string>>>({
     hotLeads: new Set(), expiringSoon: new Set(), noActivity: new Set(),
-    highValue: new Set(), newThisWeek: new Set(), missingInfo: new Set(),
+    highValue: new Set(), newThisWeek: new Set(), missingInfo: new Set(), crossSell: new Set(),
   });
   const [countsLoading, setCountsLoading] = useState(true);
 
@@ -76,12 +78,13 @@ export default function ClientsPage() {
     const sixtyDaysFromNow = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     const today = now.toISOString().split('T')[0];
 
-    const [hotLeadsRes, expiringRes, allClientsRes, activitiesRes, highValueRes] = await Promise.all([
+    const [hotLeadsRes, expiringRes, allClientsRes, activitiesRes, highValueRes, crossSellRes] = await Promise.all([
       supabase.from('clients').select('id').eq('status', 'Lead').gte('created_at', sevenDaysAgo),
       supabase.from('policies').select('client_id').eq('status', 'Active').gte('expiration_date', today).lte('expiration_date', sixtyDaysFromNow),
       supabase.from('clients').select('id, phone, email, address_street, created_at'),
       supabase.from('activities').select('client_id, activity_date').order('activity_date', { ascending: false }),
       supabase.from('policies').select('client_id, annual_premium').eq('status', 'Active'),
+      supabase.from('cross_sell_opportunities').select('client_id').eq('status', 'open'),
     ]);
 
     const hotLeadIds = new Set((hotLeadsRes.data || []).map((r: any) => r.id));
@@ -111,6 +114,8 @@ export default function ClientsPage() {
     });
     const highValueIds = new Set(Object.entries(premiumByClient).filter(([, v]) => v > 2000).map(([k]) => k));
 
+    const crossSellClientIds = new Set((crossSellRes.data || []).map((r: any) => r.client_id));
+
     setFilterCounts({
       hotLeads: hotLeadIds.size,
       expiringSoon: expiringClientIds.size,
@@ -118,6 +123,7 @@ export default function ClientsPage() {
       highValue: highValueIds.size,
       newThisWeek: newThisWeekIds.size,
       missingInfo: missingInfoIds.size,
+      crossSell: crossSellClientIds.size,
     });
     setFilterClientIds({
       hotLeads: hotLeadIds,
@@ -126,6 +132,7 @@ export default function ClientsPage() {
       highValue: highValueIds,
       newThisWeek: newThisWeekIds,
       missingInfo: missingInfoIds,
+      crossSell: crossSellClientIds,
     });
     setCountsLoading(false);
   }, []);
