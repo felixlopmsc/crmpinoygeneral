@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import { formatDistanceToNow } from 'date-fns';
 import { useRouter } from 'next/navigation';
-import { Bell, CircleCheck as CheckCircle2, Clock, TriangleAlert as AlertTriangle, Users, FileText } from 'lucide-react';
+import { Bell, CircleCheck as CheckCircle2, Clock, Users, FileText, X, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -13,6 +13,31 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+
+const DISMISSED_KEY = 'pgi_dismissed_notifications';
+
+function getDismissedIds(): Set<string> {
+  if (typeof window === 'undefined') return new Set();
+  try {
+    const raw = localStorage.getItem(DISMISSED_KEY);
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw));
+  } catch {
+    return new Set();
+  }
+}
+
+function saveDismissedIds(ids: Set<string>) {
+  try {
+    localStorage.setItem(DISMISSED_KEY, JSON.stringify(Array.from(ids)));
+  } catch {}
+}
 
 interface NotificationItem {
   id: string;
@@ -29,10 +54,16 @@ export default function NotificationDropdown() {
   const router = useRouter();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [open, setOpen] = useState(false);
+  const dismissedRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    dismissedRef.current = getDismissedIds();
+  }, []);
 
   const loadNotifications = useCallback(async () => {
     if (!session) return;
 
+    const dismissed = dismissedRef.current;
     const items: NotificationItem[] = [];
 
     const [tasksRes, renewalsRes, clientsRes] = await Promise.all([
@@ -58,9 +89,11 @@ export default function NotificationDropdown() {
 
     if (tasksRes.data) {
       tasksRes.data.forEach((task: any) => {
+        const id = `task-${task.id}`;
+        if (dismissed.has(id)) return;
         const isOverdue = task.due_date && new Date(task.due_date) < new Date();
         items.push({
-          id: `task-${task.id}`,
+          id,
           type: 'task',
           title: isOverdue ? 'Overdue Task' : 'Pending Task',
           description: task.title,
@@ -73,10 +106,12 @@ export default function NotificationDropdown() {
 
     if (renewalsRes.data) {
       renewalsRes.data.forEach((renewal: any) => {
+        const id = `renewal-${renewal.id}`;
+        if (dismissed.has(id)) return;
         const client = renewal.clients;
         const name = client ? `${client.first_name} ${client.last_name}` : 'Unknown';
         items.push({
-          id: `renewal-${renewal.id}`,
+          id,
           type: 'renewal',
           title: 'Upcoming Renewal',
           description: `${name} - renews ${formatDistanceToNow(new Date(renewal.renewal_date), { addSuffix: true })}`,
@@ -89,8 +124,10 @@ export default function NotificationDropdown() {
 
     if (clientsRes.data) {
       clientsRes.data.forEach((client: any) => {
+        const id = `client-${client.id}`;
+        if (dismissed.has(id)) return;
         items.push({
-          id: `client-${client.id}`,
+          id,
           type: 'client',
           title: 'New Lead',
           description: `${client.first_name} ${client.last_name} added ${formatDistanceToNow(new Date(client.created_at), { addSuffix: true })}`,
@@ -104,6 +141,19 @@ export default function NotificationDropdown() {
     items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     setNotifications(items);
   }, [session]);
+
+  const dismissOne = useCallback((id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    dismissedRef.current.add(id);
+    saveDismissedIds(dismissedRef.current);
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  }, []);
+
+  const clearAll = useCallback(() => {
+    notifications.forEach((n) => dismissedRef.current.add(n.id));
+    saveDismissedIds(dismissedRef.current);
+    setNotifications([]);
+  }, [notifications]);
 
   useEffect(() => {
     loadNotifications();
@@ -145,7 +195,22 @@ export default function NotificationDropdown() {
         <div className="flex items-center justify-between border-b px-4 py-3">
           <h3 className="font-semibold text-sm">Notifications</h3>
           {unreadCount > 0 && (
-            <span className="text-xs text-muted-foreground">{unreadCount} items</span>
+            <TooltipProvider delayDuration={300}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={clearAll}
+                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Clear all
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p>Dismiss all notifications</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
         <ScrollArea className="max-h-[360px]">
@@ -166,7 +231,7 @@ export default function NotificationDropdown() {
                       setOpen(false);
                       router.push(item.href);
                     }}
-                    className="flex w-full items-start gap-3 px-4 py-3 hover:bg-muted/50 transition-colors text-left cursor-pointer"
+                    className="group flex w-full items-start gap-3 px-4 py-3 hover:bg-muted/50 transition-colors text-left cursor-pointer"
                   >
                     <div className={`mt-0.5 rounded-full p-1.5 ${colors}`}>
                       <Icon className="h-3.5 w-3.5" />
@@ -176,6 +241,20 @@ export default function NotificationDropdown() {
                       <p className="text-xs text-muted-foreground truncate mt-0.5">
                         {item.description}
                       </p>
+                    </div>
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => dismissOne(item.id, e)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.stopPropagation();
+                          dismissOne(item.id, e as unknown as React.MouseEvent);
+                        }
+                      }}
+                      className="mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity rounded p-1 hover:bg-muted"
+                    >
+                      <X className="h-3.5 w-3.5 text-muted-foreground" />
                     </div>
                   </button>
                 );
