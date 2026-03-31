@@ -21,7 +21,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { ArrowLeft, Phone, Mail, MapPin, Calendar, Plus, Zap, FileText, TrendingUp, Shield, SquareCheck as CheckSquare, Clock, TriangleAlert as AlertTriangle, ExternalLink, StickyNote, CalendarPlus, Menu, DollarSign, Target } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, MapPin, Calendar, Plus, Zap, FileText, TrendingUp, Shield, SquareCheck as CheckSquare, Clock, TriangleAlert as AlertTriangle, ExternalLink, StickyNote, CalendarPlus, Menu, DollarSign, Target, RefreshCw } from 'lucide-react';
+import { Select as StatusSelect, SelectContent as StatusSelectContent, SelectItem as StatusSelectItem, SelectTrigger as StatusSelectTrigger, SelectValue as StatusSelectValue } from '@/components/ui/select';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -141,6 +142,30 @@ export default function ClientProfilePage() {
                 Potential additional premium: {formatCurrency(crossSellTotal)}/year
               </p>
             </div>
+            <Button
+              size="sm"
+              variant="outline"
+              className="shrink-0 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-100"
+              onClick={async () => {
+                const apiUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/analyze-cross-sell`;
+                try {
+                  await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ client_id: client.id }),
+                  });
+                  toast.success('Re-analyzed this client');
+                  loadClient();
+                } catch {
+                  toast.error('Analysis failed');
+                }
+              }}
+            >
+              <RefreshCw className="mr-1 h-3 w-3" /> Re-scan
+            </Button>
             <Button size="sm" variant="outline" className="shrink-0 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-100" asChild>
               <Link href={`/deals?new=true&client=${client.id}`}>Create Deal</Link>
             </Button>
@@ -166,6 +191,30 @@ export default function ClientProfilePage() {
                 <span className="text-xs font-semibold text-[#10B981] shrink-0">
                   +{formatCurrency(opp.estimated_value)}/yr
                 </span>
+                <StatusSelect
+                  value={opp.status}
+                  onValueChange={async (val: string) => {
+                    const updates: Record<string, any> = { status: val };
+                    if (val === 'contacted') updates.contacted_at = new Date().toISOString();
+                    if (val === 'quoted') updates.quoted_at = new Date().toISOString();
+                    if (val === 'sold' || val === 'declined') updates.closed_at = new Date().toISOString();
+                    const { error } = await supabase.from('cross_sell_opportunities').update(updates).eq('id', opp.id);
+                    if (error) { toast.error('Failed to update'); return; }
+                    toast.success(`Marked as ${val}`);
+                    loadClient();
+                  }}
+                >
+                  <StatusSelectTrigger className="h-7 w-[100px] text-[10px] shrink-0 bg-white">
+                    <StatusSelectValue />
+                  </StatusSelectTrigger>
+                  <StatusSelectContent>
+                    <StatusSelectItem value="open" className="text-xs">Open</StatusSelectItem>
+                    <StatusSelectItem value="contacted" className="text-xs">Contacted</StatusSelectItem>
+                    <StatusSelectItem value="quoted" className="text-xs">Quoted</StatusSelectItem>
+                    <StatusSelectItem value="sold" className="text-xs">Sold</StatusSelectItem>
+                    <StatusSelectItem value="declined" className="text-xs">Declined</StatusSelectItem>
+                  </StatusSelectContent>
+                </StatusSelect>
               </div>
             ))}
           </div>

@@ -195,6 +195,27 @@ export interface EmailCampaign {
   created_by: string | null;
 }
 
+export interface CrossSellOpportunity {
+  id: string;
+  client_id: string;
+  opportunity_type: string;
+  recommended_coverage: string;
+  current_policies: string[];
+  missing_coverage: string[];
+  estimated_value: number;
+  priority: 'high' | 'medium' | 'low';
+  pitch_message: string;
+  status: 'open' | 'contacted' | 'quoted' | 'sold' | 'declined';
+  created_at: string;
+  updated_at: string;
+  contacted_at: string | null;
+  quoted_at: string | null;
+  closed_at: string | null;
+  client?: Client;
+}
+
+export const CROSS_SELL_STATUSES = ['open', 'contacted', 'quoted', 'sold', 'declined'] as const;
+
 export const POLICY_TYPES = ['Auto', 'Home', 'Renters', 'Business', 'Life', 'Umbrella'] as const;
 
 export const CARRIERS = [
