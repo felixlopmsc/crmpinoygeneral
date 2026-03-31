@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import { formatPhone, formatDate } from '@/lib/format';
 import type { Client } from '@/lib/types';
-import { CLIENT_STATUSES, CLIENT_SOURCES } from '@/lib/types';
+import { CLIENT_STATUSES, CLIENT_SOURCES, POLICY_TYPES } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,10 +15,12 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { Plus, Search, Phone, Mail, MapPin, Filter, Zap, Upload, Flame, Clock, Moon, DollarSign, Sparkles, TriangleAlert as AlertTriangle, X, TrendingUp } from 'lucide-react';
+import { Plus, Search, Phone, Mail, MapPin, Filter, Zap, Upload, Flame, Clock, Moon, DollarSign, Sparkles, TriangleAlert as AlertTriangle, X, TrendingUp, Trash2, Download, UserCog, SquareCheck as CheckSquare, Square, Car, Chrome as Home, Shield, Briefcase, Heart, Umbrella, FileText } from 'lucide-react';
 import { getInitials } from '@/lib/format';
 import { formatPhoneInput, formatZipInput, US_STATES } from '@/lib/form-autocomplete';
 import { BulkClientImportDialog } from '@/components/forms/bulk-client-import';
@@ -53,6 +55,16 @@ const SMART_FILTERS: { key: SmartFilterKey; label: string; icon: any; color: str
   { key: 'crossSell', label: 'Cross-Sell', icon: TrendingUp, color: 'text-teal-600', activeColor: 'bg-teal-50 border-teal-300 text-teal-700', description: 'Clients with open cross-sell opportunities' },
 ];
 
+const POLICY_TYPE_FILTERS: { key: string; label: string; icon: any }[] = [
+  { key: 'all', label: 'All Types', icon: FileText },
+  { key: 'Auto', label: 'Auto', icon: Car },
+  { key: 'Home', label: 'Home', icon: Home },
+  { key: 'Renters', label: 'Renters', icon: Home },
+  { key: 'Business', label: 'Business', icon: Briefcase },
+  { key: 'Life', label: 'Life', icon: Heart },
+  { key: 'Umbrella', label: 'Umbrella', icon: Umbrella },
+];
+
 export default function ClientsPage() {
   const { user, session } = useAuth();
   const searchParams = useSearchParams();
@@ -60,6 +72,9 @@ export default function ClientsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [policyTypeFilter, setPolicyTypeFilter] = useState('all');
+  const [policyTypeClientIds, setPolicyTypeClientIds] = useState<Set<string>>(new Set());
+  const [policyTypeCounts, setPolicyTypeCounts] = useState<Record<string, number>>({});
   const [showForm, setShowForm] = useState(searchParams.get('new') === 'true');
   const [showImport, setShowImport] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
@@ -71,6 +86,12 @@ export default function ClientsPage() {
   });
   const [countsLoading, setCountsLoading] = useState(true);
 
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showStatusChange, setShowStatusChange] = useState(false);
+  const [bulkStatus, setBulkStatus] = useState<Client['status']>('Active');
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
+
   const loadFilterCounts = useCallback(async () => {
     const now = new Date();
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -78,17 +99,17 @@ export default function ClientsPage() {
     const sixtyDaysFromNow = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     const today = now.toISOString().split('T')[0];
 
-    const [hotLeadsRes, expiringRes, allClientsRes, activitiesRes, highValueRes, crossSellRes] = await Promise.all([
+    const [hotLeadsRes, expiringRes, allClientsRes, activitiesRes, highValueRes, crossSellRes, policiesRes] = await Promise.all([
       supabase.from('clients').select('id').eq('status', 'Lead').gte('created_at', sevenDaysAgo),
       supabase.from('policies').select('client_id').eq('status', 'Active').gte('expiration_date', today).lte('expiration_date', sixtyDaysFromNow),
       supabase.from('clients').select('id, phone, email, address_street, created_at'),
       supabase.from('activities').select('client_id, activity_date').order('activity_date', { ascending: false }),
       supabase.from('policies').select('client_id, annual_premium').eq('status', 'Active'),
       supabase.from('cross_sell_opportunities').select('client_id').eq('status', 'open'),
+      supabase.from('policies').select('client_id, policy_type').eq('status', 'Active'),
     ]);
 
     const hotLeadIds = new Set((hotLeadsRes.data || []).map((r: any) => r.id));
-
     const expiringClientIds = new Set((expiringRes.data || []).map((r: any) => r.client_id));
 
     const allClients = allClientsRes.data || [];
@@ -115,6 +136,18 @@ export default function ClientsPage() {
     const highValueIds = new Set(Object.entries(premiumByClient).filter(([, v]) => v > 2000).map(([k]) => k));
 
     const crossSellClientIds = new Set((crossSellRes.data || []).map((r: any) => r.client_id));
+
+    const ptCounts: Record<string, number> = {};
+    const ptClientSets: Record<string, Set<string>> = {};
+    (policiesRes.data || []).forEach((p: any) => {
+      const pt = p.policy_type;
+      if (!ptCounts[pt]) { ptCounts[pt] = 0; ptClientSets[pt] = new Set(); }
+      if (!ptClientSets[pt].has(p.client_id)) {
+        ptClientSets[pt].add(p.client_id);
+        ptCounts[pt]++;
+      }
+    });
+    setPolicyTypeCounts(ptCounts);
 
     setFilterCounts({
       hotLeads: hotLeadIds.size,
@@ -144,6 +177,17 @@ export default function ClientsPage() {
       return;
     }
 
+    let policyFilterIds: Set<string> | null = null;
+    if (policyTypeFilter !== 'all') {
+      const { data: ptData } = await supabase
+        .from('policies')
+        .select('client_id')
+        .eq('policy_type', policyTypeFilter)
+        .eq('status', 'Active');
+      policyFilterIds = new Set((ptData || []).map((p: any) => p.client_id));
+      setPolicyTypeClientIds(policyFilterIds);
+    }
+
     let query = supabase
       .from('clients')
       .select('*')
@@ -157,21 +201,35 @@ export default function ClientsPage() {
       query = query.or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`);
     }
 
+    let combinedIds: Set<string> | null = null;
+
     if (activeFilters.size > 0) {
-      let matchingIds: Set<string> | null = null;
       activeFilters.forEach((filterKey) => {
         const ids = filterClientIds[filterKey];
-        if (matchingIds === null) {
-          matchingIds = new Set(ids);
+        if (combinedIds === null) {
+          combinedIds = new Set(ids);
         } else {
           const intersection = new Set<string>();
-          matchingIds.forEach((id) => { if (ids.has(id)) intersection.add(id); });
-          matchingIds = intersection;
+          combinedIds.forEach((id) => { if (ids.has(id)) intersection.add(id); });
+          combinedIds = intersection;
         }
       });
+    }
 
-      if (matchingIds && (matchingIds as Set<string>).size > 0) {
-        query = query.in('id', Array.from(matchingIds as Set<string>));
+    if (policyFilterIds) {
+      if (combinedIds === null) {
+        combinedIds = policyFilterIds;
+      } else {
+        const current = combinedIds as Set<string>;
+        const intersection = new Set<string>();
+        current.forEach((id) => { if (policyFilterIds!.has(id)) intersection.add(id); });
+        combinedIds = intersection;
+      }
+    }
+
+    if (combinedIds !== null) {
+      if ((combinedIds as Set<string>).size > 0) {
+        query = query.in('id', Array.from(combinedIds as Set<string>));
       } else {
         setClients([]);
         setLoading(false);
@@ -182,7 +240,7 @@ export default function ClientsPage() {
     const { data } = await query.limit(100);
     setClients(data || []);
     setLoading(false);
-  }, [search, statusFilter, activeFilters, filterClientIds]);
+  }, [search, statusFilter, activeFilters, filterClientIds, policyTypeFilter]);
 
   useEffect(() => {
     if (session) {
@@ -198,6 +256,10 @@ export default function ClientsPage() {
     }
   }, [loadClients, session]);
 
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [clients]);
+
   const toggleFilter = (key: SmartFilterKey) => {
     setActiveFilters((prev) => {
       const next = new Set(prev);
@@ -209,6 +271,83 @@ export default function ClientsPage() {
 
   const clearFilters = () => {
     setActiveFilters(new Set());
+    setPolicyTypeFilter('all');
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === clients.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(clients.map((c) => c.id)));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    setBulkActionLoading(true);
+    const ids = Array.from(selectedIds);
+    const { error } = await supabase.from('clients').delete().in('id', ids);
+    if (error) {
+      toast.error(`Failed to delete: ${error.message}`);
+    } else {
+      toast.success(`${ids.length} client${ids.length > 1 ? 's' : ''} deleted`);
+      setSelectedIds(new Set());
+      loadClients();
+      loadFilterCounts();
+    }
+    setBulkActionLoading(false);
+    setShowDeleteConfirm(false);
+  };
+
+  const handleBulkStatusChange = async () => {
+    setBulkActionLoading(true);
+    const ids = Array.from(selectedIds);
+    const { error } = await supabase
+      .from('clients')
+      .update({ status: bulkStatus, updated_at: new Date().toISOString() })
+      .in('id', ids);
+    if (error) {
+      toast.error(`Failed to update: ${error.message}`);
+    } else {
+      toast.success(`${ids.length} client${ids.length > 1 ? 's' : ''} moved to ${bulkStatus}`);
+      setSelectedIds(new Set());
+      loadClients();
+      loadFilterCounts();
+    }
+    setBulkActionLoading(false);
+    setShowStatusChange(false);
+  };
+
+  const handleExportCSV = () => {
+    const selected = clients.filter((c) => selectedIds.has(c.id));
+    const headers = ['First Name', 'Last Name', 'Email', 'Phone', 'Phone 2', 'Date of Birth', 'Street', 'City', 'State', 'ZIP', 'Status', 'Source', 'Tags', 'Notes'];
+    const rows = selected.map((c) => [
+      c.first_name, c.last_name, c.email, c.phone, c.phone_2,
+      c.date_of_birth || '', c.address_street, c.address_city, c.address_state, c.address_zip,
+      c.status, c.source, (c.tags || []).join('; '), c.notes.replace(/"/g, '""'),
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `clients-export-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${selected.length} client${selected.length > 1 ? 's' : ''} exported`);
   };
 
   const handleSave = async (formData: Partial<Client>) => {
@@ -243,6 +382,9 @@ export default function ClientsPage() {
     setEditingClient(null);
     loadClients();
   };
+
+  const isAllSelected = clients.length > 0 && selectedIds.size === clients.length;
+  const isSomeSelected = selectedIds.size > 0 && selectedIds.size < clients.length;
 
   return (
     <div className="space-y-6">
@@ -287,6 +429,32 @@ export default function ClientsPage() {
         </Select>
       </div>
 
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        {POLICY_TYPE_FILTERS.map((pt) => {
+          const isActive = policyTypeFilter === pt.key;
+          const count = pt.key === 'all' ? clients.length : (policyTypeCounts[pt.key] || 0);
+          return (
+            <button
+              key={pt.key}
+              onClick={() => setPolicyTypeFilter(pt.key)}
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all ${
+                isActive
+                  ? 'bg-[#1E40AF] border-[#1E40AF] text-white'
+                  : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-muted/50'
+              }`}
+            >
+              <pt.icon className="h-3.5 w-3.5" />
+              {pt.label}
+              {!countsLoading && pt.key !== 'all' && (
+                <Badge variant="secondary" className={`ml-0.5 h-4 min-w-[16px] px-1 text-[10px] ${isActive ? 'bg-white/20 text-white' : ''}`}>
+                  {count}
+                </Badge>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
       <TooltipProvider delayDuration={300}>
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
           {SMART_FILTERS.map((f) => {
@@ -319,16 +487,65 @@ export default function ClientsPage() {
               </Tooltip>
             );
           })}
-          {activeFilters.size > 0 && (
+          {(activeFilters.size > 0 || policyTypeFilter !== 'all') && (
             <button
               onClick={clearFilters}
               className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-500 hover:bg-muted/50 hover:text-gray-700 transition-colors whitespace-nowrap"
             >
-              <X className="h-3 w-3" /> Clear
+              <X className="h-3 w-3" /> Clear All
             </button>
           )}
         </div>
       </TooltipProvider>
+
+      {selectedIds.size > 0 && (
+        <div className="sticky top-0 z-40 -mx-4 md:-mx-6 px-4 md:px-6 py-2.5 bg-[#1E40AF] text-white rounded-lg mx-0 flex items-center gap-3 shadow-lg animate-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center gap-2 flex-1">
+            <CheckSquare className="h-4 w-4" />
+            <span className="text-sm font-medium">
+              {selectedIds.size} of {clients.length} selected
+            </span>
+            <button onClick={toggleSelectAll} className="text-xs underline underline-offset-2 opacity-80 hover:opacity-100">
+              {isAllSelected ? 'Deselect all' : 'Select all'}
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-7 text-xs bg-white/15 hover:bg-white/25 text-white border-0"
+              onClick={handleExportCSV}
+            >
+              <Download className="mr-1 h-3 w-3" />
+              Export
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-7 text-xs bg-white/15 hover:bg-white/25 text-white border-0"
+              onClick={() => setShowStatusChange(true)}
+            >
+              <UserCog className="mr-1 h-3 w-3" />
+              Change Status
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-7 text-xs bg-red-500/80 hover:bg-red-500 text-white border-0"
+              onClick={() => setShowDeleteConfirm(true)}
+            >
+              <Trash2 className="mr-1 h-3 w-3" />
+              Delete
+            </Button>
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              className="ml-1 p-1 rounded hover:bg-white/15 transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -342,11 +559,11 @@ export default function ClientsPage() {
             <div className="rounded-full bg-muted p-4 mb-4">
               <Search className="h-8 w-8 text-muted-foreground" />
             </div>
-            {activeFilters.size > 0 ? (
+            {(activeFilters.size > 0 || policyTypeFilter !== 'all') ? (
               <>
                 <p className="text-lg font-medium">No matching clients</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  No clients match the active filters: {Array.from(activeFilters).map((k) => SMART_FILTERS.find((f) => f.key === k)?.label).join(', ')}
+                  No clients match the active filters
                 </p>
                 <Button onClick={clearFilters} variant="outline" className="mt-4">
                   <X className="mr-1 h-4 w-4" /> Clear Filters
@@ -364,57 +581,146 @@ export default function ClientsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {clients.map((client) => (
-            <Link key={client.id} href={`/clients/${client.id}`}>
-              <Card className="transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer h-full">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <Avatar className="h-10 w-10 shrink-0">
-                      <AvatarFallback className="bg-[#1E40AF] text-white text-xs">
-                        {getInitials(`${client.first_name} ${client.last_name}`)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-semibold truncate">{client.first_name} {client.last_name}</p>
-                        <Badge className={`${statusColors[client.status]} text-[10px] shrink-0`}>
-                          {client.status}
-                        </Badge>
-                      </div>
-                      <div className="mt-2 space-y-1">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Mail className="h-3 w-3 shrink-0" />
-                          <span className="truncate">{client.email}</span>
-                        </div>
-                        {client.phone && (
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <Phone className="h-3 w-3 shrink-0" />
-                            <span>{formatPhone(client.phone)}</span>
-                          </div>
-                        )}
-                        {client.address_city && (
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <MapPin className="h-3 w-3 shrink-0" />
-                            <span>{client.address_city}, {client.address_state}</span>
-                          </div>
-                        )}
-                      </div>
-                      {client.tags && client.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {client.tags.slice(0, 3).map((tag) => (
-                            <Badge key={tag} variant="outline" className="text-[10px] px-1.5 py-0">{tag}</Badge>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+        <>
+          {clients.length > 0 && (
+            <div className="flex items-center gap-2 -mt-2">
+              <button
+                onClick={toggleSelectAll}
+                className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Checkbox
+                  checked={isAllSelected ? true : isSomeSelected ? 'indeterminate' : false}
+                  onCheckedChange={toggleSelectAll}
+                  className="h-4 w-4"
+                />
+                {isAllSelected ? 'Deselect all' : 'Select all'}
+              </button>
+            </div>
+          )}
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 -mt-2">
+            {clients.map((client) => {
+              const isSelected = selectedIds.has(client.id);
+              return (
+                <div key={client.id} className="relative group">
+                  <div
+                    className={`absolute left-2 top-2 z-10 transition-opacity ${
+                      isSelected || selectedIds.size > 0
+                        ? 'opacity-100'
+                        : 'opacity-0 group-hover:opacity-100'
+                    }`}
+                  >
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => toggleSelect(client.id)}
+                      className="h-4 w-4 bg-white border-gray-300 shadow-sm"
+                    />
                   </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
+                  <Link href={`/clients/${client.id}`}>
+                    <Card className={`transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer h-full ${
+                      isSelected ? 'ring-2 ring-[#1E40AF] bg-blue-50/30' : ''
+                    }`}>
+                      <CardContent className="p-4 pl-8">
+                        <div className="flex items-start gap-3">
+                          <Avatar className="h-10 w-10 shrink-0">
+                            <AvatarFallback className="bg-[#1E40AF] text-white text-xs">
+                              {getInitials(`${client.first_name} ${client.last_name}`)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold truncate">{client.first_name} {client.last_name}</p>
+                              <Badge className={`${statusColors[client.status]} text-[10px] shrink-0`}>
+                                {client.status}
+                              </Badge>
+                            </div>
+                            <div className="mt-2 space-y-1">
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <Mail className="h-3 w-3 shrink-0" />
+                                <span className="truncate">{client.email}</span>
+                              </div>
+                              {client.phone && (
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                  <Phone className="h-3 w-3 shrink-0" />
+                                  <span>{formatPhone(client.phone)}</span>
+                                </div>
+                              )}
+                              {client.address_city && (
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                  <MapPin className="h-3 w-3 shrink-0" />
+                                  <span>{client.address_city}, {client.address_state}</span>
+                                </div>
+                              )}
+                            </div>
+                            {client.tags && client.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {client.tags.slice(0, 3).map((tag) => (
+                                  <Badge key={tag} variant="outline" className="text-[10px] px-1.5 py-0">{tag}</Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
+
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedIds.size} client{selectedIds.size > 1 ? 's' : ''}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove {selectedIds.size > 1 ? 'these clients' : 'this client'} and all associated policies, activities, deals, and tasks. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={bulkActionLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkDelete}
+              disabled={bulkActionLoading}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {bulkActionLoading ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={showStatusChange} onOpenChange={setShowStatusChange}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Change Status</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Move {selectedIds.size} client{selectedIds.size > 1 ? 's' : ''} to a new status category.
+          </p>
+          <Select value={bulkStatus} onValueChange={(v) => setBulkStatus(v as Client['status'])}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {CLIENT_STATUSES.map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setShowStatusChange(false)} disabled={bulkActionLoading}>Cancel</Button>
+            <Button
+              onClick={handleBulkStatusChange}
+              disabled={bulkActionLoading}
+              className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white"
+            >
+              {bulkActionLoading ? 'Updating...' : `Move to ${bulkStatus}`}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <ClientFormDialog
         open={showForm}
