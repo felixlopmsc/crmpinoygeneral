@@ -20,7 +20,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { Plus, Search, Phone, Mail, MapPin, Filter, Zap, Upload, Flame, Clock, Moon, DollarSign, Sparkles, TriangleAlert as AlertTriangle, X, TrendingUp, Trash2, Download, UserCog, SquareCheck as CheckSquare, Square, Car, Chrome as Home, Shield, Briefcase, Heart, Umbrella, FileText } from 'lucide-react';
+import { Plus, Search, Phone, Mail, MapPin, Filter, Zap, Upload, Flame, Clock, Moon, DollarSign, Sparkles, TriangleAlert as AlertTriangle, X, TrendingUp, Trash2, Download, UserCog, SquareCheck as CheckSquare, Square, Car, Chrome as Home, Shield, Briefcase, Heart, Umbrella, FileText, Undo2 } from 'lucide-react';
 import { getInitials } from '@/lib/format';
 import { formatPhoneInput, formatZipInput, US_STATES } from '@/lib/form-autocomplete';
 import { BulkClientImportDialog } from '@/components/forms/bulk-client-import';
@@ -294,17 +294,59 @@ export default function ClientsPage() {
   const handleBulkDelete = async () => {
     setBulkActionLoading(true);
     const ids = Array.from(selectedIds);
+    const deletedClients = clients.filter((c) => selectedIds.has(c.id));
+
     const { error } = await supabase.from('clients').delete().in('id', ids);
     if (error) {
       toast.error(`Failed to delete: ${error.message}`);
-    } else {
-      toast.success(`${ids.length} client${ids.length > 1 ? 's' : ''} deleted`);
-      setSelectedIds(new Set());
-      loadClients();
-      loadFilterCounts();
+      setBulkActionLoading(false);
+      setShowDeleteConfirm(false);
+      return;
     }
+
+    setSelectedIds(new Set());
+    loadClients();
+    loadFilterCounts();
     setBulkActionLoading(false);
     setShowDeleteConfirm(false);
+
+    const count = deletedClients.length;
+    toast(`${count} client${count > 1 ? 's' : ''} deleted`, {
+      duration: 10000,
+      action: {
+        label: 'Undo',
+        onClick: async () => {
+          const restoreRows = deletedClients.map((c) => ({
+            id: c.id,
+            first_name: c.first_name,
+            last_name: c.last_name,
+            email: c.email,
+            phone: c.phone,
+            phone_2: c.phone_2,
+            date_of_birth: c.date_of_birth,
+            address_street: c.address_street,
+            address_city: c.address_city,
+            address_state: c.address_state,
+            address_zip: c.address_zip,
+            status: c.status,
+            source: c.source,
+            notes: c.notes,
+            tags: c.tags,
+            assigned_agent_id: c.assigned_agent_id,
+            created_at: c.created_at,
+            updated_at: c.updated_at,
+          }));
+          const { error: restoreError } = await supabase.from('clients').insert(restoreRows);
+          if (restoreError) {
+            toast.error('Failed to restore clients');
+          } else {
+            toast.success(`${count} client${count > 1 ? 's' : ''} restored`);
+            loadClients();
+            loadFilterCounts();
+          }
+        },
+      },
+    });
   };
 
   const handleBulkStatusChange = async () => {
