@@ -32,14 +32,14 @@ export default function Topbar() {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-white px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-gradient-to-r from-[#1E40AF]/[0.03] to-[#10B981]/[0.03] px-6 backdrop-blur-sm">
       <form onSubmit={handleSearch} className="relative flex-1 max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search clients, policies, deals..."
-          className="pl-9 bg-muted/50 border-0 focus-visible:ring-1"
+          className="pl-9 bg-white border border-border shadow-sm focus-visible:ring-1 focus-visible:ring-[#1E40AF]/30 focus-visible:border-[#1E40AF]/40"
         />
       </form>
 
