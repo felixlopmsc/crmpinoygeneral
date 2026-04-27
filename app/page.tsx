@@ -199,7 +199,7 @@ export default function LoginPage() {
                       id="fullName"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Felix Santos"
+                      placeholder="Your Name Here"
                       required
                     />
                   </div>
