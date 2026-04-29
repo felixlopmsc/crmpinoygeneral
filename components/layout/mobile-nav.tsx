@@ -35,7 +35,7 @@ export default function MobileNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t border-border bg-white md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t border-[#B8962E]/20 bg-gradient-to-r from-[#1B2A4A] to-[#2C3E6B] md:hidden">
       {mainTabs.map((tab) => {
         const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/');
         return (
@@ -44,7 +44,7 @@ export default function MobileNav() {
             href={tab.href}
             className={cn(
               'flex flex-col items-center gap-0.5 px-3 py-1.5 text-[11px] font-medium',
-              isActive ? 'text-[#1E40AF]' : 'text-muted-foreground'
+              isActive ? 'text-[#D4AD3C]' : 'text-white/60'
             )}
           >
             <tab.icon className="h-5 w-5" />
@@ -54,7 +54,7 @@ export default function MobileNav() {
       })}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="flex flex-col items-center gap-0.5 px-3 py-1.5 h-auto text-[11px] font-medium text-muted-foreground">
+          <Button variant="ghost" className="flex flex-col items-center gap-0.5 px-3 py-1.5 h-auto text-[11px] font-medium text-white/60 hover:text-white">
             <Menu className="h-5 w-5" />
             More
           </Button>

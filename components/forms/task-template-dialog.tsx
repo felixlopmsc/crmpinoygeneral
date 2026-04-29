@@ -175,7 +175,7 @@ export function TaskTemplateDialog({ open, onOpenChange, clientId, userId, onSav
       <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col p-0">
         <DialogHeader className="px-6 pt-6 pb-0 shrink-0">
           <DialogTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-[#1E40AF]" />
+            <Zap className="h-5 w-5 text-[#2C3E6B]" />
             {step === 'select' ? 'Workflow Templates' : selectedTemplate?.name}
           </DialogTitle>
         </DialogHeader>
@@ -189,7 +189,7 @@ export function TaskTemplateDialog({ open, onOpenChange, clientId, userId, onSav
                 </Label>
                 {selectedClient ? (
                   <div className="flex items-center gap-2 rounded-lg border p-2.5 bg-muted/30">
-                    <div className="h-8 w-8 rounded-full bg-[#1E40AF] flex items-center justify-center text-white text-xs font-medium">
+                    <div className="h-8 w-8 rounded-full bg-[#2C3E6B] flex items-center justify-center text-white text-xs font-medium">
                       {selectedClient.first_name[0]}{selectedClient.last_name[0]}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -229,7 +229,7 @@ export function TaskTemplateDialog({ open, onOpenChange, clientId, userId, onSav
                               setClientSearch('');
                             }}
                           >
-                            <div className="h-7 w-7 rounded-full bg-[#1E40AF]/10 flex items-center justify-center text-[#1E40AF] text-xs font-medium">
+                            <div className="h-7 w-7 rounded-full bg-[#2C3E6B]/10 flex items-center justify-center text-[#2C3E6B] text-xs font-medium">
                               {c.first_name[0]}{c.last_name[0]}
                             </div>
                             <div className="min-w-0">
@@ -253,7 +253,7 @@ export function TaskTemplateDialog({ open, onOpenChange, clientId, userId, onSav
                     key={template.id}
                     type="button"
                     onClick={() => pickTemplate(template)}
-                    className="group w-full flex items-start gap-3 rounded-xl border p-4 text-left transition-all hover:border-[#1E40AF] hover:bg-[#1E40AF]/5 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1E40AF]/20"
+                    className="group w-full flex items-start gap-3 rounded-xl border p-4 text-left transition-all hover:border-[#2C3E6B] hover:bg-[#2C3E6B]/5 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2C3E6B]/20"
                   >
                     <div className={`rounded-lg p-2.5 shrink-0 ${template.color}`}>
                       <Icon className="h-5 w-5" />
@@ -327,7 +327,7 @@ export function TaskTemplateDialog({ open, onOpenChange, clientId, userId, onSav
                       key={index}
                       className={`flex items-start gap-2.5 rounded-lg border p-3 transition-all cursor-pointer ${
                         enabled
-                          ? 'bg-white border-border hover:border-[#1E40AF]/30'
+                          ? 'bg-white border-border hover:border-[#2C3E6B]/30'
                           : 'bg-muted/30 border-transparent opacity-50'
                       }`}
                       onClick={() => toggleTask(index)}
@@ -376,7 +376,7 @@ export function TaskTemplateDialog({ open, onOpenChange, clientId, userId, onSav
                 </Button>
                 <Button
                   size="sm"
-                  className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white gap-1.5"
+                  className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20 gap-1.5"
                   onClick={handleCreate}
                   disabled={creating || enabledTasks.size === 0}
                 >

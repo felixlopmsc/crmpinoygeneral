@@ -183,7 +183,7 @@ export function UpcomingRenewalsWidget() {
       <CardContent>
         {renewals.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <FileCheck className="h-10 w-10 text-[#10B981] mb-2" />
+            <FileCheck className="h-10 w-10 text-[#B8962E] mb-2" />
             <p className="text-sm font-medium">No upcoming renewals</p>
             <p className="text-xs text-muted-foreground">All policies are up to date</p>
           </div>
@@ -203,7 +203,7 @@ export function UpcomingRenewalsWidget() {
                       days <= 7 ? 'bg-red-100' : days <= 30 ? 'bg-amber-100' : 'bg-blue-50'
                     }`}>
                       <CalendarDays className={`h-4 w-4 ${
-                        days <= 7 ? 'text-red-600' : days <= 30 ? 'text-amber-600' : 'text-[#1E40AF]'
+                        days <= 7 ? 'text-red-600' : days <= 30 ? 'text-amber-600' : 'text-[#2C3E6B]'
                       }`} />
                     </div>
                     <div className="flex-1 min-w-0">

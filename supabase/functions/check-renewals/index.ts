@@ -81,7 +81,7 @@ function buildEmailHtml(
 ): string {
   const days = daysUntil(candidate.policy.expiration_date);
   const urgencyColor =
-    days <= 7 ? "#DC2626" : days <= 30 ? "#D97706" : "#1E40AF";
+    days <= 7 ? "#DC2626" : days <= 30 ? "#D97706" : "#2C3E6B";
 
   return `
 <!DOCTYPE html>
@@ -96,7 +96,7 @@ function buildEmailHtml(
       <td align="center">
         <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
           <tr>
-            <td style="background-color:#1E40AF;padding:24px 32px;">
+            <td style="background-color:#2C3E6B;padding:24px 32px;">
               <h1 style="color:#ffffff;margin:0;font-size:20px;font-weight:600;">Pinoy General Insurance Services</h1>
             </td>
           </tr>
@@ -146,7 +146,7 @@ function buildEmailHtml(
               </p>
 
               <div style="text-align:center;margin:28px 0;">
-                <a href="mailto:info@pinoygeneralinsurance.com?subject=Policy%20Renewal%20-%20${encodeURIComponent(candidate.policy.policy_number || candidate.policy.policy_type)}" style="display:inline-block;background-color:#1E40AF;color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:600;font-size:14px;">
+                <a href="mailto:info@pinoygeneralinsurance.com?subject=Policy%20Renewal%20-%20${encodeURIComponent(candidate.policy.policy_number || candidate.policy.policy_type)}" style="display:inline-block;background-color:#2C3E6B;color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:600;font-size:14px;">
                   Contact Us About Renewal
                 </a>
               </div>

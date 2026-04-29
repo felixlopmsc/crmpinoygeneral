@@ -370,7 +370,7 @@ export function SmartPolicyForm({ open, onOpenChange, clientId, userId, onSaved 
       <DialogContent className="max-w-xl max-h-[90vh] overflow-hidden flex flex-col p-0">
         <DialogHeader className="px-6 pt-6 pb-0 shrink-0">
           <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-[#1E40AF]" />
+            <Sparkles className="h-5 w-5 text-[#2C3E6B]" />
             {step === 'type' && 'New Policy - Choose Type'}
             {step === 'details' && 'New Policy - Details'}
             {step === 'copy-picker' && 'Copy from Existing Policy'}
@@ -384,7 +384,7 @@ export function SmartPolicyForm({ open, onOpenChange, clientId, userId, onSaved 
                 <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Client</Label>
                 {selectedClient ? (
                   <div className="flex items-center gap-2 rounded-lg border p-2.5 bg-muted/30">
-                    <div className="h-8 w-8 rounded-full bg-[#1E40AF] flex items-center justify-center text-white text-xs font-medium">
+                    <div className="h-8 w-8 rounded-full bg-[#2C3E6B] flex items-center justify-center text-white text-xs font-medium">
                       {selectedClient.first_name[0]}{selectedClient.last_name[0]}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -425,7 +425,7 @@ export function SmartPolicyForm({ open, onOpenChange, clientId, userId, onSaved 
                               setClientSearch('');
                             }}
                           >
-                            <div className="h-7 w-7 rounded-full bg-[#1E40AF]/10 flex items-center justify-center text-[#1E40AF] text-xs font-medium">
+                            <div className="h-7 w-7 rounded-full bg-[#2C3E6B]/10 flex items-center justify-center text-[#2C3E6B] text-xs font-medium">
                               {c.first_name[0]}{c.last_name[0]}
                             </div>
                             <div className="min-w-0">
@@ -467,11 +467,11 @@ export function SmartPolicyForm({ open, onOpenChange, clientId, userId, onSaved 
                       type="button"
                       onClick={() => selectPolicyType(type)}
                       disabled={!clientId && !form.client_id}
-                      className="group relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-all hover:border-[#1E40AF] hover:bg-[#1E40AF]/5 hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#1E40AF]/20"
+                      className="group relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-all hover:border-[#2C3E6B] hover:bg-[#2C3E6B]/5 hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#2C3E6B]/20"
                     >
                       <div className="flex items-center gap-2 w-full">
-                        <div className="rounded-lg bg-[#1E40AF]/10 p-2 group-hover:bg-[#1E40AF]/15 transition-colors">
-                          <Icon className="h-4 w-4 text-[#1E40AF]" />
+                        <div className="rounded-lg bg-[#2C3E6B]/10 p-2 group-hover:bg-[#2C3E6B]/15 transition-colors">
+                          <Icon className="h-4 w-4 text-[#2C3E6B]" />
                         </div>
                         <span className="font-semibold text-sm">{type}</span>
                         <ChevronRight className="h-4 w-4 ml-auto text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -543,10 +543,10 @@ export function SmartPolicyForm({ open, onOpenChange, clientId, userId, onSaved 
                         key={policy.id}
                         type="button"
                         onClick={() => copyFromPolicy(policy)}
-                        className="group w-full flex items-center gap-3 rounded-lg border p-3 text-left transition-all hover:border-[#1E40AF] hover:bg-[#1E40AF]/5"
+                        className="group w-full flex items-center gap-3 rounded-lg border p-3 text-left transition-all hover:border-[#2C3E6B] hover:bg-[#2C3E6B]/5"
                       >
-                        <div className="rounded-lg bg-[#1E40AF]/10 p-2 shrink-0">
-                          <Icon className="h-4 w-4 text-[#1E40AF]" />
+                        <div className="rounded-lg bg-[#2C3E6B]/10 p-2 shrink-0">
+                          <Icon className="h-4 w-4 text-[#2C3E6B]" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
@@ -597,7 +597,7 @@ export function SmartPolicyForm({ open, onOpenChange, clientId, userId, onSaved 
                 </button>
                 <ChevronRight className="h-3 w-3 text-muted-foreground" />
                 <span className="text-sm font-medium flex items-center gap-1.5">
-                  {(() => { const Icon = typeIcons[form.policy_type] || Briefcase; return <Icon className="h-3.5 w-3.5 text-[#1E40AF]" />; })()}
+                  {(() => { const Icon = typeIcons[form.policy_type] || Briefcase; return <Icon className="h-3.5 w-3.5 text-[#2C3E6B]" />; })()}
                   {form.policy_type}
                 </span>
               </div>
@@ -605,7 +605,7 @@ export function SmartPolicyForm({ open, onOpenChange, clientId, userId, onSaved 
               {currentTypePresets.length > 0 && (
                 <div className="space-y-1.5">
                   <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
-                    <Zap className="h-3 w-3 text-[#1E40AF]" /> Quick Fill
+                    <Zap className="h-3 w-3 text-[#2C3E6B]" /> Quick Fill
                   </Label>
                   <div className="flex flex-wrap gap-1.5">
                     {currentTypePresets.map((preset) => (
@@ -613,9 +613,9 @@ export function SmartPolicyForm({ open, onOpenChange, clientId, userId, onSaved 
                         key={preset.id}
                         type="button"
                         onClick={() => applyQuickFill(preset)}
-                        className="group relative inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all hover:border-[#1E40AF] hover:bg-[#1E40AF]/5 hover:text-[#1E40AF]"
+                        className="group relative inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all hover:border-[#2C3E6B] hover:bg-[#2C3E6B]/5 hover:text-[#2C3E6B]"
                       >
-                        <Zap className="h-3 w-3 text-muted-foreground group-hover:text-[#1E40AF] transition-colors" />
+                        <Zap className="h-3 w-3 text-muted-foreground group-hover:text-[#2C3E6B] transition-colors" />
                         {preset.shortLabel}
                       </button>
                     ))}
@@ -780,7 +780,7 @@ export function SmartPolicyForm({ open, onOpenChange, clientId, userId, onSaved 
 
               <div className="rounded-lg border bg-muted/20 p-3 space-y-3">
                 <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-[#1E40AF]" />
+                  <DollarSign className="h-4 w-4 text-[#2C3E6B]" />
                   <span className="text-sm font-medium">Premium & Commission</span>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
@@ -856,7 +856,7 @@ export function SmartPolicyForm({ open, onOpenChange, clientId, userId, onSaved 
 
             <div className="px-6 py-4 border-t shrink-0 flex justify-end gap-2 bg-white">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-              <Button type="submit" className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white gap-1.5" disabled={saving}>
+              <Button type="submit" className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20 gap-1.5" disabled={saving}>
                 {saving ? 'Creating...' : 'Create Policy'}
               </Button>
             </div>

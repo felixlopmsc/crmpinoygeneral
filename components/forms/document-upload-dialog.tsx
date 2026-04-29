@@ -215,7 +215,7 @@ export function DocumentUploadDialog({
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Upload className="h-5 w-5 text-[#1E40AF]" />
+            <Upload className="h-5 w-5 text-[#2C3E6B]" />
             Upload Documents
           </DialogTitle>
         </DialogHeader>
@@ -260,14 +260,14 @@ export function DocumentUploadDialog({
 
           <div
             className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer ${
-              isDragging ? 'border-[#1E40AF] bg-blue-50/50' : 'border-gray-200 hover:border-[#1E40AF]/50 hover:bg-muted/30'
+              isDragging ? 'border-[#2C3E6B] bg-blue-50/50' : 'border-gray-200 hover:border-[#2C3E6B]/50 hover:bg-muted/30'
             }`}
             onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
           >
-            <Upload className={`h-8 w-8 mx-auto mb-2 ${isDragging ? 'text-[#1E40AF]' : 'text-muted-foreground/50'}`} />
+            <Upload className={`h-8 w-8 mx-auto mb-2 ${isDragging ? 'text-[#2C3E6B]' : 'text-muted-foreground/50'}`} />
             <p className="font-medium text-sm">
               {isDragging ? 'Drop files here' : 'Drag & drop files here, or click to browse'}
             </p>
@@ -313,7 +313,7 @@ export function DocumentUploadDialog({
 
                         {qf.status === 'uploading' && (
                           <div className="h-1 w-full rounded-full bg-gray-100 overflow-hidden">
-                            <div className="h-full bg-[#1E40AF] transition-all rounded-full" style={{ width: `${qf.progress}%` }} />
+                            <div className="h-full bg-[#2C3E6B] transition-all rounded-full" style={{ width: `${qf.progress}%` }} />
                           </div>
                         )}
                         {qf.status === 'error' && (
@@ -381,7 +381,7 @@ export function DocumentUploadDialog({
             </div>
             <div className="flex gap-2">
               {allDone ? (
-                <Button onClick={() => handleClose(false)} className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
+                <Button onClick={() => handleClose(false)} className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
                   Done
                 </Button>
               ) : (
@@ -390,7 +390,7 @@ export function DocumentUploadDialog({
                   <Button
                     onClick={handleUpload}
                     disabled={pendingCount === 0 || isUploading}
-                    className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white"
+                    className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20"
                   >
                     {isUploading ? (
                       <>

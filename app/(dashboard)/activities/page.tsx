@@ -84,17 +84,17 @@ export default function ActivitiesPage() {
           <h1 className="text-2xl font-bold">Activities</h1>
           <p className="text-sm text-muted-foreground">Activity timeline across all clients</p>
         </div>
-        <Button onClick={handleOpenForm} className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
+        <Button onClick={handleOpenForm} className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
           <Plus className="mr-1 h-4 w-4" /> Log Activity
         </Button>
       </div>
 
       <div className="flex gap-2 flex-wrap">
-        <Button variant={typeFilter === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setTypeFilter('all')} className={typeFilter === 'all' ? 'bg-[#1E40AF]' : ''}>All</Button>
+        <Button variant={typeFilter === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setTypeFilter('all')} className={typeFilter === 'all' ? 'bg-[#2C3E6B]' : ''}>All</Button>
         {Object.keys(typeIcons).map((type) => {
           const Icon = typeIcons[type];
           return (
-            <Button key={type} variant={typeFilter === type ? 'default' : 'outline'} size="sm" onClick={() => setTypeFilter(type)} className={typeFilter === type ? 'bg-[#1E40AF]' : ''}>
+            <Button key={type} variant={typeFilter === type ? 'default' : 'outline'} size="sm" onClick={() => setTypeFilter(type)} className={typeFilter === type ? 'bg-[#2C3E6B]' : ''}>
               <Icon className="mr-1 h-3.5 w-3.5" /> {type}
             </Button>
           );
@@ -124,7 +124,7 @@ export default function ActivitiesPage() {
                         )}
                         <div className="flex items-center gap-3 mt-1.5">
                           {activity.client && (
-                            <Link href={`/clients/${activity.client_id}`} className="text-xs text-[#1E40AF] hover:underline font-medium">
+                            <Link href={`/clients/${activity.client_id}`} className="text-xs text-[#2C3E6B] hover:underline font-medium">
                               {(activity.client as any).first_name} {(activity.client as any).last_name}
                             </Link>
                           )}
@@ -185,7 +185,7 @@ function ActivityForm({ clients, onSave, onCancel }: { clients: Pick<Client, 'id
       <div className="space-y-1.5"><Label>Description</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} /></div>
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
-        <Button type="submit" className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white" disabled={saving}>{saving ? 'Saving...' : 'Log Activity'}</Button>
+        <Button type="submit" className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20" disabled={saving}>{saving ? 'Saving...' : 'Log Activity'}</Button>
       </div>
     </form>
   );

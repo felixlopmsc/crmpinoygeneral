@@ -107,7 +107,7 @@ export default function ResetPasswordPage() {
             </div>
             <Button
               type="submit"
-              className="w-full bg-[#1E40AF] hover:bg-[#1E3A8A] text-white"
+              className="w-full bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20"
               disabled={submitting}
             >
               {submitting ? 'Updating...' : 'Update Password'}

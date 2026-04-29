@@ -145,7 +145,7 @@ export default function OnboardingDialog({ open, onComplete }: OnboardingDialogP
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-lg p-0 overflow-hidden" onPointerDownOutside={(e) => e.preventDefault()}>
         <div className="relative">
-          <div className="bg-gradient-to-br from-[#1E40AF] to-[#1E3A8A] px-6 pt-8 pb-12 text-center">
+          <div className="bg-gradient-to-br from-[#2C3E6B] to-[#1B2A4A] px-6 pt-8 pb-12 text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm">
               <StepIcon className="h-8 w-8 text-white" />
             </div>
@@ -163,7 +163,7 @@ export default function OnboardingDialog({ open, onComplete }: OnboardingDialogP
                 key={i}
                 className={cn(
                   'h-1.5 rounded-full transition-all duration-300',
-                  i === currentStep ? 'w-6 bg-[#1E40AF]' : i < currentStep ? 'w-1.5 bg-[#1E40AF]/60' : 'w-1.5 bg-gray-300'
+                  i === currentStep ? 'w-6 bg-[#2C3E6B]' : i < currentStep ? 'w-1.5 bg-[#2C3E6B]/60' : 'w-1.5 bg-gray-300'
                 )}
               />
             ))}
@@ -213,8 +213,8 @@ export default function OnboardingDialog({ open, onComplete }: OnboardingDialogP
           {step.id === 'clients' && (
             <div className="rounded-lg border border-border p-4 mb-6 space-y-2">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-[#1E40AF]/10 flex items-center justify-center">
-                  <Users className="h-5 w-5 text-[#1E40AF]" />
+                <div className="h-10 w-10 rounded-full bg-[#2C3E6B]/10 flex items-center justify-center">
+                  <Users className="h-5 w-5 text-[#2C3E6B]" />
                 </div>
                 <div>
                   <p className="text-sm font-medium">Client 360 View</p>
@@ -236,7 +236,7 @@ export default function OnboardingDialog({ open, onComplete }: OnboardingDialogP
               <p className="text-sm font-medium">Supported Policy Types</p>
               <div className="flex flex-wrap gap-1.5">
                 {['Auto', 'Home', 'Renters', 'Business', 'Life', 'Umbrella'].map((type) => (
-                  <span key={type} className="inline-block rounded-md bg-[#1E40AF]/10 px-2.5 py-1 text-xs font-medium text-[#1E40AF]">
+                  <span key={type} className="inline-block rounded-md bg-[#2C3E6B]/10 px-2.5 py-1 text-xs font-medium text-[#2C3E6B]">
                     {type}
                   </span>
                 ))}
@@ -287,7 +287,7 @@ export default function OnboardingDialog({ open, onComplete }: OnboardingDialogP
             <Button
               onClick={handleNext}
               disabled={saving}
-              className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white gap-2"
+              className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20 gap-2"
             >
               {saving ? 'Saving...' : isLastStep ? 'Get Started' : 'Continue'}
               {!isLastStep && !saving && <ChevronRight className="h-4 w-4" />}

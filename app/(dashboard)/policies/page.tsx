@@ -79,7 +79,7 @@ export default function PoliciesPage() {
             {activePolicies} active policies - {formatCurrency(totalPremium)} total premium
           </p>
         </div>
-        <Button onClick={() => setShowPolicyForm(true)} className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
+        <Button onClick={() => setShowPolicyForm(true)} className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
           <Plus className="mr-1 h-4 w-4" /> Add Policy
         </Button>
       </div>
@@ -134,7 +134,7 @@ export default function PoliciesPage() {
                   return (
                     <TableRow key={policy.id} className="cursor-pointer hover:bg-muted/50">
                       <TableCell>
-                        <Link href={`/clients/${policy.client_id}`} className="font-medium text-[#1E40AF] hover:underline">
+                        <Link href={`/clients/${policy.client_id}`} className="font-medium text-[#2C3E6B] hover:underline">
                           {(policy.client as any)?.first_name} {(policy.client as any)?.last_name}
                         </Link>
                       </TableCell>

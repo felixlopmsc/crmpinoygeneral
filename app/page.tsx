@@ -72,7 +72,7 @@ export default function LoginPage() {
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#1E40AF] border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#B8962E] border-t-transparent" />
       </div>
     );
   }
@@ -81,41 +81,45 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen">
-      <div className="hidden lg:flex lg:w-1/2 bg-[#1E40AF] items-center justify-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#1E40AF] to-[#1E3A8A]" />
+      <div className="hidden lg:flex lg:w-1/2 bg-[#1B2A4A] items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#1B2A4A] via-[#2C3E6B] to-[#1B2A4A]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_#B8962E15_0%,_transparent_70%)]" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#B8962E] to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#8B2D3B] to-transparent" />
         <div className="relative z-10 text-center px-12">
           <Image
             src="/Copy_of_Pinoy_General_Insurance_Logo_(800_×_800_px).png"
             alt="Pinoy General Insurance"
             width={200}
             height={200}
-            className="mx-auto mb-8 rounded-2xl bg-white p-4 shadow-2xl"
+            className="mx-auto mb-8 rounded-2xl bg-white/95 p-4 shadow-2xl ring-2 ring-[#B8962E]/30"
           />
           <h1 className="text-4xl font-bold text-white mb-4">
             Pinoy General Insurance
           </h1>
-          <p className="text-lg text-blue-200 max-w-md mx-auto">
+          <p className="text-lg text-[#D4AD3C]/80 max-w-md mx-auto">
             Your complete insurance agency management platform. Track clients, policies, commissions, and grow your business.
           </p>
           <div className="mt-12 grid grid-cols-3 gap-6">
-            <div className="rounded-xl bg-white/10 p-4 backdrop-blur-sm">
-              <p className="text-2xl font-bold text-white">CRM</p>
-              <p className="text-xs text-blue-200 mt-1">Client Management</p>
+            <div className="rounded-xl bg-white/5 p-4 backdrop-blur-sm border border-[#B8962E]/20">
+              <p className="text-2xl font-bold text-[#D4AD3C]">CRM</p>
+              <p className="text-xs text-white/60 mt-1">Client Management</p>
             </div>
-            <div className="rounded-xl bg-white/10 p-4 backdrop-blur-sm">
+            <div className="rounded-xl bg-white/5 p-4 backdrop-blur-sm border border-[#8B2D3B]/30">
               <p className="text-2xl font-bold text-white">360</p>
-              <p className="text-xs text-blue-200 mt-1">Full Client View</p>
+              <p className="text-xs text-white/60 mt-1">Full Client View</p>
             </div>
-            <div className="rounded-xl bg-white/10 p-4 backdrop-blur-sm">
-              <p className="text-2xl font-bold text-white">Auto</p>
-              <p className="text-xs text-blue-200 mt-1">Renewal Alerts</p>
+            <div className="rounded-xl bg-white/5 p-4 backdrop-blur-sm border border-[#B8962E]/20">
+              <p className="text-2xl font-bold text-[#D4AD3C]">Auto</p>
+              <p className="text-xs text-white/60 mt-1">Renewal Alerts</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex w-full lg:w-1/2 items-center justify-center p-8">
-        <div className="w-full max-w-md">
+      <div className="flex w-full lg:w-1/2 items-center justify-center p-8 relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#F5F0E8] to-white" />
+        <div className="relative w-full max-w-md">
           <div className="lg:hidden mb-8 text-center">
             <Image
               src="/Copy_of_Pinoy_General_Insurance_Logo_(800_×_800_px).png"
@@ -124,7 +128,7 @@ export default function LoginPage() {
               height={80}
               className="mx-auto mb-4"
             />
-            <h1 className="text-xl font-bold text-[#1E40AF]">Pinoy General Insurance CRM</h1>
+            <h1 className="text-xl font-bold text-[#2C3E6B]">Pinoy General Insurance CRM</h1>
           </div>
 
           <div className="hidden lg:block mb-8">
@@ -142,14 +146,14 @@ export default function LoginPage() {
 
           {view === 'forgot' ? (
             resetSent ? (
-              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-6 text-center">
-                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
-                  <svg className="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <div className="rounded-lg border border-[#B8962E]/30 bg-[#B8962E]/5 p-6 text-center">
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#B8962E]/10">
+                  <svg className="h-6 w-6 text-[#B8962E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-emerald-900">Check your email</h3>
-                <p className="mt-1 text-sm text-emerald-700">
+                <h3 className="text-lg font-semibold text-[#2C3E6B]">Check your email</h3>
+                <p className="mt-1 text-sm text-[#2C3E6B]/80">
                   We sent a password reset link to <strong>{email}</strong>. Click the link in the email to set a new password.
                 </p>
                 <Button
@@ -175,7 +179,7 @@ export default function LoginPage() {
                 </div>
                 <Button
                   type="submit"
-                  className="w-full bg-[#1E40AF] hover:bg-[#1E3A8A] text-white"
+                  className="w-full bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white shadow-lg shadow-[#2C3E6B]/20 border border-[#B8962E]/30"
                   disabled={submitting}
                 >
                   {submitting ? 'Sending...' : 'Send Reset Link'}
@@ -222,7 +226,7 @@ export default function LoginPage() {
                       <button
                         type="button"
                         onClick={() => setView('forgot')}
-                        className="text-xs text-[#1E40AF] hover:underline"
+                        className="text-xs text-[#B8962E] hover:text-[#D4AD3C] hover:underline"
                       >
                         Forgot password?
                       </button>
@@ -251,7 +255,7 @@ export default function LoginPage() {
                 </div>
                 <Button
                   type="submit"
-                  className="w-full bg-[#1E40AF] hover:bg-[#1E3A8A] text-white"
+                  className="w-full bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white shadow-lg shadow-[#2C3E6B]/20 border border-[#B8962E]/30"
                   disabled={submitting}
                 >
                   {submitting ? 'Please wait...' : view === 'signup' ? 'Create Account' : 'Sign In'}
@@ -263,7 +267,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setView(view === 'signup' ? 'login' : 'signup')}
-                  className="font-medium text-[#1E40AF] hover:underline"
+                  className="font-medium text-[#B8962E] hover:text-[#D4AD3C] hover:underline"
                 >
                   {view === 'signup' ? 'Sign In' : 'Create Account'}
                 </button>
