@@ -105,7 +105,7 @@ export default function ProfilePage() {
               <div className="relative group">
                 <Avatar className="h-24 w-24">
                   {user.avatar_url && <AvatarImage src={user.avatar_url} alt={user.full_name || 'User'} />}
-                  <AvatarFallback className="bg-[#2C3E6B] text-2xl text-white">
+                  <AvatarFallback className="bg-[#1E40AF] text-2xl text-white">
                     {getInitials(user.full_name || user.email)}
                   </AvatarFallback>
                 </Avatar>
@@ -177,15 +177,15 @@ export default function ProfilePage() {
 
               <div className="grid w-full grid-cols-3 gap-2">
                 <div className="rounded-lg bg-muted/60 p-3">
-                  <p className="text-lg font-bold text-[#2C3E6B]">{stats.clients}</p>
+                  <p className="text-lg font-bold text-[#1E40AF]">{stats.clients}</p>
                   <p className="text-[11px] text-muted-foreground">Clients</p>
                 </div>
                 <div className="rounded-lg bg-muted/60 p-3">
-                  <p className="text-lg font-bold text-[#2C3E6B]">{stats.policies}</p>
+                  <p className="text-lg font-bold text-[#1E40AF]">{stats.policies}</p>
                   <p className="text-[11px] text-muted-foreground">Policies</p>
                 </div>
                 <div className="rounded-lg bg-muted/60 p-3">
-                  <p className="text-lg font-bold text-[#2C3E6B]">{stats.deals}</p>
+                  <p className="text-lg font-bold text-[#1E40AF]">{stats.deals}</p>
                   <p className="text-[11px] text-muted-foreground">Open Deals</p>
                 </div>
               </div>
@@ -196,7 +196,7 @@ export default function ProfilePage() {
         <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <User className="h-5 w-5 text-[#2C3E6B]" />
+              <User className="h-5 w-5 text-[#1E40AF]" />
               Personal Information
             </CardTitle>
           </CardHeader>
@@ -247,7 +247,7 @@ export default function ProfilePage() {
 
             <div>
               <h4 className="flex items-center gap-2 text-sm font-semibold mb-4">
-                <Briefcase className="h-4 w-4 text-[#2C3E6B]" />
+                <Briefcase className="h-4 w-4 text-[#1E40AF]" />
                 License Information
               </h4>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -278,7 +278,7 @@ export default function ProfilePage() {
               <Button
                 onClick={handleSave}
                 disabled={saving}
-                className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20 gap-2"
+                className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white gap-2"
               >
                 <Save className="h-4 w-4" />
                 {saving ? 'Saving...' : 'Save Changes'}

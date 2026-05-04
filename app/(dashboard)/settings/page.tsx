@@ -128,7 +128,7 @@ export default function SettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Bell className="h-5 w-5 text-[#2C3E6B]" />
+              <Bell className="h-5 w-5 text-[#1E40AF]" />
               Notifications
             </CardTitle>
             <CardDescription>
@@ -182,7 +182,7 @@ export default function SettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Eye className="h-5 w-5 text-[#2C3E6B]" />
+              <Eye className="h-5 w-5 text-[#1E40AF]" />
               Display Preferences
             </CardTitle>
             <CardDescription>
@@ -269,7 +269,7 @@ export default function SettingsPage() {
               <Button
                 onClick={handleSaveSettings}
                 disabled={saving || loadingSettings}
-                className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20 gap-2"
+                className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white gap-2"
               >
                 <Save className="h-4 w-4" />
                 {saving ? 'Saving...' : 'Save Preferences'}
@@ -281,7 +281,7 @@ export default function SettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Lock className="h-5 w-5 text-[#2C3E6B]" />
+              <Lock className="h-5 w-5 text-[#1E40AF]" />
               Security
             </CardTitle>
             <CardDescription>

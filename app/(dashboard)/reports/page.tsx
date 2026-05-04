@@ -136,7 +136,7 @@ export default function ReportsPage() {
           { value: 'commissions', label: 'Commissions', icon: DollarSign },
         ].map((tab) => (
           <Button key={tab.value} variant={activeReport === tab.value ? 'default' : 'outline'} size="sm"
-            onClick={() => setActiveReport(tab.value)} className={activeReport === tab.value ? 'bg-[#2C3E6B]' : ''}>
+            onClick={() => setActiveReport(tab.value)} className={activeReport === tab.value ? 'bg-[#1E40AF]' : ''}>
             <tab.icon className="mr-1 h-3.5 w-3.5" /> {tab.label}
           </Button>
         ))}
@@ -148,7 +148,7 @@ export default function ReportsPage() {
             <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Total Clients</p><p className="text-2xl font-bold">{data.totalClients}</p></CardContent></Card>
             <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Active Policies</p><p className="text-2xl font-bold text-emerald-600">{data.activePolicies}</p></CardContent></Card>
             <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Total Premium</p><p className="text-2xl font-bold">{formatCurrency(data.totalPremium)}</p></CardContent></Card>
-            <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Win Rate</p><p className="text-2xl font-bold text-[#2C3E6B]">{winRate}%</p></CardContent></Card>
+            <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Win Rate</p><p className="text-2xl font-bold text-[#1E40AF]">{winRate}%</p></CardContent></Card>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">
@@ -213,7 +213,7 @@ export default function ReportsPage() {
                           <span className="text-sm font-medium">{count} ({pct}%)</span>
                         </div>
                         <div className="h-2 rounded-full bg-muted">
-                          <div className="h-2 rounded-full bg-[#2C3E6B]" style={{ width: `${pct}%` }} />
+                          <div className="h-2 rounded-full bg-[#1E40AF]" style={{ width: `${pct}%` }} />
                         </div>
                       </div>
                     );
@@ -259,7 +259,7 @@ export default function ReportsPage() {
             <CardContent>
               <div className="space-y-4">
                 <div className="flex justify-between border-b pb-2"><span className="text-sm text-muted-foreground">Total Deals</span><span className="font-semibold">{data.totalDeals}</span></div>
-                <div className="flex justify-between border-b pb-2"><span className="text-sm text-muted-foreground">Open</span><span className="font-semibold text-[#2C3E6B]">{data.openDeals}</span></div>
+                <div className="flex justify-between border-b pb-2"><span className="text-sm text-muted-foreground">Open</span><span className="font-semibold text-[#1E40AF]">{data.openDeals}</span></div>
                 <div className="flex justify-between border-b pb-2"><span className="text-sm text-muted-foreground">Won</span><span className="font-semibold text-emerald-600">{data.wonDeals}</span></div>
                 <div className="flex justify-between border-b pb-2"><span className="text-sm text-muted-foreground">Lost</span><span className="font-semibold text-red-600">{data.lostDeals}</span></div>
                 <div className="flex justify-between border-b pb-2"><span className="text-sm text-muted-foreground">Pipeline Value</span><span className="font-semibold">{formatCurrency(data.pipelineValue)}</span></div>

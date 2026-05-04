@@ -83,15 +83,14 @@ export default function Sidebar() {
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
-          'fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-[#B8962E]/20 bg-gradient-to-b from-[#1B2A4A] to-[#2C3E6B] transition-all duration-300',
+          'fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-border bg-white transition-all duration-300',
           collapsed ? 'w-[68px]' : 'w-[240px]'
         )}
       >
-        <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#8B2D3B] via-[#B8962E] to-[#8B2D3B]" />
         <Link
           href="/dashboard"
           className={cn(
-            'flex items-center border-b border-white/10 px-3 transition-colors hover:bg-white/5',
+            'flex items-center border-b border-border px-3 transition-colors hover:bg-muted/50',
             collapsed ? 'justify-center h-[72px]' : 'gap-3 h-[72px]'
           )}
         >
@@ -104,8 +103,8 @@ export default function Sidebar() {
           />
           {!collapsed && (
             <div className="min-w-0">
-              <p className="truncate text-sm font-bold text-[#D4AD3C]">Pinoy General</p>
-              <p className="truncate text-[11px] text-white/50">Insurance CRM</p>
+              <p className="truncate text-sm font-bold text-[#1E40AF]">Pinoy General</p>
+              <p className="truncate text-[11px] text-muted-foreground">Insurance CRM</p>
             </div>
           )}
         </Link>
@@ -114,12 +113,12 @@ export default function Sidebar() {
           {navGroups.map((group) => (
             <div key={group.title || 'top'} className={group.title ? 'mt-4 first:mt-0' : ''}>
               {group.title && !collapsed && (
-                <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-[#B8962E]/70">
+                <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
                   {group.title}
                 </p>
               )}
               {group.title && collapsed && (
-                <div className="mx-auto my-2 h-px w-8 bg-white/10" />
+                <div className="mx-auto my-2 h-px w-8 bg-border" />
               )}
               <ul className="space-y-0.5">
                 {group.items.map((item) => {
@@ -129,10 +128,10 @@ export default function Sidebar() {
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
+                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                         isActive
-                          ? 'bg-white/10 text-white border-l-2 border-[#B8962E] shadow-sm shadow-[#B8962E]/10'
-                          : 'text-white/70 hover:bg-white/5 hover:text-white border-l-2 border-transparent'
+                          ? 'bg-[#1E40AF] text-white'
+                          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                       )}
                     >
                       <item.icon className="h-[18px] w-[18px] flex-shrink-0" />
@@ -158,12 +157,12 @@ export default function Sidebar() {
           ))}
         </nav>
 
-        <div className="border-t border-white/10 p-2">
+        <div className="border-t border-border p-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setCollapsed(!collapsed)}
-            className="w-full justify-center text-white/50 hover:text-white hover:bg-white/10"
+            className="w-full justify-center"
           >
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </Button>

@@ -440,7 +440,7 @@ export default function ClientsPage() {
             <Upload className="mr-1 h-4 w-4" />
             Import CSV
           </Button>
-          <Button onClick={() => { setEditingClient(null); setShowForm(true); }} className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
+          <Button onClick={() => { setEditingClient(null); setShowForm(true); }} className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
             <Plus className="mr-1 h-4 w-4" />
             Add Client
           </Button>
@@ -481,7 +481,7 @@ export default function ClientsPage() {
               onClick={() => setPolicyTypeFilter(pt.key)}
               className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all ${
                 isActive
-                  ? 'bg-[#2C3E6B] border-[#2C3E6B] text-white'
+                  ? 'bg-[#1E40AF] border-[#1E40AF] text-white'
                   : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-muted/50'
               }`}
             >
@@ -541,7 +541,7 @@ export default function ClientsPage() {
       </TooltipProvider>
 
       {selectedIds.size > 0 && (
-        <div className="sticky top-0 z-40 -mx-4 md:-mx-6 px-4 md:px-6 py-2.5 bg-[#2C3E6B] text-white rounded-lg mx-0 flex items-center gap-3 shadow-lg animate-in slide-in-from-top-2 duration-200">
+        <div className="sticky top-0 z-40 -mx-4 md:-mx-6 px-4 md:px-6 py-2.5 bg-[#1E40AF] text-white rounded-lg mx-0 flex items-center gap-3 shadow-lg animate-in slide-in-from-top-2 duration-200">
           <div className="flex items-center gap-2 flex-1">
             <CheckSquare className="h-4 w-4" />
             <span className="text-sm font-medium">
@@ -615,7 +615,7 @@ export default function ClientsPage() {
               <>
                 <p className="text-lg font-medium">No clients found</p>
                 <p className="text-sm text-muted-foreground mt-1">Add your first client to get started</p>
-                <Button onClick={() => setShowForm(true)} className="mt-4 bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
+                <Button onClick={() => setShowForm(true)} className="mt-4 bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
                   <Plus className="mr-1 h-4 w-4" /> Add Client
                 </Button>
               </>
@@ -659,12 +659,12 @@ export default function ClientsPage() {
                   </div>
                   <Link href={`/clients/${client.id}`}>
                     <Card className={`transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer h-full ${
-                      isSelected ? 'ring-2 ring-[#2C3E6B] bg-blue-50/30' : ''
+                      isSelected ? 'ring-2 ring-[#1E40AF] bg-blue-50/30' : ''
                     }`}>
                       <CardContent className="p-4 pl-8">
                         <div className="flex items-start gap-3">
                           <Avatar className="h-10 w-10 shrink-0">
-                            <AvatarFallback className="bg-[#2C3E6B] text-white text-xs">
+                            <AvatarFallback className="bg-[#1E40AF] text-white text-xs">
                               {getInitials(`${client.first_name} ${client.last_name}`)}
                             </AvatarFallback>
                           </Avatar>
@@ -756,7 +756,7 @@ export default function ClientsPage() {
             <Button
               onClick={handleBulkStatusChange}
               disabled={bulkActionLoading}
-              className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20"
+              className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white"
             >
               {bulkActionLoading ? 'Updating...' : `Move to ${bulkStatus}`}
             </Button>
@@ -887,7 +887,7 @@ function ClientFormDialog({
                   onClick={() => { setForm({ ...form, email: emailSuggestion }); setEmailSuggestion(''); }}
                   className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 rounded-md bg-muted/80 px-2 py-0.5 text-[11px] text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 >
-                  <Zap className="h-3 w-3 text-[#2C3E6B]" />
+                  <Zap className="h-3 w-3 text-[#1E40AF]" />
                   <span className="max-w-[180px] truncate">{emailSuggestion}</span>
                 </button>
               )}
@@ -991,7 +991,7 @@ function ClientFormDialog({
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20" disabled={saving}>
+            <Button type="submit" className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white" disabled={saving}>
               {saving ? 'Saving...' : client ? 'Update Client' : 'Create Client'}
             </Button>
           </div>

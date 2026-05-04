@@ -634,7 +634,7 @@ export function BulkClientImportDialog({
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <FileSpreadsheet className="h-5 w-5 text-[#2C3E6B]" />
+            <FileSpreadsheet className="h-5 w-5 text-[#1E40AF]" />
             {step === 'upload' && 'Import Clients from CSV'}
             {step === 'preview' && 'Review Import Data'}
             {step === 'duplicates' && 'Existing Clients Found'}
@@ -648,8 +648,8 @@ export function BulkClientImportDialog({
             <div
               className={`border-2 border-dashed rounded-xl p-10 text-center transition-colors cursor-pointer ${
                 isDragging
-                  ? 'border-[#2C3E6B] bg-blue-50/50'
-                  : 'border-gray-200 hover:border-[#2C3E6B]/50 hover:bg-muted/30'
+                  ? 'border-[#1E40AF] bg-blue-50/50'
+                  : 'border-gray-200 hover:border-[#1E40AF]/50 hover:bg-muted/30'
               }`}
               onDragOver={(e) => {
                 e.preventDefault();
@@ -661,7 +661,7 @@ export function BulkClientImportDialog({
             >
               <Upload
                 className={`h-10 w-10 mx-auto mb-3 ${
-                  isDragging ? 'text-[#2C3E6B]' : 'text-muted-foreground/50'
+                  isDragging ? 'text-[#1E40AF]' : 'text-muted-foreground/50'
                 }`}
               />
               <p className="font-medium text-sm">
@@ -832,7 +832,7 @@ export function BulkClientImportDialog({
               <Button
                 onClick={checkForDuplicates}
                 disabled={importableCount === 0 || checkingDuplicates}
-                className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20"
+                className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white"
               >
                 {checkingDuplicates ? (
                   <>
@@ -901,7 +901,7 @@ export function BulkClientImportDialog({
 
             {newRows.length > 0 && (
               <div className="flex items-start gap-2 rounded-lg bg-blue-50 border border-blue-100 p-3">
-                <UserPlus className="h-4 w-4 text-[#2C3E6B] shrink-0 mt-0.5" />
+                <UserPlus className="h-4 w-4 text-[#1E40AF] shrink-0 mt-0.5" />
                 <p className="text-xs text-blue-800">
                   {newRows.length} new client{newRows.length > 1 ? 's' : ''} will also be added.
                 </p>
@@ -914,7 +914,7 @@ export function BulkClientImportDialog({
               </Button>
               <Button
                 onClick={proceedWithDuplicates}
-                className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20"
+                className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white"
               >
                 <Upload className="mr-1.5 h-4 w-4" />
                 Import
@@ -926,7 +926,7 @@ export function BulkClientImportDialog({
         {step === 'importing' && (
           <div className="py-8 space-y-4 text-center">
             <div className="h-12 w-12 mx-auto rounded-full bg-blue-50 flex items-center justify-center">
-              <Upload className="h-6 w-6 text-[#2C3E6B] animate-pulse" />
+              <Upload className="h-6 w-6 text-[#1E40AF] animate-pulse" />
             </div>
             <div>
               <p className="font-medium">Importing clients...</p>
@@ -934,7 +934,7 @@ export function BulkClientImportDialog({
             </div>
             <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
               <div
-                className="h-full bg-[#2C3E6B] transition-all rounded-full"
+                className="h-full bg-[#1E40AF] transition-all rounded-full"
                 style={{ width: `${importProgress}%` }}
               />
             </div>
@@ -959,7 +959,7 @@ export function BulkClientImportDialog({
               <div className="flex items-center justify-center gap-4 mt-2">
                 {importResults.inserted > 0 && (
                   <div className="text-center">
-                    <p className="text-xl font-bold text-[#2C3E6B]">{importResults.inserted}</p>
+                    <p className="text-xl font-bold text-[#1E40AF]">{importResults.inserted}</p>
                     <p className="text-[10px] text-muted-foreground">New clients</p>
                   </div>
                 )}
@@ -994,7 +994,7 @@ export function BulkClientImportDialog({
               </div>
             )}
 
-            <Button onClick={() => handleClose(false)} className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
+            <Button onClick={() => handleClose(false)} className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
               Done
             </Button>
           </div>

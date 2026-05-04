@@ -22,7 +22,7 @@ export const TASK_TEMPLATES: TaskTemplate[] = [
     description: 'Complete checklist for bringing a new client into the system and ensuring all documentation is collected.',
     category: 'onboarding',
     icon: 'UserPlus',
-    color: 'bg-[#2C3E6B]/10 text-[#2C3E6B]',
+    color: 'bg-[#1E40AF]/10 text-[#1E40AF]',
     tasks: [
       {
         title: 'Send welcome email with agency introduction',

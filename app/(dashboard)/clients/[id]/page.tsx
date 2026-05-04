@@ -133,7 +133,7 @@ export default function ClientProfilePage() {
       {crossSellOpps.length > 0 && (
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
           <div className="flex items-center gap-3 mb-3">
-            <TrendingUp className="h-5 w-5 text-[#B8962E] shrink-0" />
+            <TrendingUp className="h-5 w-5 text-[#10B981] shrink-0" />
             <div className="flex-1">
               <p className="text-sm font-semibold text-emerald-800">
                 {crossSellOpps.length} Cross-Sell Opportunit{crossSellOpps.length > 1 ? 'ies' : 'y'}
@@ -188,7 +188,7 @@ export default function ClientProfilePage() {
                     {opp.pitch_message}
                   </p>
                 </div>
-                <span className="text-xs font-semibold text-[#B8962E] shrink-0">
+                <span className="text-xs font-semibold text-[#10B981] shrink-0">
                   +{formatCurrency(opp.estimated_value)}/yr
                 </span>
                 <StatusSelect
@@ -225,7 +225,7 @@ export default function ClientProfilePage() {
         <CardContent className="p-5">
           <div className="flex flex-col sm:flex-row items-start gap-4">
             <Avatar className="h-16 w-16 shrink-0">
-              <AvatarFallback className="bg-[#2C3E6B] text-white text-lg">
+              <AvatarFallback className="bg-[#1E40AF] text-white text-lg">
                 {getInitials(`${client.first_name} ${client.last_name}`)}
               </AvatarFallback>
             </Avatar>
@@ -236,11 +236,11 @@ export default function ClientProfilePage() {
                 {client.source && <Badge variant="outline" className="text-xs">{client.source}</Badge>}
               </div>
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-                <a href={`mailto:${client.email}`} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-[#2C3E6B]">
+                <a href={`mailto:${client.email}`} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-[#1E40AF]">
                   <Mail className="h-3.5 w-3.5" /> {client.email}
                 </a>
                 {client.phone && (
-                  <a href={`tel:${client.phone}`} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-[#2C3E6B]">
+                  <a href={`tel:${client.phone}`} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-[#1E40AF]">
                     <Phone className="h-3.5 w-3.5" /> {formatPhone(client.phone)}
                   </a>
                 )}
@@ -264,7 +264,7 @@ export default function ClientProfilePage() {
       <div className="sticky top-0 z-30 -mx-4 md:-mx-6 px-4 md:px-6 py-3 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="hidden sm:flex items-center gap-2">
           {client.phone ? (
-            <Button size="sm" asChild className="bg-[#B8962E] hover:bg-[#8F7420] text-white">
+            <Button size="sm" asChild className="bg-[#10B981] hover:bg-[#059669] text-white">
               <a href={`tel:${client.phone}`}><Phone className="mr-1.5 h-3.5 w-3.5" /> Call</a>
             </Button>
           ) : (
@@ -290,7 +290,7 @@ export default function ClientProfilePage() {
         </div>
         <div className="flex sm:hidden items-center gap-2">
           {client.phone ? (
-            <Button size="sm" asChild className="bg-[#B8962E] hover:bg-[#8F7420] text-white flex-1">
+            <Button size="sm" asChild className="bg-[#10B981] hover:bg-[#059669] text-white flex-1">
               <a href={`tel:${client.phone}`}><Phone className="mr-1.5 h-3.5 w-3.5" /> Call</a>
             </Button>
           ) : (
@@ -334,7 +334,7 @@ export default function ClientProfilePage() {
         <TabsContent value="policies" className="mt-4">
           <div className="flex justify-between items-center mb-3">
             <h3 className="font-semibold">Policies</h3>
-            <Button size="sm" onClick={() => setShowPolicyForm(true)} className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
+            <Button size="sm" onClick={() => setShowPolicyForm(true)} className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
               <Plus className="mr-1 h-3.5 w-3.5" /> Add Policy
             </Button>
           </div>
@@ -378,7 +378,7 @@ export default function ClientProfilePage() {
         <TabsContent value="activities" className="mt-4">
           <div className="flex justify-between items-center mb-3">
             <h3 className="font-semibold">Activity Timeline</h3>
-            <Button size="sm" onClick={() => setShowActivityForm(true)} className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
+            <Button size="sm" onClick={() => setShowActivityForm(true)} className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
               <Plus className="mr-1 h-3.5 w-3.5" /> Log Activity
             </Button>
           </div>
@@ -418,7 +418,7 @@ export default function ClientProfilePage() {
         <TabsContent value="deals" className="mt-4">
           <div className="flex justify-between items-center mb-3">
             <h3 className="font-semibold">Deals</h3>
-            <Button size="sm" asChild className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
+            <Button size="sm" asChild className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
               <Link href={`/deals?new=true&client=${client.id}`}>
                 <Plus className="mr-1 h-3.5 w-3.5" /> New Deal
               </Link>
@@ -453,9 +453,9 @@ export default function ClientProfilePage() {
             <h3 className="font-semibold">Tasks</h3>
             <div className="flex gap-2">
               <Button size="sm" variant="outline" onClick={() => setShowTaskTemplates(true)} className="gap-1">
-                <Zap className="h-3.5 w-3.5 text-[#2C3E6B]" /> Templates
+                <Zap className="h-3.5 w-3.5 text-[#1E40AF]" /> Templates
               </Button>
-              <Button size="sm" onClick={() => setShowTaskForm(true)} className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
+              <Button size="sm" onClick={() => setShowTaskForm(true)} className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
                 <Plus className="mr-1 h-3.5 w-3.5" /> Add Task
               </Button>
             </div>
@@ -492,7 +492,7 @@ export default function ClientProfilePage() {
         <TabsContent value="claims" className="mt-4">
           <div className="flex justify-between items-center mb-3">
             <h3 className="font-semibold">Claims</h3>
-            <Button size="sm" asChild className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
+            <Button size="sm" asChild className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
               <Link href={`/claims?new=true&client=${client.id}`}>
                 <Plus className="mr-1 h-3.5 w-3.5" /> File Claim
               </Link>
@@ -608,7 +608,7 @@ function ActivityFormDialog({ open, onOpenChange, clientId, userId, onSaved }: {
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20" disabled={saving}>{saving ? 'Saving...' : 'Log Activity'}</Button>
+            <Button type="submit" className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white" disabled={saving}>{saving ? 'Saving...' : 'Log Activity'}</Button>
           </div>
         </form>
       </DialogContent>
@@ -640,7 +640,7 @@ function QuickNoteDialog({ open, onOpenChange, clientId, userId, onSaved }: { op
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
-        <DialogHeader><DialogTitle className="flex items-center gap-2"><StickyNote className="h-4 w-4 text-[#2C3E6B]" /> Quick Note</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle className="flex items-center gap-2"><StickyNote className="h-4 w-4 text-[#1E40AF]" /> Quick Note</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Textarea
             value={note}
@@ -652,7 +652,7 @@ function QuickNoteDialog({ open, onOpenChange, clientId, userId, onSaved }: { op
           />
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20" disabled={saving}>{saving ? 'Saving...' : 'Save Note'}</Button>
+            <Button type="submit" className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white" disabled={saving}>{saving ? 'Saving...' : 'Save Note'}</Button>
           </div>
         </form>
       </DialogContent>
@@ -700,7 +700,7 @@ function TaskFormDialog({ open, onOpenChange, clientId, userId, onSaved }: { ope
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20" disabled={saving}>{saving ? 'Saving...' : 'Create Task'}</Button>
+            <Button type="submit" className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white" disabled={saving}>{saving ? 'Saving...' : 'Create Task'}</Button>
           </div>
         </form>
       </DialogContent>

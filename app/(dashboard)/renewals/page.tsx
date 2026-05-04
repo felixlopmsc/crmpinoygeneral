@@ -141,7 +141,7 @@ export default function RenewalsPage() {
         <Button
           onClick={triggerRenewalCheck}
           disabled={triggering}
-          className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20"
+          className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white"
           size="sm"
         >
           {triggering ? (
@@ -201,12 +201,12 @@ export default function RenewalsPage() {
                     <CardContent className="p-4">
                       <div className="flex flex-col sm:flex-row items-start gap-3">
                         <Avatar className="h-10 w-10 shrink-0">
-                          <AvatarFallback className="bg-[#2C3E6B] text-white text-xs">
+                          <AvatarFallback className="bg-[#1E40AF] text-white text-xs">
                             {getInitials(`${(policy.client as any)?.first_name} ${(policy.client as any)?.last_name}`)}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <Link href={`/clients/${policy.client_id}`} className="font-semibold text-[#2C3E6B] hover:underline">
+                          <Link href={`/clients/${policy.client_id}`} className="font-semibold text-[#1E40AF] hover:underline">
                             {(policy.client as any)?.first_name} {(policy.client as any)?.last_name}
                           </Link>
                           <p className="text-sm text-muted-foreground">

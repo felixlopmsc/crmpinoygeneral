@@ -103,8 +103,8 @@ export default function CommissionsPage() {
         </Card>
         <Card>
           <CardContent className="flex items-center gap-4 p-5">
-            <div className="rounded-xl bg-blue-50 p-3"><DollarSign className="h-5 w-5 text-[#2C3E6B]" /></div>
-            <div><p className="text-sm text-muted-foreground">Paid YTD</p><p className="text-xl font-bold text-[#2C3E6B]">{formatCurrency(paidYTD)}</p></div>
+            <div className="rounded-xl bg-blue-50 p-3"><DollarSign className="h-5 w-5 text-[#1E40AF]" /></div>
+            <div><p className="text-sm text-muted-foreground">Paid YTD</p><p className="text-xl font-bold text-[#1E40AF]">{formatCurrency(paidYTD)}</p></div>
           </CardContent>
         </Card>
       </div>
@@ -144,7 +144,7 @@ export default function CommissionsPage() {
                 {commissions.map((c) => (
                   <TableRow key={c.id}>
                     <TableCell>
-                      <Link href={`/clients/${c.client_id}`} className="font-medium text-[#2C3E6B] hover:underline">
+                      <Link href={`/clients/${c.client_id}`} className="font-medium text-[#1E40AF] hover:underline">
                         {(c.client as any)?.first_name} {(c.client as any)?.last_name}
                       </Link>
                     </TableCell>

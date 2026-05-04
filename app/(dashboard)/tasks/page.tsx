@@ -109,9 +109,9 @@ export default function TasksPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setShowTemplates(true)} className="gap-1.5">
-            <Zap className="h-4 w-4 text-[#2C3E6B]" /> Templates
+            <Zap className="h-4 w-4 text-[#1E40AF]" /> Templates
           </Button>
-          <Button onClick={handleOpenForm} className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
+          <Button onClick={handleOpenForm} className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
             <Plus className="mr-1 h-4 w-4" /> Add Task
           </Button>
         </div>
@@ -124,7 +124,7 @@ export default function TasksPage() {
           { value: 'completed', label: 'Completed', icon: Clock },
           { value: 'all', label: 'All', icon: Filter },
         ].map((f) => (
-          <Button key={f.value} variant={viewFilter === f.value ? 'default' : 'outline'} size="sm" onClick={() => setViewFilter(f.value)} className={viewFilter === f.value ? 'bg-[#2C3E6B]' : ''}>
+          <Button key={f.value} variant={viewFilter === f.value ? 'default' : 'outline'} size="sm" onClick={() => setViewFilter(f.value)} className={viewFilter === f.value ? 'bg-[#1E40AF]' : ''}>
             <f.icon className="mr-1 h-3.5 w-3.5" /> {f.label}
           </Button>
         ))}
@@ -157,7 +157,7 @@ export default function TasksPage() {
                         </span>
                       )}
                       {task.client && (
-                        <Link href={`/clients/${task.related_client_id}`} className="text-xs text-[#2C3E6B] hover:underline">
+                        <Link href={`/clients/${task.related_client_id}`} className="text-xs text-[#1E40AF] hover:underline">
                           {(task.client as any).first_name} {(task.client as any).last_name}
                         </Link>
                       )}
@@ -242,7 +242,7 @@ function TaskForm({ clients, onSave, onCancel }: { clients: Pick<Client, 'id' | 
       {showSuggestions && !form.title && (
         <div className="space-y-2">
           <Label className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            <Sparkles className="h-3 w-3 text-[#2C3E6B]" /> Quick Add
+            <Sparkles className="h-3 w-3 text-[#1E40AF]" /> Quick Add
           </Label>
           <div className="flex flex-wrap gap-1.5">
             {Object.keys(TASK_SUGGESTIONS).map((cat) => (
@@ -252,8 +252,8 @@ function TaskForm({ clients, onSave, onCancel }: { clients: Pick<Client, 'id' | 
                 onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
                 className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-all ${
                   selectedCategory === cat
-                    ? 'border-[#2C3E6B] bg-[#2C3E6B]/5 text-[#2C3E6B]'
-                    : 'hover:border-[#2C3E6B] hover:bg-[#2C3E6B]/5'
+                    ? 'border-[#1E40AF] bg-[#1E40AF]/5 text-[#1E40AF]'
+                    : 'hover:border-[#1E40AF] hover:bg-[#1E40AF]/5'
                 }`}
               >
                 {cat}
@@ -267,9 +267,9 @@ function TaskForm({ clients, onSave, onCancel }: { clients: Pick<Client, 'id' | 
                   key={i}
                   type="button"
                   onClick={() => applySuggestion(s)}
-                  className="w-full flex items-center gap-3 rounded-lg border px-3 py-2 text-left hover:border-[#2C3E6B] hover:bg-[#2C3E6B]/5 transition-all group"
+                  className="w-full flex items-center gap-3 rounded-lg border px-3 py-2 text-left hover:border-[#1E40AF] hover:bg-[#1E40AF]/5 transition-all group"
                 >
-                  <Zap className="h-3.5 w-3.5 text-muted-foreground group-hover:text-[#2C3E6B] shrink-0" />
+                  <Zap className="h-3.5 w-3.5 text-muted-foreground group-hover:text-[#1E40AF] shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium">{s.title}</p>
                     <p className="text-[10px] text-muted-foreground">{s.description}</p>
@@ -287,9 +287,9 @@ function TaskForm({ clients, onSave, onCancel }: { clients: Pick<Client, 'id' | 
                   key={i}
                   type="button"
                   onClick={() => applySuggestion(s)}
-                  className="w-full flex items-center gap-3 rounded-lg border px-3 py-2 text-left hover:border-[#2C3E6B] hover:bg-[#2C3E6B]/5 transition-all group"
+                  className="w-full flex items-center gap-3 rounded-lg border px-3 py-2 text-left hover:border-[#1E40AF] hover:bg-[#1E40AF]/5 transition-all group"
                 >
-                  <Zap className="h-3.5 w-3.5 text-muted-foreground group-hover:text-[#2C3E6B] shrink-0" />
+                  <Zap className="h-3.5 w-3.5 text-muted-foreground group-hover:text-[#1E40AF] shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium">{s.title}</p>
                     <p className="text-[10px] text-muted-foreground">{s.description}</p>
@@ -363,7 +363,7 @@ function TaskForm({ clients, onSave, onCancel }: { clients: Pick<Client, 'id' | 
 
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
-        <Button type="submit" className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20" disabled={saving}>{saving ? 'Saving...' : 'Create Task'}</Button>
+        <Button type="submit" className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white" disabled={saving}>{saving ? 'Saving...' : 'Create Task'}</Button>
       </div>
     </form>
   );

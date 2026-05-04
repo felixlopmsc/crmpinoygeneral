@@ -80,7 +80,7 @@ export default function ClaimsPage() {
           <h1 className="text-2xl font-bold">Claims</h1>
           <p className="text-sm text-muted-foreground">{claims.length} claims</p>
         </div>
-        <Button onClick={handleOpenForm} className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
+        <Button onClick={handleOpenForm} className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
           <Plus className="mr-1 h-4 w-4" /> File Claim
         </Button>
       </div>
@@ -118,7 +118,7 @@ export default function ClaimsPage() {
                 {claims.map((claim) => (
                   <TableRow key={claim.id}>
                     <TableCell>
-                      <Link href={`/clients/${claim.client_id}`} className="font-medium text-[#2C3E6B] hover:underline">
+                      <Link href={`/clients/${claim.client_id}`} className="font-medium text-[#1E40AF] hover:underline">
                         {(claim.client as any)?.first_name} {(claim.client as any)?.last_name}
                       </Link>
                     </TableCell>
@@ -291,7 +291,7 @@ function ClaimForm({ clients, onSave, onCancel, preselectedClientId }: {
                 onClick={handleGenerateClaimNumber}
                 className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 rounded-md bg-muted/80 px-1.5 py-0.5 text-[10px] text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
               >
-                <Zap className="h-3 w-3 text-[#2C3E6B]" /> Generate
+                <Zap className="h-3 w-3 text-[#1E40AF]" /> Generate
               </button>
             )}
             {autoFilledFields.has('claim_number') && form.claim_number && (
@@ -339,7 +339,7 @@ function ClaimForm({ clients, onSave, onCancel, preselectedClientId }: {
       </div>
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
-        <Button type="submit" className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20" disabled={saving}>{saving ? 'Saving...' : 'File Claim'}</Button>
+        <Button type="submit" className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white" disabled={saving}>{saving ? 'Saving...' : 'File Claim'}</Button>
       </div>
     </form>
   );

@@ -51,7 +51,7 @@ function TrendIndicator({ value }: { value: number }) {
   if (value === 0) return null;
   const isUp = value > 0;
   return (
-    <span className={`inline-flex items-center gap-0.5 text-[11px] font-medium ${isUp ? 'text-[#B8962E]' : 'text-[#8B2D3B]'}`}>
+    <span className={`inline-flex items-center gap-0.5 text-[11px] font-medium ${isUp ? 'text-emerald-600' : 'text-red-500'}`}>
       {isUp ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
       {Math.abs(value)}% vs last month
     </span>
@@ -168,8 +168,8 @@ export default function DashboardPage() {
       label: 'Total Clients',
       value: stats.totalClients,
       icon: Users,
-      color: 'text-[#2C3E6B]',
-      bg: 'bg-[#2C3E6B]/5',
+      color: 'text-[#1E40AF]',
+      bg: 'bg-blue-50',
       href: '/clients',
       trend: trends.totalClientsTrend,
       emptyMessage: 'Add your first client to get started',
@@ -180,8 +180,8 @@ export default function DashboardPage() {
       label: 'Active Policies',
       value: stats.activePolicies,
       icon: FileText,
-      color: 'text-[#B8962E]',
-      bg: 'bg-[#B8962E]/5',
+      color: 'text-[#10B981]',
+      bg: 'bg-emerald-50',
       href: '/policies',
       trend: trends.activePoliciesTrend,
       emptyMessage: 'Create your first policy to track coverage',
@@ -193,8 +193,8 @@ export default function DashboardPage() {
       value: stats.pipelineValue,
       displayValue: formatCurrency(stats.pipelineValue),
       icon: TrendingUp,
-      color: 'text-[#8B2D3B]',
-      bg: 'bg-[#8B2D3B]/5',
+      color: 'text-amber-600',
+      bg: 'bg-amber-50',
       href: '/deals',
       trend: trends.pipelineValueTrend,
       emptyMessage: 'Start a deal to track your sales pipeline',
@@ -206,8 +206,8 @@ export default function DashboardPage() {
       value: stats.pendingCommissions,
       displayValue: formatCurrency(stats.pendingCommissions),
       icon: DollarSign,
-      color: 'text-[#B8962E]',
-      bg: 'bg-[#D4AD3C]/10',
+      color: 'text-emerald-600',
+      bg: 'bg-emerald-50/70',
       href: '/commissions',
       trend: trends.pendingCommissionsTrend,
       emptyMessage: 'Commissions appear when policies are sold',
@@ -261,13 +261,13 @@ export default function DashboardPage() {
           >
             <Upload className="h-4 w-4" />
           </Button>
-          <Button asChild size="sm" className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
+          <Button asChild size="sm" className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
             <Link href="/clients?new=true">
               <Plus className="mr-1 h-4 w-4" />
               New Client
             </Link>
           </Button>
-          <Button asChild size="sm" className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
+          <Button asChild size="sm" className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
             <Link href="/deals?new=true">
               <Plus className="mr-1 h-4 w-4" />
               New Deal
@@ -282,7 +282,7 @@ export default function DashboardPage() {
             (typeof card.value === 'number' && card.value === 0);
           return (
             <Link key={card.label} href={card.href}>
-              <Card className={`transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer border-t-2 ${statCards.indexOf(card) % 2 === 0 ? 'border-t-[#B8962E]/40' : 'border-t-[#8B2D3B]/40'}`}>
+              <Card className="transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer border-t-2 border-t-transparent hover:border-t-[#1E40AF]/20">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-4">
                     <div className={`rounded-xl p-3 ${card.bg}`}>
@@ -322,14 +322,14 @@ export default function DashboardPage() {
           <CardContent>
             {tasks.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-center">
-                <div className="rounded-xl bg-[#B8962E]/10 p-3 mb-3">
-                  <ListTodo className="h-7 w-7 text-[#B8962E]" />
+                <div className="rounded-xl bg-emerald-50 p-3 mb-3">
+                  <ListTodo className="h-7 w-7 text-emerald-600" />
                 </div>
                 <p className="text-sm font-medium text-foreground">No pending tasks</p>
                 <p className="text-xs text-muted-foreground mt-1 max-w-[220px]">
                   Create a task to track follow-ups, calls, or renewals for your clients
                 </p>
-                <Button asChild size="sm" className="mt-4 bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
+                <Button asChild size="sm" className="mt-4 bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
                   <Link href="/tasks?new=true">
                     <Plus className="mr-1 h-3 w-3" /> Create Task
                   </Link>
@@ -348,7 +348,7 @@ export default function DashboardPage() {
                           ? 'bg-red-100 text-red-600'
                           : task.priority === 'High'
                           ? 'bg-amber-100 text-amber-600'
-                          : 'bg-blue-100 text-[#2C3E6B]'
+                          : 'bg-blue-100 text-[#1E40AF]'
                       }`}
                     >
                       {task.priority === 'Urgent' ? (
@@ -405,14 +405,14 @@ export default function DashboardPage() {
           <CardContent>
             {Object.keys(dealsByStage).length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-center">
-                <div className="rounded-xl bg-[#8B2D3B]/10 p-3 mb-3">
-                  <Zap className="h-7 w-7 text-[#8B2D3B]" />
+                <div className="rounded-xl bg-amber-50 p-3 mb-3">
+                  <Zap className="h-7 w-7 text-amber-600" />
                 </div>
                 <p className="text-sm font-medium text-foreground">No active deals yet</p>
                 <p className="text-xs text-muted-foreground mt-1 max-w-[220px]">
                   Add your first deal to start tracking your sales pipeline and forecasting revenue
                 </p>
-                <Button asChild size="sm" className="mt-4 bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
+                <Button asChild size="sm" className="mt-4 bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
                   <Link href="/deals?new=true">
                     <Plus className="mr-1 h-3 w-3" /> New Deal
                   </Link>
@@ -425,12 +425,12 @@ export default function DashboardPage() {
                     const data = dealsByStage[stage];
                     if (!data) return null;
                     const colors: Record<string, string> = {
-                      'New Lead': 'bg-[#2C3E6B]',
-                      'Contacted': 'bg-[#3D5A8C]',
-                      'Quote Sent': 'bg-[#B8962E]',
-                      'Negotiating': 'bg-[#D4AD3C]',
-                      'Closed Won': 'bg-[#B8962E]',
-                      'Closed Lost': 'bg-[#8B2D3B]',
+                      'New Lead': 'bg-blue-500',
+                      'Contacted': 'bg-cyan-500',
+                      'Quote Sent': 'bg-amber-500',
+                      'Negotiating': 'bg-orange-500',
+                      'Closed Won': 'bg-emerald-500',
+                      'Closed Lost': 'bg-red-500',
                     };
                     return (
                       <div key={stage} className="flex items-center gap-3">
@@ -461,14 +461,14 @@ export default function DashboardPage() {
           <CardContent>
             {recentActivities.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-center">
-                <div className="rounded-xl bg-[#2C3E6B]/10 p-3 mb-3">
-                  <ActivityIcon className="h-7 w-7 text-[#2C3E6B]" />
+                <div className="rounded-xl bg-blue-50 p-3 mb-3">
+                  <ActivityIcon className="h-7 w-7 text-[#1E40AF]" />
                 </div>
                 <p className="text-sm font-medium text-foreground">No activity recorded yet</p>
                 <p className="text-xs text-muted-foreground mt-1 max-w-[220px]">
                   Log a call, email, or meeting to keep a record of client interactions
                 </p>
-                <Button asChild size="sm" className="mt-4 bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
+                <Button asChild size="sm" className="mt-4 bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
                   <Link href="/activities?new=true">
                     <Plus className="mr-1 h-3 w-3" /> Log Activity
                   </Link>
@@ -497,7 +497,7 @@ export default function DashboardPage() {
                           {activity.client && (
                             <Link
                               href={`/clients/${activity.client_id}`}
-                              className="text-xs text-[#2C3E6B] hover:underline"
+                              className="text-xs text-[#1E40AF] hover:underline"
                             >
                               {(activity.client as any).first_name} {(activity.client as any).last_name}
                             </Link>

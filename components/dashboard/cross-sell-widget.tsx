@@ -216,7 +216,7 @@ export function CrossSellWidget() {
         <CardHeader className="flex flex-row items-center justify-between pb-3">
           <div>
             <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-[#B8962E]" />
+              <TrendingUp className="h-4 w-4 text-[#10B981]" />
               Cross-Sell Opportunities
             </CardTitle>
             {kpi.totalOpen > 0 && (
@@ -225,7 +225,7 @@ export function CrossSellWidget() {
                   <Target className="h-3 w-3" />
                   {kpi.totalOpen} open
                 </span>
-                <span className="flex items-center gap-1 text-xs font-medium text-[#B8962E]">
+                <span className="flex items-center gap-1 text-xs font-medium text-[#10B981]">
                   <DollarSign className="h-3 w-3" />
                   {formatCurrency(kpi.totalPotential)} potential
                 </span>
@@ -237,7 +237,7 @@ export function CrossSellWidget() {
               size="sm"
               variant={showKPIs ? 'default' : 'outline'}
               onClick={() => setShowKPIs(!showKPIs)}
-              className={`text-xs ${showKPIs ? 'bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20' : ''}`}
+              className={`text-xs ${showKPIs ? 'bg-[#1E40AF] hover:bg-[#1E3A8A] text-white' : ''}`}
             >
               <BarChart3 className="mr-1 h-3 w-3" />
               KPIs
@@ -268,11 +268,11 @@ export function CrossSellWidget() {
           <CardContent className="pt-0 pb-4 border-b">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
               <div className="rounded-lg border p-3 text-center">
-                <p className="text-lg font-bold text-[#B8962E]">{formatCurrency(kpi.soldPremium)}</p>
+                <p className="text-lg font-bold text-[#10B981]">{formatCurrency(kpi.soldPremium)}</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">Sold This Month</p>
               </div>
               <div className="rounded-lg border p-3 text-center">
-                <p className="text-lg font-bold text-[#2C3E6B]">{kpi.soldThisMonth}</p>
+                <p className="text-lg font-bold text-[#1E40AF]">{kpi.soldThisMonth}</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">Policies Sold</p>
               </div>
               <div className="rounded-lg border p-3 text-center">
@@ -297,7 +297,7 @@ export function CrossSellWidget() {
                       <span className="text-xs w-28 truncate">{typeLabels[type] || type}</span>
                       <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-[#B8962E] transition-all"
+                          className="h-full rounded-full bg-[#10B981] transition-all"
                           style={{ width: `${pct}%` }}
                         />
                       </div>
@@ -319,7 +319,7 @@ export function CrossSellWidget() {
               <p className="text-xs text-muted-foreground">Run a scan to identify cross-sell opportunities</p>
               <Button
                 size="sm"
-                className="mt-3 bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20"
+                className="mt-3 bg-[#1E40AF] hover:bg-[#1E3A8A] text-white"
                 onClick={runAnalysis}
                 disabled={analyzing}
               >
@@ -336,8 +336,8 @@ export function CrossSellWidget() {
                 return (
                   <div key={opp.id} className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/30">
                     <Link href={`/clients/${opp.client_id}`} className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="rounded-lg bg-[#B8962E]/10 p-2 shrink-0">
-                        <Icon className="h-4 w-4 text-[#B8962E]" />
+                      <div className="rounded-lg bg-[#10B981]/10 p-2 shrink-0">
+                        <Icon className="h-4 w-4 text-[#10B981]" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
@@ -357,7 +357,7 @@ export function CrossSellWidget() {
                       </div>
                     </Link>
                     <div className="flex items-center gap-2 shrink-0">
-                      <p className="text-xs font-medium text-[#B8962E]">
+                      <p className="text-xs font-medium text-[#10B981]">
                         +{formatCurrency(opp.estimated_value)}/yr
                       </p>
                       <Select
