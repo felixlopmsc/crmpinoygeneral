@@ -108,7 +108,7 @@ export default function DealsPage() {
             <Button variant={view === 'kanban' ? 'secondary' : 'ghost'} size="sm" onClick={() => setView('kanban')}><LayoutGrid className="h-4 w-4" /></Button>
             <Button variant={view === 'list' ? 'secondary' : 'ghost'} size="sm" onClick={() => setView('list')}><List className="h-4 w-4" /></Button>
           </div>
-          <Button onClick={() => setShowForm(true)} className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
+          <Button onClick={() => setShowForm(true)} className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
             <Plus className="mr-1 h-4 w-4" /> New Deal
           </Button>
         </div>
@@ -134,7 +134,7 @@ export default function DealsPage() {
                       <CardContent className="p-3">
                         <p className="text-sm font-medium truncate">{deal.title}</p>
                         <div className="flex items-center gap-2 mt-1">
-                          <Link href={`/clients/${deal.client_id}`} className="text-xs text-[#1E40AF] hover:underline">
+                          <Link href={`/clients/${deal.client_id}`} className="text-xs text-[#2C3E6B] hover:underline">
                             {(deal.client as any)?.first_name} {(deal.client as any)?.last_name}
                           </Link>
                         </div>
@@ -180,7 +180,7 @@ export default function DealsPage() {
                   <tr key={deal.id} className="border-b hover:bg-muted/50">
                     <td className="p-3 font-medium">{deal.title}</td>
                     <td className="p-3">
-                      <Link href={`/clients/${deal.client_id}`} className="text-[#1E40AF] hover:underline">
+                      <Link href={`/clients/${deal.client_id}`} className="text-[#2C3E6B] hover:underline">
                         {(deal.client as any)?.first_name} {(deal.client as any)?.last_name}
                       </Link>
                     </td>
@@ -260,7 +260,7 @@ function DealFormDialog({ open, onOpenChange, clients, onSave, preselectedClient
           <div className="space-y-1.5"><Label>Notes</Label><Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} /></div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white" disabled={saving}>{saving ? 'Saving...' : 'Create Deal'}</Button>
+            <Button type="submit" className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20" disabled={saving}>{saving ? 'Saving...' : 'Create Deal'}</Button>
           </div>
         </form>
       </DialogContent>

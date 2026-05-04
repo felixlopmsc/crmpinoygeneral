@@ -91,7 +91,7 @@ export default function DocumentsPage() {
           <h1 className="text-2xl font-bold">Documents</h1>
           <p className="text-sm text-muted-foreground">{documents.length} documents</p>
         </div>
-        <Button onClick={() => setShowUpload(true)} className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
+        <Button onClick={() => setShowUpload(true)} className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
           <Upload className="mr-1 h-4 w-4" />
           Upload Documents
         </Button>
@@ -119,7 +119,7 @@ export default function DocumentsPage() {
             <FolderOpen className="h-10 w-10 text-muted-foreground/40 mb-2" />
             <p className="text-lg font-medium">No documents found</p>
             <p className="text-sm text-muted-foreground mt-1">Upload your first document to get started</p>
-            <Button onClick={() => setShowUpload(true)} className="mt-4 bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
+            <Button onClick={() => setShowUpload(true)} className="mt-4 bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
               <Upload className="mr-1 h-4 w-4" /> Upload Documents
             </Button>
           </CardContent>
@@ -149,7 +149,7 @@ export default function DocumentsPage() {
                     </TableCell>
                     <TableCell>
                       {doc.client && (
-                        <Link href={`/clients/${doc.client_id}`} className="text-[#1E40AF] hover:underline">
+                        <Link href={`/clients/${doc.client_id}`} className="text-[#2C3E6B] hover:underline">
                           {doc.client.first_name} {doc.client.last_name}
                         </Link>
                       )}

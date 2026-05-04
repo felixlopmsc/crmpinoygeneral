@@ -76,13 +76,13 @@ export default function CampaignsPage() {
           <h1 className="text-2xl font-bold">Email Campaigns</h1>
           <p className="text-sm text-muted-foreground">{campaigns.length} campaigns</p>
         </div>
-        <Button onClick={() => { setEditingCampaign(null); setShowForm(true); }} className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
+        <Button onClick={() => { setEditingCampaign(null); setShowForm(true); }} className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
           <Plus className="mr-1 h-4 w-4" /> New Campaign
         </Button>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card><CardContent className="flex items-center gap-4 p-5"><div className="rounded-xl bg-blue-50 p-3"><Send className="h-5 w-5 text-[#1E40AF]" /></div><div><p className="text-sm text-muted-foreground">Campaigns Sent</p><p className="text-xl font-bold">{totalSent}</p></div></CardContent></Card>
+        <Card><CardContent className="flex items-center gap-4 p-5"><div className="rounded-xl bg-blue-50 p-3"><Send className="h-5 w-5 text-[#2C3E6B]" /></div><div><p className="text-sm text-muted-foreground">Campaigns Sent</p><p className="text-xl font-bold">{totalSent}</p></div></CardContent></Card>
         <Card><CardContent className="flex items-center gap-4 p-5"><div className="rounded-xl bg-emerald-50 p-3"><Users className="h-5 w-5 text-emerald-600" /></div><div><p className="text-sm text-muted-foreground">Total Recipients</p><p className="text-xl font-bold">{totalRecipients}</p></div></CardContent></Card>
         <Card><CardContent className="flex items-center gap-4 p-5"><div className="rounded-xl bg-amber-50 p-3"><Eye className="h-5 w-5 text-amber-600" /></div><div><p className="text-sm text-muted-foreground">Total Opens</p><p className="text-xl font-bold">{totalOpened}</p></div></CardContent></Card>
         <Card><CardContent className="flex items-center gap-4 p-5"><div className="rounded-xl bg-cyan-50 p-3"><MousePointer className="h-5 w-5 text-cyan-600" /></div><div><p className="text-sm text-muted-foreground">Open Rate</p><p className="text-xl font-bold">{totalRecipients > 0 ? `${((totalOpened / totalRecipients) * 100).toFixed(1)}%` : '0%'}</p></div></CardContent></Card>
@@ -198,7 +198,7 @@ function CampaignFormDialog({ open, onOpenChange, campaign, onSave }: {
           <div className="space-y-1.5"><Label>Email Body</Label><Textarea value={form.email_body} onChange={(e) => setForm({ ...form, email_body: e.target.value })} rows={6} placeholder="Write your email content here..." /></div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white" disabled={saving}>{saving ? 'Saving...' : campaign ? 'Update Campaign' : 'Create Campaign'}</Button>
+            <Button type="submit" className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20" disabled={saving}>{saving ? 'Saving...' : campaign ? 'Update Campaign' : 'Create Campaign'}</Button>
           </div>
         </form>
       </DialogContent>
