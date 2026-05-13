@@ -20,6 +20,7 @@ import {
   ChartBar as BarChart3,
   ChevronLeft,
   ChevronRight,
+  Target,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -54,6 +55,7 @@ const navGroups: NavGroup[] = [
     title: 'Sales & Pipeline',
     items: [
       { href: '/deals', label: 'Pipeline', icon: TrendingUp },
+      { href: '/cross-sell', label: 'Cross-Sell', icon: Target },
       { href: '/commissions', label: 'Commissions', icon: DollarSign },
     ],
   },
