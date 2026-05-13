@@ -39,10 +39,13 @@ interface CrossSellOpp extends Omit<CrossSellOpportunity, 'client'> {
 
 const typeIcons: Record<string, typeof Home> = {
   auto_home_bundle: Home,
+  home_auto_bundle: Car,
   home_umbrella: Umbrella,
   auto_umbrella: Umbrella,
+  personal_umbrella: Umbrella,
   flood: Shield,
   earthquake: Shield,
+  business_earthquake: Shield,
   business: Briefcase,
   renters: Home,
   life: Heart,
@@ -52,10 +55,13 @@ const typeIcons: Record<string, typeof Home> = {
 
 const typeLabels: Record<string, string> = {
   auto_home_bundle: 'Auto + Home Bundle',
+  home_auto_bundle: 'Home + Auto Bundle',
   home_umbrella: 'Home + Umbrella',
   auto_umbrella: 'Auto + Umbrella',
+  personal_umbrella: 'Personal Umbrella',
   flood: 'Flood Insurance',
   earthquake: 'Earthquake Insurance',
+  business_earthquake: 'Business Earthquake',
   business: 'Business Insurance',
   renters: 'Renters Insurance',
   life: 'Life Insurance',
