@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
   Users,
+  UserPlus,
   FileText,
   RefreshCw,
   TrendingUp,
@@ -47,6 +48,7 @@ const navGroups: NavGroup[] = [
     title: 'Client Management',
     items: [
       { href: '/clients', label: 'Clients', icon: Users },
+      { href: '/leads', label: 'Leads', icon: UserPlus },
       { href: '/policies', label: 'Policies', icon: FileText },
       { href: '/renewals', label: 'Renewals', icon: RefreshCw },
     ],

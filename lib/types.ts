@@ -214,6 +214,31 @@ export interface CrossSellOpportunity {
   client?: Client;
 }
 
+export interface Lead {
+  id: string;
+  first_name: string;
+  last_name: string;
+  phone: string | null;
+  email: string | null;
+  address_zip: string | null;
+  lead_source: string | null;
+  lead_score: number;
+  life_event_type: string | null;
+  priority: string;
+  status: string;
+  notes: string | null;
+  created_date: string;
+  updated_at: string;
+}
+
+export const LEAD_STATUSES = ['new', 'contacted', 'qualified', 'converted', 'declined'] as const;
+export const LEAD_PRIORITIES = ['high', 'medium', 'low', 'hot', 'normal'] as const;
+export const LEAD_SOURCES = [
+  'Referral', 'Quiz', 'Social Media', 'Google', 'Walk-in', 'Cold Call', 'Other',
+  'CA SOS', 'Google Maps', 'Google Search', 'Yelp', 'Zillow',
+  'FACC Cerritos', 'Norwalk Chamber of Commerce Directory', 'VoyageLA',
+] as const;
+
 export const CROSS_SELL_STATUSES = ['open', 'contacted', 'quoted', 'sold', 'declined'] as const;
 
 export const POLICY_TYPES = ['Auto', 'Home', 'Renters', 'Business', 'Life', 'Umbrella'] as const;
