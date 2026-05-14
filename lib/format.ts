@@ -22,16 +22,23 @@ export function formatPhone(phone: string): string {
   return phone;
 }
 
-export function formatDate(date: string): string {
-  return new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
+export function formatDate(date: string | null | undefined): string {
+  if (!date) return '—';
+  const hasTime = date.includes('T') || /\d{4}-\d{2}-\d{2}\s+\d/.test(date);
+  const d = hasTime ? new Date(date) : new Date(date + 'T00:00:00');
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
   });
 }
 
-export function formatDateTime(date: string): string {
-  return new Date(date).toLocaleDateString('en-US', {
+export function formatDateTime(date: string | null | undefined): string {
+  if (!date) return '—';
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
