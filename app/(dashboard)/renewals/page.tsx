@@ -46,6 +46,7 @@ export default function RenewalsPage() {
       .from('policies')
       .select('*, client:clients(id, first_name, last_name, email, phone)')
       .eq('status', 'Active')
+      .is('deleted_at', null)
       .gte('expiration_date', today)
       .lte('expiration_date', future90)
       .order('expiration_date', { ascending: true });
@@ -210,7 +211,9 @@ export default function RenewalsPage() {
                             {(policy.client as any)?.first_name} {(policy.client as any)?.last_name}
                           </Link>
                           <p className="text-sm text-muted-foreground">
-                            {policy.policy_type} - {policy.carrier} {policy.policy_number && `(#${policy.policy_number})`}
+                            <Link href={`/policies/${policy.id}`} className="hover:underline hover:text-[#2C3E6B]">
+                              {policy.policy_type} - {policy.carrier} {policy.policy_number && `(#${policy.policy_number})`}
+                            </Link>
                           </p>
                           <div className="flex items-center gap-3 mt-1">
                             <span className="text-sm font-medium">{formatCurrency(policy.annual_premium)}/yr</span>

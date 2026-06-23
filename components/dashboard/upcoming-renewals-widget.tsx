@@ -8,15 +8,7 @@ import type { Policy, Client } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  ArrowRight,
-  CalendarDays,
-  AlertTriangle,
-  RefreshCw,
-  Send,
-  MailCheck,
-  MailX,
-} from 'lucide-react';
+import { ArrowRight, CalendarDays, TriangleAlert as AlertTriangle, RefreshCw, Send, MailCheck, MailX } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface RenewalPolicy extends Policy {
@@ -45,6 +37,7 @@ export function UpcomingRenewalsWidget() {
         .from('policies')
         .select('*, client:clients(id, first_name, last_name, email)')
         .eq('status', 'Active')
+        .is('deleted_at', null)
         .gte('expiration_date', today)
         .lte('expiration_date', future90)
         .order('expiration_date', { ascending: true }),

@@ -69,7 +69,7 @@ export default function ClientProfilePage() {
   async function loadClient() {
     const [clientRes, policiesRes, activitiesRes, dealsRes, tasksRes, claimsRes, crossSellRes] = await Promise.all([
       supabase.from('clients').select('*').eq('id', id).maybeSingle(),
-      supabase.from('policies').select('*').eq('client_id', id).order('expiration_date', { ascending: false }),
+      supabase.from('policies').select('*').eq('client_id', id).is('deleted_at', null).order('expiration_date', { ascending: false }),
       supabase.from('activities').select('*').eq('client_id', id).order('activity_date', { ascending: false }).limit(20),
       supabase.from('deals').select('*').eq('client_id', id).order('created_at', { ascending: false }),
       supabase.from('tasks').select('*').eq('related_client_id', id).order('due_date', { ascending: true }),
@@ -345,30 +345,32 @@ export default function ClientProfilePage() {
               {policies.map((policy) => {
                 const days = daysUntil(policy.expiration_date);
                 return (
-                  <Card key={policy.id} className="hover:shadow-sm transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium">{policy.policy_type}</p>
-                            <Badge className={policyStatusColors[policy.status] || ''}>{policy.status}</Badge>
-                            {policy.status === 'Active' && days <= 30 && days >= 0 && (
-                              <Badge variant="outline" className="text-amber-600 border-amber-300 text-[10px]">{days}d left</Badge>
-                            )}
+                  <Link key={policy.id} href={`/policies/${policy.id}`}>
+                    <Card className="hover:shadow-sm transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium">{policy.policy_type}</p>
+                              <Badge className={policyStatusColors[policy.status] || ''}>{policy.status}</Badge>
+                              {policy.status === 'Active' && days <= 30 && days >= 0 && (
+                                <Badge variant="outline" className="text-amber-600 border-amber-300 text-[10px]">{days}d left</Badge>
+                              )}
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-0.5">
+                              {policy.carrier} {policy.policy_number && `- #${policy.policy_number}`}
+                            </p>
                           </div>
-                          <p className="text-sm text-muted-foreground mt-0.5">
-                            {policy.carrier} {policy.policy_number && `- #${policy.policy_number}`}
-                          </p>
+                          <div className="text-right shrink-0">
+                            <p className="font-semibold">{formatCurrency(policy.annual_premium)}/yr</p>
+                            <p className="text-xs text-muted-foreground">
+                              Exp: {formatDate(policy.expiration_date)}
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-right shrink-0">
-                          <p className="font-semibold">{formatCurrency(policy.annual_premium)}/yr</p>
-                          <p className="text-xs text-muted-foreground">
-                            Exp: {formatDate(policy.expiration_date)}
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 );
               })}
             </div>

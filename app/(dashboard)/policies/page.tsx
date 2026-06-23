@@ -45,6 +45,7 @@ export default function PoliciesPage() {
     let query = supabase
       .from('policies')
       .select('*, client:clients(id, first_name, last_name, email)')
+      .is('deleted_at', null)
       .order('expiration_date', { ascending: true });
 
     if (typeFilter !== 'all') query = query.eq('policy_type', typeFilter);
@@ -132,9 +133,9 @@ export default function PoliciesPage() {
                   const days = daysUntil(policy.expiration_date);
                   const Icon = typeIcons[policy.policy_type] || Briefcase;
                   return (
-                    <TableRow key={policy.id} className="cursor-pointer hover:bg-muted/50">
+                    <TableRow key={policy.id} className="cursor-pointer hover:bg-muted/50" onClick={() => window.location.href = `/policies/${policy.id}`}>
                       <TableCell>
-                        <Link href={`/clients/${policy.client_id}`} className="font-medium text-[#2C3E6B] hover:underline">
+                        <Link href={`/clients/${policy.client_id}`} className="font-medium text-[#2C3E6B] hover:underline" onClick={(e) => e.stopPropagation()}>
                           {(policy.client as any)?.first_name} {(policy.client as any)?.last_name}
                         </Link>
                       </TableCell>

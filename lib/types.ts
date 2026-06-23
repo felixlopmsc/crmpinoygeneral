@@ -53,6 +53,7 @@ export interface Policy {
   insured_items: Record<string, unknown>;
   notes: string;
   assigned_agent_id: string | null;
+  deleted_at: string | null;
   client?: Client;
 }
 
