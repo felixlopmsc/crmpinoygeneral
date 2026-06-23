@@ -21,7 +21,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { ArrowLeft, Phone, Mail, MapPin, Calendar, Plus, Zap, FileText, TrendingUp, Shield, SquareCheck as CheckSquare, Clock, TriangleAlert as AlertTriangle, ExternalLink, StickyNote, CalendarPlus, Menu, DollarSign, Target, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, MapPin, Calendar, Plus, Zap, FileText, TrendingUp, Shield, SquareCheck as CheckSquare, Clock, TriangleAlert as AlertTriangle, ExternalLink, StickyNote, CalendarPlus, Menu, DollarSign, Target, RefreshCw, Pencil } from 'lucide-react';
 import { Select as StatusSelect, SelectContent as StatusSelectContent, SelectItem as StatusSelectItem, SelectTrigger as StatusSelectTrigger, SelectValue as StatusSelectValue } from '@/components/ui/select';
 import {
   DropdownMenu,
@@ -60,6 +60,7 @@ export default function ClientProfilePage() {
   const [showPolicyForm, setShowPolicyForm] = useState(false);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showTaskTemplates, setShowTaskTemplates] = useState(false);
+  const [showEditClient, setShowEditClient] = useState(false);
   const [crossSellOpps, setCrossSellOpps] = useState<any[]>([]);
 
   useEffect(() => {
@@ -236,27 +237,50 @@ export default function ClientProfilePage() {
                 {client.source && <Badge variant="outline" className="text-xs">{client.source}</Badge>}
               </div>
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-                <a href={`mailto:${client.email}`} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-[#2C3E6B]">
-                  <Mail className="h-3.5 w-3.5" /> {client.email}
-                </a>
-                {client.phone && (
+                {client.email ? (
+                  <a href={`mailto:${client.email}`} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-[#2C3E6B]">
+                    <Mail className="h-3.5 w-3.5" /> {client.email}
+                  </a>
+                ) : (
+                  <span className="flex items-center gap-1.5 text-sm text-muted-foreground italic">
+                    <Mail className="h-3.5 w-3.5" /> Not on file
+                  </span>
+                )}
+                {client.phone ? (
                   <a href={`tel:${client.phone}`} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-[#2C3E6B]">
                     <Phone className="h-3.5 w-3.5" /> {formatPhone(client.phone)}
                   </a>
-                )}
-                {client.address_city && (
-                  <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5" />
-                    {client.address_street && `${client.address_street}, `}{client.address_city}, {client.address_state} {client.address_zip}
+                ) : (
+                  <span className="flex items-center gap-1.5 text-sm text-muted-foreground italic">
+                    <Phone className="h-3.5 w-3.5" /> Not on file
                   </span>
                 )}
-                {client.date_of_birth && (
+              </div>
+              <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
+                {client.address_street || client.address_city ? (
+                  <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                    {[client.address_street, client.address_city, client.address_state, client.address_zip].filter(Boolean).join(', ')}
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5 text-sm text-muted-foreground italic">
+                    <MapPin className="h-3.5 w-3.5" /> Not on file
+                  </span>
+                )}
+                {client.date_of_birth ? (
                   <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <Calendar className="h-3.5 w-3.5" /> {formatDate(client.date_of_birth)}
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5 text-sm text-muted-foreground italic">
+                    <Calendar className="h-3.5 w-3.5" /> Not on file
                   </span>
                 )}
               </div>
             </div>
+            <Button variant="outline" size="sm" onClick={() => setShowEditClient(true)} className="shrink-0">
+              <Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit Client
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -562,6 +586,13 @@ export default function ClientProfilePage() {
         userId={user?.id || ''}
         onSaved={loadClient}
       />
+
+      <EditClientDialog
+        open={showEditClient}
+        onOpenChange={setShowEditClient}
+        client={client}
+        onSaved={loadClient}
+      />
     </div>
   );
 }
@@ -703,6 +734,147 @@ function TaskFormDialog({ open, onOpenChange, clientId, userId, onSaved }: { ope
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button type="submit" className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20" disabled={saving}>{saving ? 'Saving...' : 'Create Task'}</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditClientDialog({ open, onOpenChange, client, onSaved }: { open: boolean; onOpenChange: (o: boolean) => void; client: Client; onSaved: () => void }) {
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [form, setForm] = useState({
+    first_name: client.first_name || '',
+    last_name: client.last_name || '',
+    email: client.email || '',
+    phone: client.phone || '',
+    date_of_birth: client.date_of_birth || '',
+    address_street: client.address_street || '',
+    address_city: client.address_city || '',
+    address_state: client.address_state || '',
+    address_zip: client.address_zip || '',
+  });
+
+  useEffect(() => {
+    if (open) {
+      setForm({
+        first_name: client.first_name || '',
+        last_name: client.last_name || '',
+        email: client.email || '',
+        phone: client.phone || '',
+        date_of_birth: client.date_of_birth || '',
+        address_street: client.address_street || '',
+        address_city: client.address_city || '',
+        address_state: client.address_state || '',
+        address_zip: client.address_zip || '',
+      });
+      setError('');
+    }
+  }, [open, client]);
+
+  function validate(): string | null {
+    if (!form.first_name.trim()) return 'First name is required.';
+    if (!form.last_name.trim()) return 'Last name is required.';
+    if (form.phone && !/^[\d\s()+-]{7,}$/.test(form.phone)) return 'Phone number format is invalid.';
+    if (form.date_of_birth) {
+      const dob = new Date(form.date_of_birth);
+      if (isNaN(dob.getTime()) || dob >= new Date()) return 'Date of birth must be a valid past date.';
+    }
+    if (form.address_street || form.address_city || form.address_state || form.address_zip) {
+      if (!form.address_street.trim() || !form.address_city.trim() || !form.address_state.trim() || !form.address_zip.trim()) {
+        return 'Address requires street, city, state, and ZIP.';
+      }
+    }
+    return null;
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const validationError = validate();
+    if (validationError) { setError(validationError); return; }
+    setError('');
+    setSaving(true);
+
+    const { error: updateErr } = await supabase
+      .from('clients')
+      .update({
+        first_name: form.first_name.trim(),
+        last_name: form.last_name.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim() || null,
+        date_of_birth: form.date_of_birth || null,
+        address_street: form.address_street.trim(),
+        address_city: form.address_city.trim(),
+        address_state: form.address_state.trim(),
+        address_zip: form.address_zip.trim(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', client.id);
+
+    setSaving(false);
+    if (updateErr) {
+      setError('Failed to save changes. Please try again.');
+      return;
+    }
+    toast.success('Client updated');
+    onOpenChange(false);
+    onSaved();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader><DialogTitle>Edit Client</DialogTitle></DialogHeader>
+        {error && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
+        )}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>First Name *</Label>
+              <Input value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} required />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Last Name *</Label>
+              <Input value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} required />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Email</Label>
+              <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Phone</Label>
+              <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(555) 555-5555" />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Date of Birth</Label>
+            <Input type="date" value={form.date_of_birth} onChange={(e) => setForm({ ...form, date_of_birth: e.target.value })} max={new Date().toISOString().split('T')[0]} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Street Address</Label>
+            <Input value={form.address_street} onChange={(e) => setForm({ ...form, address_street: e.target.value })} />
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-1.5">
+              <Label>City</Label>
+              <Input value={form.address_city} onChange={(e) => setForm({ ...form, address_city: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>State</Label>
+              <Input value={form.address_state} onChange={(e) => setForm({ ...form, address_state: e.target.value })} maxLength={2} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>ZIP</Label>
+              <Input value={form.address_zip} onChange={(e) => setForm({ ...form, address_zip: e.target.value })} />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="submit" className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20" disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</Button>
           </div>
         </form>
       </DialogContent>
