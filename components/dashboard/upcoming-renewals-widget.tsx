@@ -30,7 +30,7 @@ export function UpcomingRenewalsWidget() {
 
   async function loadData() {
     const today = new Date().toISOString().split('T')[0];
-    const future90 = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const future30 = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     const [policiesRes, logsRes] = await Promise.all([
       supabase
@@ -39,7 +39,7 @@ export function UpcomingRenewalsWidget() {
         .eq('status', 'Active')
         .is('deleted_at', null)
         .gte('expiration_date', today)
-        .lte('expiration_date', future90)
+        .lte('expiration_date', future30)
         .order('expiration_date', { ascending: true }),
       supabase
         .from('renewal_log')
@@ -97,9 +97,7 @@ export function UpcomingRenewalsWidget() {
 
   function getUrgencyBadge(days: number) {
     if (days <= 7) return <Badge variant="destructive" className="text-[10px]">Urgent</Badge>;
-    if (days <= 30) return <Badge className="text-[10px] bg-amber-100 text-amber-700 hover:bg-amber-100">This Month</Badge>;
-    if (days <= 60) return <Badge className="text-[10px] bg-blue-100 text-blue-700 hover:bg-blue-100">60 Days</Badge>;
-    return <Badge variant="secondary" className="text-[10px]">90 Days</Badge>;
+    return <Badge className="text-[10px] bg-amber-100 text-amber-700 hover:bg-amber-100">This Month</Badge>;
   }
 
   if (loading) {
@@ -188,7 +186,7 @@ export function UpcomingRenewalsWidget() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-semibold text-amber-900">
-                      {totalCount} {totalCount === 1 ? 'policy' : 'policies'} renewing in 90 days
+                      {totalCount} {totalCount === 1 ? 'policy' : 'policies'} renewing in 30 days
                     </p>
                     <p className="text-xs text-amber-700 mt-0.5">
                       {formatCurrency(totalPremium)} premium at risk

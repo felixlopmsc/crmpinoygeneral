@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/format';
 import { toast } from 'sonner';
-import { Phone, Mail, CalendarDays, TriangleAlert as AlertTriangle, Clock, CircleCheck as CheckCircle2, Circle as XCircle, Send, RefreshCw, MailCheck, MailX } from 'lucide-react';
+import { Phone, Mail, TriangleAlert as AlertTriangle, Clock, CircleCheck as CheckCircle2, Send, RefreshCw, MailCheck, MailX } from 'lucide-react';
 
 interface RenewalPolicy extends Policy {
   client: Client;
@@ -40,7 +40,7 @@ export default function RenewalsPage() {
 
   async function loadRenewals() {
     const today = new Date().toISOString().split('T')[0];
-    const future90 = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const future30 = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     const { data } = await supabase
       .from('policies')
@@ -48,7 +48,7 @@ export default function RenewalsPage() {
       .eq('status', 'Active')
       .is('deleted_at', null)
       .gte('expiration_date', today)
-      .lte('expiration_date', future90)
+      .lte('expiration_date', future30)
       .order('expiration_date', { ascending: true });
 
     setPolicies((data as any) || []);
@@ -122,8 +122,6 @@ export default function RenewalsPage() {
   const groups = [
     { label: 'Urgent (Next 7 Days)', min: 0, max: 7, color: 'border-l-red-500', bg: 'bg-red-50', icon: AlertTriangle, iconColor: 'text-red-600' },
     { label: 'This Month (8-30 Days)', min: 8, max: 30, color: 'border-l-amber-500', bg: 'bg-amber-50', icon: Clock, iconColor: 'text-amber-600' },
-    { label: 'Next Month (31-60 Days)', min: 31, max: 60, color: 'border-l-blue-500', bg: 'bg-blue-50', icon: CalendarDays, iconColor: 'text-blue-600' },
-    { label: 'Future (61-90 Days)', min: 61, max: 90, color: 'border-l-emerald-500', bg: 'bg-emerald-50', icon: CheckCircle2, iconColor: 'text-emerald-600' },
   ];
 
   const totalPremiumAtRisk = policies.reduce((sum, p) => sum + (p.annual_premium || 0), 0);
@@ -137,7 +135,7 @@ export default function RenewalsPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Renewals</h1>
-          <p className="text-sm text-muted-foreground">{policies.length} policies expiring in next 90 days</p>
+          <p className="text-sm text-muted-foreground">{policies.length} policies expiring in next 30 days</p>
         </div>
         <Button
           onClick={triggerRenewalCheck}
@@ -259,7 +257,7 @@ export default function RenewalsPage() {
       })}
 
       {policies.length === 0 && (
-        <Card><CardContent className="py-16 text-center"><CheckCircle2 className="h-10 w-10 text-emerald-500 mx-auto mb-2" /><p className="text-lg font-medium">No upcoming renewals</p><p className="text-sm text-muted-foreground">All policies are up to date for the next 90 days</p></CardContent></Card>
+        <Card><CardContent className="py-16 text-center"><CheckCircle2 className="h-10 w-10 text-emerald-500 mx-auto mb-2" /><p className="text-lg font-medium">No upcoming renewals</p><p className="text-sm text-muted-foreground">All policies are up to date for the next 30 days</p></CardContent></Card>
       )}
 
       {emailLogs.length > 0 && (

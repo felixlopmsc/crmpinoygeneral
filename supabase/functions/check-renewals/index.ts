@@ -13,8 +13,6 @@ interface RenewalCandidate {
   policy_id: string;
   client_id: string;
   renewal_date: string;
-  reminder_90_days: boolean;
-  reminder_60_days: boolean;
   reminder_30_days: boolean;
   reminder_7_days: boolean;
   status: string;
@@ -36,14 +34,12 @@ interface RenewalCandidate {
 
 interface ReminderCheck {
   days: number;
-  field: "reminder_90_days" | "reminder_60_days" | "reminder_30_days" | "reminder_7_days";
-  type: "90_day" | "60_day" | "30_day" | "7_day";
+  field: "reminder_30_days" | "reminder_7_days";
+  type: "30_day" | "7_day";
   label: string;
 }
 
 const REMINDER_CHECKS: ReminderCheck[] = [
-  { days: 90, field: "reminder_90_days", type: "90_day", label: "90-Day" },
-  { days: 60, field: "reminder_60_days", type: "60_day", label: "60-Day" },
   { days: 30, field: "reminder_30_days", type: "30_day", label: "30-Day" },
   { days: 7, field: "reminder_7_days", type: "7_day", label: "7-Day" },
 ];
@@ -226,7 +222,7 @@ Deno.serve(async (req: Request) => {
       .select(
         `
         id, policy_id, client_id, renewal_date,
-        reminder_90_days, reminder_60_days, reminder_30_days, reminder_7_days, status,
+        reminder_30_days, reminder_7_days, status,
         policy:policies(id, policy_number, carrier, policy_type, annual_premium, expiration_date),
         client:clients(id, first_name, last_name, email)
       `,

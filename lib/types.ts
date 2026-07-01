@@ -62,8 +62,6 @@ export interface Renewal {
   policy_id: string;
   client_id: string;
   renewal_date: string;
-  reminder_90_days: boolean;
-  reminder_60_days: boolean;
   reminder_30_days: boolean;
   reminder_7_days: boolean;
   status: 'Upcoming' | 'Contacted' | 'Renewed' | 'Lost' | 'Pending';
