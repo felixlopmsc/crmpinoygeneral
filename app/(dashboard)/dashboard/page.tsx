@@ -32,6 +32,7 @@ import {
 import { BulkClientImportDialog } from '@/components/forms/bulk-client-import';
 import { UpcomingRenewalsWidget } from '@/components/dashboard/upcoming-renewals-widget';
 import { CrossSellWidget } from '@/components/dashboard/cross-sell-widget';
+import { useActivePolicyCount } from '@/hooks/use-active-policy-count';
 
 interface DashboardStats {
   totalClients: number;
@@ -60,6 +61,7 @@ function TrendIndicator({ value }: { value: number }) {
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { count: activePolicyCount, loading: policyCountLoading, error: policyCountError } = useActivePolicyCount();
   const [stats, setStats] = useState<DashboardStats>({
     totalClients: 0,
     activePolicies: 0,
@@ -178,12 +180,14 @@ export default function DashboardPage() {
     },
     {
       label: 'Active Policies',
-      value: stats.activePolicies,
+      value: activePolicyCount,
       icon: FileText,
       color: 'text-[#B8962E]',
       bg: 'bg-[#B8962E]/5',
       href: '/policies',
       trend: trends.activePoliciesTrend,
+      loading: policyCountLoading,
+      error: policyCountError,
       emptyMessage: 'Create your first policy to track coverage',
       emptyAction: '/policies?new=true',
       emptyLabel: 'Add Policy',
@@ -233,7 +237,7 @@ export default function DashboardPage() {
     );
   }
 
-  const isAllZero = stats.totalClients === 0 && stats.activePolicies === 0;
+  const isAllZero = stats.totalClients === 0 && (activePolicyCount === 0 || activePolicyCount === null);
 
   return (
     <div className="space-y-6">
@@ -278,8 +282,10 @@ export default function DashboardPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {statCards.map((card) => {
+          const isCardLoading = (card as any).loading;
+          const isCardError = (card as any).error;
           const isEmpty =
-            (typeof card.value === 'number' && card.value === 0);
+            !isCardLoading && !isCardError && (typeof card.value === 'number' && card.value === 0);
           return (
             <Link key={card.label} href={card.href}>
               <Card className={`transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer border-t-2 ${statCards.indexOf(card) % 2 === 0 ? 'border-t-[#B8962E]/40' : 'border-t-[#8B2D3B]/40'}`}>
@@ -290,9 +296,15 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-muted-foreground">{card.label}</p>
-                      <p className="text-xl font-bold">
-                        {card.displayValue ?? card.value}
-                      </p>
+                      {isCardLoading ? (
+                        <div className="h-7 w-16 animate-pulse rounded bg-muted mt-0.5" />
+                      ) : isCardError ? (
+                        <p className="text-xl font-bold text-muted-foreground" title="Couldn't load count">&mdash;</p>
+                      ) : (
+                        <p className="text-xl font-bold">
+                          {card.displayValue ?? card.value}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="mt-2 min-h-[18px]">

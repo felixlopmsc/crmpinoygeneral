@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { SmartPolicyForm } from '@/components/forms/smart-policy-form';
 import { useAuth } from '@/lib/auth-context';
+import { useActivePolicyCount } from '@/hooks/use-active-policy-count';
 import { Search, Filter, Plus, Car, Chrome as Home, Briefcase, Heart, Umbrella, Building2 } from 'lucide-react';
 
 const policyStatusColors: Record<string, string> = {
@@ -34,6 +35,7 @@ const typeIcons: Record<string, any> = {
 
 export default function PoliciesPage() {
   const { user } = useAuth();
+  const { count: activePolicyCount, loading: countLoading, error: countError } = useActivePolicyCount();
   const [policies, setPolicies] = useState<(Policy & { client: Client })[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -69,16 +71,29 @@ export default function PoliciesPage() {
   useEffect(() => { loadPolicies(); }, [loadPolicies]);
 
   const totalPremium = policies.reduce((sum, p) => sum + (p.annual_premium || 0), 0);
-  const activePolicies = policies.filter((p) => p.status === 'Active').length;
+
+  const activePoliciesDisplay = countLoading
+    ? null
+    : countError
+    ? null
+    : activePolicyCount;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Policies</h1>
-          <p className="text-sm text-muted-foreground">
-            {activePolicies} active policies - {formatCurrency(totalPremium)} total premium
-          </p>
+          {countLoading ? (
+            <div className="h-5 w-56 animate-pulse rounded bg-muted mt-1" />
+          ) : countError ? (
+            <p className="text-sm text-muted-foreground" title="Couldn't load count">
+              &mdash; active policies - {formatCurrency(totalPremium)} total premium
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {activePolicyCount} active policies - {formatCurrency(totalPremium)} total premium
+            </p>
+          )}
         </div>
         <Button onClick={() => setShowPolicyForm(true)} className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
           <Plus className="mr-1 h-4 w-4" /> Add Policy
