@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { formatCurrency, formatDate, daysUntil, formatPhone } from '@/lib/format';
 import type { Policy, Client } from '@/lib/types';
@@ -30,6 +31,7 @@ interface RenewalLog {
 }
 
 export default function RenewalsPage() {
+  const router = useRouter();
   const [policies, setPolicies] = useState<RenewalPolicy[]>([]);
   const [emailLogs, setEmailLogs] = useState<RenewalLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -196,7 +198,7 @@ export default function RenewalsPage() {
               {groupPolicies.map((policy) => {
                 const days = daysUntil(policy.expiration_date);
                 return (
-                  <Card key={policy.id} className={`border-l-4 ${group.color}`}>
+                  <Card key={policy.id} className={`border-l-4 ${group.color} cursor-pointer transition-colors hover:bg-muted/50`} onClick={() => router.push(`/policies/${policy.id}`)}>
                     <CardContent className="p-4">
                       <div className="flex flex-col sm:flex-row items-start gap-3">
                         <Avatar className="h-10 w-10 shrink-0">
@@ -205,13 +207,11 @@ export default function RenewalsPage() {
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <Link href={`/clients/${policy.client_id}`} className="font-semibold text-[#2C3E6B] hover:underline">
+                          <Link href={`/clients/${policy.client_id}`} className="font-semibold text-[#2C3E6B] hover:underline" onClick={(e) => e.stopPropagation()}>
                             {(policy.client as any)?.first_name} {(policy.client as any)?.last_name}
                           </Link>
                           <p className="text-sm text-muted-foreground">
-                            <Link href={`/policies/${policy.id}`} className="hover:underline hover:text-[#2C3E6B]">
-                              {policy.policy_type} - {policy.carrier} {policy.policy_number && `(#${policy.policy_number})`}
-                            </Link>
+                            {policy.policy_type} - {policy.carrier} {policy.policy_number && `(#${policy.policy_number})`}
                           </p>
                           <div className="flex items-center gap-3 mt-1">
                             <span className="text-sm font-medium">{formatCurrency(policy.annual_premium)}/yr</span>
@@ -220,11 +220,11 @@ export default function RenewalsPage() {
                             </span>
                           </div>
                         </div>
-                        <div className="flex gap-2 shrink-0">
+                        <div className="flex gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={(e) => { e.preventDefault(); sendRenewalEmail(policy.id); }}
+                            onClick={() => sendRenewalEmail(policy.id)}
                             disabled={sendingForPolicy === policy.id}
                             title="Send renewal reminder"
                           >
@@ -243,7 +243,7 @@ export default function RenewalsPage() {
                             <a href={`mailto:${(policy.client as any)?.email}`}><Mail className="h-3.5 w-3.5" /></a>
                           </Button>
                           <Button size="sm" variant="outline" asChild>
-                            <Link href={`/clients/${policy.client_id}`}>View</Link>
+                            <Link href={`/policies/${policy.id}`}>View</Link>
                           </Button>
                         </div>
                       </div>

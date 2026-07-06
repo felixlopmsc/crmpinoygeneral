@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { formatCurrency, formatDate, daysUntil } from '@/lib/format';
 import type { Policy, Client } from '@/lib/types';
@@ -35,6 +36,7 @@ const typeIcons: Record<string, any> = {
 
 export default function PoliciesPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const { count: activePolicyCount, loading: countLoading, error: countError } = useActivePolicyCount();
   const [policies, setPolicies] = useState<(Policy & { client: Client })[]>([]);
   const [loading, setLoading] = useState(true);
@@ -148,7 +150,7 @@ export default function PoliciesPage() {
                   const days = daysUntil(policy.expiration_date);
                   const Icon = typeIcons[policy.policy_type] || Briefcase;
                   return (
-                    <TableRow key={policy.id} className="cursor-pointer hover:bg-muted/50" onClick={() => window.location.href = `/policies/${policy.id}`}>
+                    <TableRow key={policy.id} className="cursor-pointer hover:bg-muted/50" onClick={() => router.push(`/policies/${policy.id}`)}>
                       <TableCell>
                         <Link href={`/clients/${policy.client_id}`} className="font-medium text-[#2C3E6B] hover:underline" onClick={(e) => e.stopPropagation()}>
                           {(policy.client as any)?.first_name} {(policy.client as any)?.last_name}
