@@ -88,6 +88,24 @@ export default function ClientProfilePage() {
     setLoading(false);
   }
 
+  async function logActivity(type: Activity['activity_type'], subject: string, description?: string) {
+    if (!user?.id) return;
+    const { error } = await supabase.from('activities').insert({
+      client_id: id as string,
+      activity_type: type,
+      subject,
+      description: description || '',
+      activity_date: new Date().toISOString(),
+      created_by: user.id,
+    });
+    if (error) {
+      toast.error("Couldn't log activity");
+    } else {
+      toast.success('Activity logged');
+      loadClient();
+    }
+  }
+
   const expiringPolicies = policies.filter((p) => {
     const days = daysUntil(p.expiration_date);
     return p.status === 'Active' && days >= 0 && days <= 30;
@@ -288,15 +306,21 @@ export default function ClientProfilePage() {
       <div className="sticky top-0 z-30 -mx-4 md:-mx-6 px-4 md:px-6 py-3 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="hidden sm:flex items-center gap-2">
           {client.phone ? (
-            <Button size="sm" asChild className="bg-[#10B981] hover:bg-[#059669] text-white">
-              <a href={`tel:${client.phone}`}><Phone className="mr-1.5 h-3.5 w-3.5" /> Call</a>
+            <Button size="sm" className="bg-[#10B981] hover:bg-[#059669] text-white" onClick={() => {
+              logActivity('Call', `Called ${client.first_name} ${client.last_name}`, `Outbound call to ${formatPhone(client.phone)}`);
+              window.open(`tel:${client.phone}`, '_self');
+            }}>
+              <Phone className="mr-1.5 h-3.5 w-3.5" /> Call
             </Button>
           ) : (
             <Button size="sm" disabled className="opacity-50"><Phone className="mr-1.5 h-3.5 w-3.5" /> Call</Button>
           )}
           {client.email ? (
-            <Button size="sm" variant="outline" asChild>
-              <a href={`mailto:${client.email}`}><Mail className="mr-1.5 h-3.5 w-3.5" /> Email</a>
+            <Button size="sm" variant="outline" onClick={() => {
+              logActivity('Email', `Emailed ${client.first_name} ${client.last_name}`, `Outbound email to ${client.email}`);
+              window.open(`mailto:${client.email}`, '_self');
+            }}>
+              <Mail className="mr-1.5 h-3.5 w-3.5" /> Email
             </Button>
           ) : (
             <Button size="sm" variant="outline" disabled className="opacity-50"><Mail className="mr-1.5 h-3.5 w-3.5" /> Email</Button>
@@ -314,15 +338,21 @@ export default function ClientProfilePage() {
         </div>
         <div className="flex sm:hidden items-center gap-2">
           {client.phone ? (
-            <Button size="sm" asChild className="bg-[#10B981] hover:bg-[#059669] text-white flex-1">
-              <a href={`tel:${client.phone}`}><Phone className="mr-1.5 h-3.5 w-3.5" /> Call</a>
+            <Button size="sm" className="bg-[#10B981] hover:bg-[#059669] text-white flex-1" onClick={() => {
+              logActivity('Call', `Called ${client.first_name} ${client.last_name}`, `Outbound call to ${formatPhone(client.phone)}`);
+              window.open(`tel:${client.phone}`, '_self');
+            }}>
+              <Phone className="mr-1.5 h-3.5 w-3.5" /> Call
             </Button>
           ) : (
             <Button size="sm" disabled className="opacity-50 flex-1"><Phone className="mr-1.5 h-3.5 w-3.5" /> Call</Button>
           )}
           {client.email ? (
-            <Button size="sm" variant="outline" asChild className="flex-1">
-              <a href={`mailto:${client.email}`}><Mail className="mr-1.5 h-3.5 w-3.5" /> Email</a>
+            <Button size="sm" variant="outline" className="flex-1" onClick={() => {
+              logActivity('Email', `Emailed ${client.first_name} ${client.last_name}`, `Outbound email to ${client.email}`);
+              window.open(`mailto:${client.email}`, '_self');
+            }}>
+              <Mail className="mr-1.5 h-3.5 w-3.5" /> Email
             </Button>
           ) : (
             <Button size="sm" variant="outline" disabled className="opacity-50 flex-1"><Mail className="mr-1.5 h-3.5 w-3.5" /> Email</Button>
@@ -665,8 +695,8 @@ function QuickNoteDialog({ open, onOpenChange, clientId, userId, onSaved }: { op
       activity_date: new Date().toISOString(),
       created_by: userId,
     });
-    if (error) toast.error(error.message);
-    else { toast.success('Note added'); onOpenChange(false); setNote(''); onSaved(); }
+    if (error) toast.error("Couldn't log activity");
+    else { toast.success('Activity logged'); onOpenChange(false); setNote(''); onSaved(); }
     setSaving(false);
   };
 
@@ -709,8 +739,22 @@ function TaskFormDialog({ open, onOpenChange, clientId, userId, onSaved }: { ope
       assigned_to: userId,
       created_by: userId,
     });
-    if (error) toast.error(error.message);
-    else { toast.success('Task created'); onOpenChange(false); setForm({ title: '', description: '', due_date: '', priority: 'Medium' }); onSaved(); }
+    if (error) { toast.error(error.message); }
+    else {
+      await supabase.from('activities').insert({
+        client_id: clientId,
+        activity_type: 'Meeting',
+        subject: form.title,
+        description: form.description,
+        activity_date: new Date().toISOString(),
+        due_date: form.due_date ? new Date(form.due_date).toISOString() : null,
+        created_by: userId,
+      });
+      toast.success('Activity logged');
+      onOpenChange(false);
+      setForm({ title: '', description: '', due_date: '', priority: 'Medium' });
+      onSaved();
+    }
     setSaving(false);
   };
 

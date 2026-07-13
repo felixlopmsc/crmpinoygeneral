@@ -14,7 +14,7 @@ interface ReportData {
   totalClients: number;
   totalPolicies: number;
   activePolicies: number;
-  totalPremium: number;
+  totalPremium: number | null;
   totalCommissions: number;
   pendingCommissions: number;
   paidCommissions: number;
@@ -42,7 +42,7 @@ export default function ReportsPage() {
   async function loadReports() {
     setLoading(true);
     const [
-      clientsRes, policiesRes, commissionsRes, dealsRes, activitiesRes, claimsRes,
+      clientsRes, policiesRes, commissionsRes, dealsRes, activitiesRes, claimsRes, premiumRes,
     ] = await Promise.all([
       supabase.from('clients').select('id', { count: 'exact', head: true }),
       supabase.from('policies').select('*'),
@@ -50,6 +50,7 @@ export default function ReportsPage() {
       supabase.from('deals').select('*'),
       supabase.from('activities').select('id', { count: 'exact', head: true }),
       supabase.from('claims').select('id', { count: 'exact', head: true }),
+      supabase.rpc('get_active_premium_total'),
     ]);
 
     const policies = policiesRes.data || [];
@@ -77,11 +78,13 @@ export default function ReportsPage() {
     const wonDeals = deals.filter((d) => d.status === 'Won');
     const lostDeals = deals.filter((d) => d.status === 'Lost');
 
+    const totalPremium = (!premiumRes.error && premiumRes.data != null) ? Number(premiumRes.data) : null;
+
     setData({
       totalClients: clientsRes.count || 0,
       totalPolicies: policies.length,
       activePolicies: activePolicies.length,
-      totalPremium: activePolicies.reduce((sum, p) => sum + (p.annual_premium || 0), 0),
+      totalPremium,
       totalCommissions: commissions.reduce((sum, c) => sum + (c.commission_amount || 0), 0),
       pendingCommissions: commissions.filter((c) => c.payment_status === 'Pending').reduce((sum, c) => sum + (c.commission_amount || 0), 0),
       paidCommissions: commissions.filter((c) => c.payment_status === 'Paid').reduce((sum, c) => sum + (c.commission_amount || 0), 0),
@@ -149,7 +152,7 @@ export default function ReportsPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Total Clients</p><p className="text-2xl font-bold">{data.totalClients}</p></CardContent></Card>
             <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Active Policies</p>{countLoading ? <div className="h-8 w-12 animate-pulse rounded bg-muted mt-1" /> : countError ? <p className="text-2xl font-bold text-muted-foreground" title="Couldn't load count">&mdash;</p> : <p className="text-2xl font-bold text-emerald-600">{activePolicyCount}</p>}</CardContent></Card>
-            <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Total Premium</p><p className="text-2xl font-bold">{formatCurrency(data.totalPremium)}</p></CardContent></Card>
+            <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Total Premium</p><p className="text-2xl font-bold">{data.totalPremium != null ? formatCurrency(data.totalPremium) : '\u2014'}</p></CardContent></Card>
             <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Win Rate</p><p className="text-2xl font-bold text-[#2C3E6B]">{winRate}%</p></CardContent></Card>
           </div>
 
@@ -314,7 +317,7 @@ export default function ReportsPage() {
                 <div className="flex justify-between border-b pb-2"><span className="text-sm text-muted-foreground">Total Earned</span><span className="font-semibold">{formatCurrency(data.totalCommissions)}</span></div>
                 <div className="flex justify-between border-b pb-2"><span className="text-sm text-muted-foreground">Paid</span><span className="font-semibold text-emerald-600">{formatCurrency(data.paidCommissions)}</span></div>
                 <div className="flex justify-between border-b pb-2"><span className="text-sm text-muted-foreground">Pending</span><span className="font-semibold text-amber-600">{formatCurrency(data.pendingCommissions)}</span></div>
-                <div className="flex justify-between"><span className="text-sm text-muted-foreground">Total Premium Book</span><span className="font-semibold">{formatCurrency(data.totalPremium)}</span></div>
+                <div className="flex justify-between"><span className="text-sm text-muted-foreground">Total Premium Book</span><span className="font-semibold">{data.totalPremium != null ? formatCurrency(data.totalPremium) : '\u2014'}</span></div>
               </div>
             </CardContent>
           </Card>
@@ -324,7 +327,7 @@ export default function ReportsPage() {
             <CardContent>
               <div className="space-y-4">
                 <div className="flex justify-between border-b pb-2"><span className="text-sm text-muted-foreground">Avg Commission per Policy</span><span className="font-semibold">{data.totalPolicies > 0 ? formatCurrency(data.totalCommissions / data.totalPolicies) : '$0'}</span></div>
-                <div className="flex justify-between border-b pb-2"><span className="text-sm text-muted-foreground">Avg Premium per Policy</span><span className="font-semibold">{(activePolicyCount ?? 0) > 0 ? formatCurrency(data.totalPremium / (activePolicyCount!)) : '$0'}</span></div>
+                <div className="flex justify-between border-b pb-2"><span className="text-sm text-muted-foreground">Avg Premium per Policy</span><span className="font-semibold">{(activePolicyCount ?? 0) > 0 && data.totalPremium != null ? formatCurrency(data.totalPremium / activePolicyCount!) : '\u2014'}</span></div>
                 <div className="flex justify-between"><span className="text-sm text-muted-foreground">Policies per Client</span><span className="font-semibold">{data.totalClients > 0 ? (data.totalPolicies / data.totalClients).toFixed(1) : '0'}</span></div>
               </div>
             </CardContent>
