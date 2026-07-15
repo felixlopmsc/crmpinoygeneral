@@ -163,7 +163,7 @@ export default function DashboardPage() {
     setLoading(false);
   }
 
-  const firstName = user?.full_name?.split(' ')[0] || 'there';
+  const firstName = user?.full_name?.split(' ')[0] || '';
 
   const statCards = [
     {
@@ -244,7 +244,7 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
-            {getGreeting()}, {firstName}
+            {getGreeting()}{firstName ? `, ${firstName}` : ''}
           </h1>
           <p className="text-sm text-muted-foreground">
             {new Date().toLocaleDateString('en-US', {
