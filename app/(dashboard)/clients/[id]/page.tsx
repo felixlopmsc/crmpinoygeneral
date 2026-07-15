@@ -96,6 +96,7 @@ export default function ClientProfilePage() {
       subject,
       description: description || '',
       activity_date: new Date().toISOString(),
+      completed: true,
       created_by: user.id,
     });
     if (error) {
@@ -306,8 +307,8 @@ export default function ClientProfilePage() {
       <div className="sticky top-0 z-30 -mx-4 md:-mx-6 px-4 md:px-6 py-3 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="hidden sm:flex items-center gap-2">
           {client.phone ? (
-            <Button size="sm" className="bg-[#10B981] hover:bg-[#059669] text-white" onClick={() => {
-              logActivity('Call', `Called ${client.first_name} ${client.last_name}`, `Outbound call to ${formatPhone(client.phone)}`);
+            <Button size="sm" className="bg-[#10B981] hover:bg-[#059669] text-white" onClick={async () => {
+              await logActivity('Call', `Called ${client.first_name} ${client.last_name}`, `Outbound call to ${formatPhone(client.phone)}`);
               window.open(`tel:${client.phone}`, '_self');
             }}>
               <Phone className="mr-1.5 h-3.5 w-3.5" /> Call
@@ -316,8 +317,8 @@ export default function ClientProfilePage() {
             <Button size="sm" disabled className="opacity-50"><Phone className="mr-1.5 h-3.5 w-3.5" /> Call</Button>
           )}
           {client.email ? (
-            <Button size="sm" variant="outline" onClick={() => {
-              logActivity('Email', `Emailed ${client.first_name} ${client.last_name}`, `Outbound email to ${client.email}`);
+            <Button size="sm" variant="outline" onClick={async () => {
+              await logActivity('Email', `Emailed ${client.first_name} ${client.last_name}`, `Outbound email to ${client.email}`);
               window.open(`mailto:${client.email}`, '_self');
             }}>
               <Mail className="mr-1.5 h-3.5 w-3.5" /> Email
@@ -338,8 +339,8 @@ export default function ClientProfilePage() {
         </div>
         <div className="flex sm:hidden items-center gap-2">
           {client.phone ? (
-            <Button size="sm" className="bg-[#10B981] hover:bg-[#059669] text-white flex-1" onClick={() => {
-              logActivity('Call', `Called ${client.first_name} ${client.last_name}`, `Outbound call to ${formatPhone(client.phone)}`);
+            <Button size="sm" className="bg-[#10B981] hover:bg-[#059669] text-white flex-1" onClick={async () => {
+              await logActivity('Call', `Called ${client.first_name} ${client.last_name}`, `Outbound call to ${formatPhone(client.phone)}`);
               window.open(`tel:${client.phone}`, '_self');
             }}>
               <Phone className="mr-1.5 h-3.5 w-3.5" /> Call
@@ -348,8 +349,8 @@ export default function ClientProfilePage() {
             <Button size="sm" disabled className="opacity-50 flex-1"><Phone className="mr-1.5 h-3.5 w-3.5" /> Call</Button>
           )}
           {client.email ? (
-            <Button size="sm" variant="outline" className="flex-1" onClick={() => {
-              logActivity('Email', `Emailed ${client.first_name} ${client.last_name}`, `Outbound email to ${client.email}`);
+            <Button size="sm" variant="outline" className="flex-1" onClick={async () => {
+              await logActivity('Email', `Emailed ${client.first_name} ${client.last_name}`, `Outbound email to ${client.email}`);
               window.open(`mailto:${client.email}`, '_self');
             }}>
               <Mail className="mr-1.5 h-3.5 w-3.5" /> Email
