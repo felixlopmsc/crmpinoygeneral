@@ -26,7 +26,7 @@ import { Separator } from '@/components/ui/separator';
 import { getInitials } from '@/lib/format';
 
 export default function ProfilePage() {
-  const { user, session } = useAuth();
+  const { user, session, refreshUser } = useAuth();
   const [saving, setSaving] = useState(false);
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -76,6 +76,7 @@ export default function ProfilePage() {
     if (error) {
       toast.error('Failed to update profile');
     } else {
+      await refreshUser();
       toast.success('Profile updated');
     }
     setSaving(false);
