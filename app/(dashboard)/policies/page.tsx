@@ -16,6 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { SmartPolicyForm } from '@/components/forms/smart-policy-form';
 import { useAuth } from '@/lib/auth-context';
 import { useActivePolicyCount } from '@/hooks/use-active-policy-count';
+import { useActivePremiumTotal } from '@/hooks/use-active-premium-total';
 import { Search, Filter, Plus, Car, Chrome as Home, Briefcase, Heart, Umbrella, Building2 } from 'lucide-react';
 
 const policyStatusColors: Record<string, string> = {
@@ -38,6 +39,7 @@ export default function PoliciesPage() {
   const { user } = useAuth();
   const router = useRouter();
   const { count: activePolicyCount, loading: countLoading, error: countError } = useActivePolicyCount();
+  const { total: premiumTotal, loading: premiumLoading, error: premiumError } = useActivePremiumTotal();
   const [policies, setPolicies] = useState<(Policy & { client: Client })[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -72,28 +74,23 @@ export default function PoliciesPage() {
 
   useEffect(() => { loadPolicies(); }, [loadPolicies]);
 
-  const totalPremium = policies.reduce((sum, p) => sum + (p.annual_premium || 0), 0);
-
-  const activePoliciesDisplay = countLoading
-    ? null
-    : countError
-    ? null
-    : activePolicyCount;
+  const headerLoading = countLoading || premiumLoading;
+  const headerError = countError || premiumError;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Policies</h1>
-          {countLoading ? (
+          {headerLoading ? (
             <div className="h-5 w-56 animate-pulse rounded bg-muted mt-1" />
-          ) : countError ? (
-            <p className="text-sm text-muted-foreground" title="Couldn't load count">
-              &mdash; active policies - {formatCurrency(totalPremium)} total premium
+          ) : headerError ? (
+            <p className="text-sm text-muted-foreground" title="Couldn't load stats">
+              &mdash; active policies - &mdash; total premium
             </p>
           ) : (
             <p className="text-sm text-muted-foreground">
-              {activePolicyCount} active policies - {formatCurrency(totalPremium)} total premium
+              {activePolicyCount} active policies - {formatCurrency(premiumTotal ?? 0)} total premium
             </p>
           )}
         </div>

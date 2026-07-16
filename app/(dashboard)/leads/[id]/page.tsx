@@ -16,8 +16,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { ArrowLeft, Pencil, UserCheck, Phone, Mail, MapPin, Calendar, Target, Zap, StickyNote } from 'lucide-react';
+import { ArrowLeft, Pencil, UserCheck, Phone, Mail, MapPin, Calendar, Target, Zap, StickyNote, CheckCircle } from 'lucide-react';
 import { formatPhoneInput, formatZipInput } from '@/lib/form-autocomplete';
 
 const statusColors: Record<string, string> = {
@@ -52,6 +53,8 @@ export default function LeadDetailPage() {
   const [notesValue, setNotesValue] = useState('');
   const [savingNotes, setSavingNotes] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
+  const [showConvertModal, setShowConvertModal] = useState(false);
+  const [converting, setConverting] = useState(false);
 
   const [formData, setFormData] = useState({
     first_name: '',
@@ -134,6 +137,7 @@ export default function LeadDetailPage() {
 
   async function handleConvert() {
     if (!lead) return;
+    setConverting(true);
 
     const { data, error } = await supabase.from('clients').insert({
       first_name: lead.first_name,
@@ -146,10 +150,21 @@ export default function LeadDetailPage() {
       status: 'Active',
     }).select('id').maybeSingle();
 
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      if (error.code === '23505' || error.message?.toLowerCase().includes('duplicate') || error.message?.toLowerCase().includes('already exists')) {
+        toast.error('A client with this email already exists.');
+      } else {
+        toast.error(error.message);
+      }
+      setConverting(false);
+      setShowConvertModal(false);
+      return;
+    }
 
     await supabase.from('leads').update({ status: 'converted', updated_at: new Date().toISOString() }).eq('id', lead.id);
     toast.success('Lead converted to client');
+    setConverting(false);
+    setShowConvertModal(false);
 
     if (data?.id) {
       router.push(`/clients/${data.id}`);
@@ -196,8 +211,12 @@ export default function LeadDetailPage() {
           <Button variant="outline" size="sm" onClick={openEdit}>
             <Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit
           </Button>
-          {lead.status !== 'converted' && (
-            <Button size="sm" onClick={handleConvert} className="bg-emerald-600 hover:bg-emerald-700">
+          {lead.status === 'converted' ? (
+            <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 flex items-center gap-1 px-3 py-1">
+              <CheckCircle className="h-3.5 w-3.5" /> Converted
+            </Badge>
+          ) : (
+            <Button size="sm" onClick={() => setShowConvertModal(true)} className="bg-emerald-600 hover:bg-emerald-700">
               <UserCheck className="mr-1.5 h-3.5 w-3.5" /> Convert to Client
             </Button>
           )}
@@ -295,6 +314,28 @@ export default function LeadDetailPage() {
           </Button>
         </CardContent>
       </Card>
+
+      {/* Convert Confirmation Dialog */}
+      <AlertDialog open={showConvertModal} onOpenChange={setShowConvertModal}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Convert to Client</AlertDialogTitle>
+            <AlertDialogDescription>
+              Convert this lead to a client? This will create a new client record from the lead&apos;s information.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={converting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handleConvert(); }}
+              disabled={converting}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              {converting ? 'Converting...' : 'Convert'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Edit Dialog */}
       <Dialog open={showEdit} onOpenChange={setShowEdit}>

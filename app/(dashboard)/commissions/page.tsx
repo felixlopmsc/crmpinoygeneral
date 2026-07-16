@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DollarSign, Clock, CircleCheck as CheckCircle2, TriangleAlert as AlertTriangle, Download } from 'lucide-react';
+import { DollarSign, Clock, CircleCheck as CheckCircle2, TriangleAlert as AlertTriangle, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const statusColors: Record<string, string> = {
   Pending: 'bg-amber-100 text-amber-700',
@@ -18,10 +18,13 @@ const statusColors: Record<string, string> = {
   Disputed: 'bg-red-100 text-red-700',
 };
 
+const PAGE_SIZE = 25;
+
 export default function CommissionsPage() {
   const [commissions, setCommissions] = useState<(Commission & { client: Client; policy: Policy })[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const loadCommissions = useCallback(async () => {
     let query = supabase
@@ -31,12 +34,15 @@ export default function CommissionsPage() {
 
     if (statusFilter !== 'all') query = query.eq('payment_status', statusFilter);
 
-    const { data } = await query.limit(100);
+    const { data } = await query;
     setCommissions((data as any) || []);
     setLoading(false);
   }, [statusFilter]);
 
   useEffect(() => { loadCommissions(); }, [loadCommissions]);
+
+  // Reset to page 1 when filter changes
+  useEffect(() => { setCurrentPage(1); }, [statusFilter]);
 
   const pending = commissions.filter((c) => c.payment_status === 'Pending');
   const paid = commissions.filter((c) => c.payment_status === 'Paid');
@@ -50,6 +56,10 @@ export default function CommissionsPage() {
   const pendingTotal = pending.reduce((sum, c) => sum + (c.commission_amount || 0), 0);
   const paidMTD = thisMonth.reduce((sum, c) => sum + (c.commission_amount || 0), 0);
   const paidYTD = thisYear.reduce((sum, c) => sum + (c.commission_amount || 0), 0);
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(commissions.length / PAGE_SIZE));
+  const paginatedCommissions = commissions.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const handleExport = () => {
     const rows = [['Client', 'Policy #', 'Carrier', 'Type', 'Premium', 'Rate %', 'Commission', 'Date', 'Status']];
@@ -141,7 +151,7 @@ export default function CommissionsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {commissions.map((c) => (
+                {paginatedCommissions.map((c) => (
                   <TableRow key={c.id}>
                     <TableCell>
                       <Link href={`/clients/${c.client_id}`} className="font-medium text-[#2C3E6B] hover:underline">
@@ -159,6 +169,38 @@ export default function CommissionsPage() {
               </TableBody>
             </Table>
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t px-4 py-3">
+              <p className="text-sm text-muted-foreground">
+                Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, commissions.length)} of {commissions.length}
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => p - 1)}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="sr-only">Previous</span>
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((p) => p + 1)}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                  <span className="sr-only">Next</span>
+                </Button>
+              </div>
+            </div>
+          )}
         </Card>
       )}
     </div>

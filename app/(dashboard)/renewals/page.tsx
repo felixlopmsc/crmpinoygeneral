@@ -4,15 +4,21 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth-context';
 import { formatCurrency, formatDate, daysUntil, formatPhone } from '@/lib/format';
 import type { Policy, Client } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getInitials } from '@/lib/format';
 import { toast } from 'sonner';
-import { Phone, Mail, TriangleAlert as AlertTriangle, Clock, CircleCheck as CheckCircle2, Send, RefreshCw, MailCheck, MailX } from 'lucide-react';
+import { Phone, Mail, TriangleAlert as AlertTriangle, Clock, CircleCheck as CheckCircle2, Send, RefreshCw, MailCheck, MailX, ArrowUpRight } from 'lucide-react';
 
 interface RenewalPolicy extends Policy {
   client: Client;
@@ -32,11 +38,20 @@ interface RenewalLog {
 
 export default function RenewalsPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [policies, setPolicies] = useState<RenewalPolicy[]>([]);
   const [emailLogs, setEmailLogs] = useState<RenewalLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [triggering, setTriggering] = useState(false);
   const [sendingForPolicy, setSendingForPolicy] = useState<string | null>(null);
+  const [composeTarget, setComposeTarget] = useState<RenewalPolicy | null>(null);
+  const [composeSubject, setComposeSubject] = useState('');
+  const [composeBody, setComposeBody] = useState('');
+  const [composeSending, setComposeSending] = useState(false);
+  const [logContactTarget, setLogContactTarget] = useState<RenewalPolicy | null>(null);
+  const [logContactType, setLogContactType] = useState<'Call' | 'Email' | 'Note'>('Call');
+  const [logContactNotes, setLogContactNotes] = useState('');
+  const [logContactSaving, setLogContactSaving] = useState(false);
 
   useEffect(() => { loadRenewals(); loadEmailLogs(); }, []);
 
@@ -239,8 +254,19 @@ export default function RenewalsPage() {
                               <a href={`tel:${(policy.client as any).phone}`}><Phone className="h-3.5 w-3.5" /></a>
                             </Button>
                           )}
-                          <Button size="sm" variant="outline" asChild>
-                            <a href={`mailto:${(policy.client as any)?.email}`}><Mail className="h-3.5 w-3.5" /></a>
+                          <Button size="sm" variant="outline" title="Compose email" onClick={() => {
+                            setComposeTarget(policy);
+                            setComposeSubject(`Renewal Reminder - ${policy.policy_type} Policy #${policy.policy_number || ''}`);
+                            setComposeBody(`Hi ${(policy.client as any)?.first_name},\n\nThis is a reminder that your ${policy.policy_type} policy with ${policy.carrier} is expiring on ${formatDate(policy.expiration_date)}.\n\nPlease let us know how you'd like to proceed with your renewal.\n\nBest regards`);
+                          }}>
+                            <Mail className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button size="sm" variant="outline" title="Log contact" onClick={() => {
+                            setLogContactTarget(policy);
+                            setLogContactType('Call');
+                            setLogContactNotes('');
+                          }}>
+                            <ArrowUpRight className="h-3.5 w-3.5" />
                           </Button>
                           <Button size="sm" variant="outline" asChild>
                             <Link href={`/policies/${policy.id}`}>View</Link>
@@ -313,6 +339,120 @@ export default function RenewalsPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Compose Email Modal */}
+      <Dialog open={!!composeTarget} onOpenChange={(open) => { if (!open) setComposeTarget(null); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Compose Renewal Email</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="text-sm text-muted-foreground">
+              To: {(composeTarget?.client as any)?.email || 'No email'}
+            </div>
+            <div className="space-y-1.5">
+              <Label>Subject</Label>
+              <Input value={composeSubject} onChange={(e) => setComposeSubject(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Message</Label>
+              <Textarea rows={6} value={composeBody} onChange={(e) => setComposeBody(e.target.value)} />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setComposeTarget(null)}>Cancel</Button>
+              <Button
+                disabled={composeSending}
+                className="bg-[#2C3E6B] hover:bg-[#1B2A4A] text-white"
+                onClick={async () => {
+                  if (!composeTarget || !user?.id) return;
+                  setComposeSending(true);
+                  const clientEmail = (composeTarget.client as any)?.email;
+                  if (clientEmail) {
+                    window.open(`mailto:${clientEmail}?subject=${encodeURIComponent(composeSubject)}&body=${encodeURIComponent(composeBody)}`, '_blank');
+                  }
+                  const { error } = await supabase.from('activities').insert({
+                    client_id: composeTarget.client_id,
+                    activity_type: 'Email',
+                    subject: composeSubject || 'Renewal email',
+                    description: composeBody,
+                    activity_date: new Date().toISOString(),
+                    completed: true,
+                    created_by: user.id,
+                  });
+                  if (error) {
+                    toast.error("Couldn't log activity");
+                  } else {
+                    toast.success('Activity logged');
+                  }
+                  setComposeSending(false);
+                  setComposeTarget(null);
+                }}
+              >
+                {composeSending ? 'Sending...' : 'Send & Log'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Log Contact Modal */}
+      <Dialog open={!!logContactTarget} onOpenChange={(open) => { if (!open) setLogContactTarget(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Log Contact</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="text-sm text-muted-foreground">
+              Client: {(logContactTarget?.client as any)?.first_name} {(logContactTarget?.client as any)?.last_name}
+            </div>
+            <div className="space-y-1.5">
+              <Label>Type</Label>
+              <Select value={logContactType} onValueChange={(v) => setLogContactType(v as 'Call' | 'Email' | 'Note')}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Call">Call</SelectItem>
+                  <SelectItem value="Email">Email</SelectItem>
+                  <SelectItem value="Note">Note</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Notes</Label>
+              <Textarea rows={3} value={logContactNotes} onChange={(e) => setLogContactNotes(e.target.value)} placeholder="Add notes about this contact..." />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setLogContactTarget(null)}>Cancel</Button>
+              <Button
+                disabled={logContactSaving}
+                className="bg-[#2C3E6B] hover:bg-[#1B2A4A] text-white"
+                onClick={async () => {
+                  if (!logContactTarget || !user?.id) return;
+                  setLogContactSaving(true);
+                  const clientName = `${(logContactTarget.client as any)?.first_name || ''} ${(logContactTarget.client as any)?.last_name || ''}`.trim();
+                  const { error } = await supabase.from('activities').insert({
+                    client_id: logContactTarget.client_id,
+                    activity_type: logContactType,
+                    subject: `${logContactType} - ${clientName} (Renewal)`,
+                    description: logContactNotes || '',
+                    activity_date: new Date().toISOString(),
+                    completed: true,
+                    created_by: user.id,
+                  });
+                  if (error) {
+                    toast.error("Couldn't log activity");
+                  } else {
+                    toast.success('Activity logged');
+                  }
+                  setLogContactSaving(false);
+                  setLogContactTarget(null);
+                }}
+              >
+                {logContactSaving ? 'Saving...' : 'Log Activity'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
