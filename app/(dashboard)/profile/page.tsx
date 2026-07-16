@@ -63,7 +63,7 @@ export default function ProfilePage() {
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
-    const { data: updated, error } = await supabase
+    const { error } = await supabase
       .from('users')
       .update({
         full_name: fullName.trim(),
@@ -71,11 +71,9 @@ export default function ProfilePage() {
         license_number: licenseNumber.trim(),
         license_expiration: licenseExpiration || null,
       })
-      .eq('id', user.id)
-      .select()
-      .maybeSingle();
+      .eq('id', user.id);
 
-    if (error || !updated) {
+    if (error) {
       toast.error('Failed to update profile');
     } else {
       await refreshUser();
