@@ -36,7 +36,7 @@ export function UpcomingRenewalsWidget() {
       supabase
         .from('policies')
         .select('*, client:clients(id, first_name, last_name, email)')
-        .eq('status', 'Active')
+        .ilike('status', 'Active')
         .is('deleted_at', null)
         .gte('expiration_date', today)
         .lte('expiration_date', future30)

@@ -108,7 +108,7 @@ export default function ClientProfilePage() {
 
   const expiringPolicies = policies.filter((p) => {
     const days = daysUntil(p.expiration_date);
-    return p.status === 'Active' && days >= 0 && days <= 30;
+    return p.status?.toLowerCase() === 'active' && days >= 0 && days <= 30;
   });
 
   const crossSellTotal = crossSellOpps.reduce((sum: number, o: any) => sum + (o.estimated_value || 0), 0);
@@ -407,7 +407,7 @@ export default function ClientProfilePage() {
                             <div className="flex items-center gap-2">
                               <p className="font-medium">{policy.policy_type}</p>
                               <Badge className={policyStatusColors[policy.status] || ''}>{policy.status}</Badge>
-                              {policy.status === 'Active' && days <= 30 && days >= 0 && (
+                              {policy.status?.toLowerCase() === 'active' && days <= 30 && days >= 0 && (
                                 <Badge variant="outline" className="text-amber-600 border-amber-300 text-[10px]">{days}d left</Badge>
                               )}
                             </div>

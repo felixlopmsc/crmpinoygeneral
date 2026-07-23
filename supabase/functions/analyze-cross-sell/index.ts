@@ -96,7 +96,7 @@ Deno.serve(async (req: Request) => {
       .from("policies")
       .select("id, client_id, policy_type, carrier, annual_premium, status, insured_items")
       .in("client_id", clientIds)
-      .eq("status", "Active");
+      .ilike("status", "Active");
 
     const policiesByClient: Record<string, PolicyRow[]> = {};
     (allPolicies || []).forEach((p: PolicyRow) => {

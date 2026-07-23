@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Users,
+  UserPlus,
   FileText,
   TrendingUp,
   DollarSign,
@@ -34,16 +35,15 @@ import { UpcomingRenewalsWidget } from '@/components/dashboard/upcoming-renewals
 import { CrossSellWidget } from '@/components/dashboard/cross-sell-widget';
 import { NewMessagesWidget } from '@/components/dashboard/new-messages-widget';
 import { useActivePolicyCount } from '@/hooks/use-active-policy-count';
+import { useClientCounts } from '@/hooks/use-client-counts';
 
 interface DashboardStats {
-  totalClients: number;
   activePolicies: number;
   pipelineValue: number;
   pendingCommissions: number;
 }
 
 interface TrendData {
-  totalClientsTrend: number;
   activePoliciesTrend: number;
   pipelineValueTrend: number;
   pendingCommissionsTrend: number;
@@ -63,14 +63,13 @@ function TrendIndicator({ value }: { value: number }) {
 export default function DashboardPage() {
   const { user } = useAuth();
   const { count: activePolicyCount, loading: policyCountLoading, error: policyCountError } = useActivePolicyCount();
+  const { clients: clientCount, prospects: prospectCount, loading: clientCountsLoading, error: clientCountsError } = useClientCounts();
   const [stats, setStats] = useState<DashboardStats>({
-    totalClients: 0,
     activePolicies: 0,
     pipelineValue: 0,
     pendingCommissions: 0,
   });
   const [trends, setTrends] = useState<TrendData>({
-    totalClientsTrend: 0,
     activePoliciesTrend: 0,
     pipelineValueTrend: 0,
     pendingCommissionsTrend: 0,
@@ -92,19 +91,16 @@ export default function DashboardPage() {
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59).toISOString();
 
     const [
-      clientsRes,
       policiesRes,
       dealsRes,
       commissionsRes,
       tasksRes,
       activitiesRes,
-      clientsLastMonthRes,
       policiesLastMonthRes,
       dealsLastMonthRes,
       commissionsLastMonthRes,
     ] = await Promise.all([
-      supabase.from('clients').select('id', { count: 'exact', head: true }),
-      supabase.from('policies').select('id', { count: 'exact', head: true }).eq('status', 'Active'),
+      supabase.from('policies').select('id', { count: 'exact', head: true }).ilike('status', 'Active'),
       supabase.from('deals').select('*').eq('status', 'Open'),
       supabase.from('commissions').select('commission_amount').eq('payment_status', 'Pending'),
       supabase
@@ -118,8 +114,7 @@ export default function DashboardPage() {
         .select('*, client:clients(id, first_name, last_name)')
         .order('activity_date', { ascending: false })
         .limit(10),
-      supabase.from('clients').select('id', { count: 'exact', head: true }).lte('created_at', endOfLastMonth),
-      supabase.from('policies').select('id', { count: 'exact', head: true }).eq('status', 'Active').lte('created_at', endOfLastMonth),
+      supabase.from('policies').select('id', { count: 'exact', head: true }).ilike('status', 'Active').lte('created_at', endOfLastMonth),
       supabase.from('deals').select('value').eq('status', 'Open').lte('created_at', endOfLastMonth),
       supabase.from('commissions').select('commission_amount').eq('payment_status', 'Pending').lte('created_at', endOfLastMonth),
     ]);
@@ -147,13 +142,11 @@ export default function DashboardPage() {
     });
 
     setStats({
-      totalClients: clientsRes.count || 0,
       activePolicies: policiesRes.count || 0,
       pipelineValue,
       pendingCommissions,
     });
     setTrends({
-      totalClientsTrend: calcTrend(clientsRes.count || 0, clientsLastMonthRes.count || 0),
       activePoliciesTrend: calcTrend(policiesRes.count || 0, policiesLastMonthRes.count || 0),
       pipelineValueTrend: calcTrend(pipelineValue, pipelineValueLast),
       pendingCommissionsTrend: calcTrend(pendingCommissions, pendingCommissionsLast),
@@ -168,14 +161,30 @@ export default function DashboardPage() {
 
   const statCards = [
     {
-      label: 'Total Clients',
-      value: stats.totalClients,
+      label: 'Clients',
+      value: clientCount,
       icon: Users,
       color: 'text-[#2C3E6B]',
       bg: 'bg-[#2C3E6B]/5',
       href: '/clients',
-      trend: trends.totalClientsTrend,
+      trend: 0,
+      loading: clientCountsLoading,
+      error: clientCountsError,
       emptyMessage: 'Add your first client to get started',
+      emptyAction: '/clients?new=true',
+      emptyLabel: 'Add Client',
+    },
+    {
+      label: 'Prospects',
+      value: prospectCount,
+      icon: UserPlus,
+      color: 'text-[#8B2D3B]',
+      bg: 'bg-[#8B2D3B]/5',
+      href: '/clients',
+      trend: 0,
+      loading: clientCountsLoading,
+      error: clientCountsError,
+      emptyMessage: 'Prospects appear here when clients are added as Leads',
       emptyAction: '/clients?new=true',
       emptyLabel: 'Add Client',
     },
@@ -226,7 +235,7 @@ export default function DashboardPage() {
       <div className="space-y-6">
         <div className="h-8 w-64 animate-pulse rounded bg-muted" />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
+          {[1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="h-32 animate-pulse rounded-xl bg-muted" />
           ))}
         </div>
@@ -238,7 +247,7 @@ export default function DashboardPage() {
     );
   }
 
-  const isAllZero = stats.totalClients === 0 && (activePolicyCount === 0 || activePolicyCount === null);
+  const isAllZero = (clientCount === 0 || clientCount === null) && (activePolicyCount === 0 || activePolicyCount === null);
 
   return (
     <div className="space-y-6">

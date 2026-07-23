@@ -33,6 +33,14 @@ const statusColors: Record<string, string> = {
   Archived: 'bg-red-100 text-red-700',
 };
 
+type ClientSegment = 'clients' | 'prospects' | 'all';
+
+const SEGMENTS: { key: ClientSegment; label: string }[] = [
+  { key: 'clients', label: 'Clients' },
+  { key: 'prospects', label: 'Prospects' },
+  { key: 'all', label: 'All' },
+];
+
 type SmartFilterKey = 'hotLeads' | 'expiringSoon' | 'noActivity' | 'highValue' | 'newThisWeek' | 'missingInfo' | 'crossSell' | 'fromLeads';
 
 interface SmartFilterCounts {
@@ -74,6 +82,10 @@ export default function ClientsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [segment, setSegment] = useState<ClientSegment>('clients');
+  const [segmentCounts, setSegmentCounts] = useState({ clients: 0, prospects: 0, all: 0 });
+  const [segmentCountsLoading, setSegmentCountsLoading] = useState(true);
+  const [segmentCountsError, setSegmentCountsError] = useState(false);
   const [policyTypeFilter, setPolicyTypeFilter] = useState('all');
   const [policyTypeClientIds, setPolicyTypeClientIds] = useState<Set<string>>(new Set());
   const [policyTypeCounts, setPolicyTypeCounts] = useState<Record<string, number>>({});
@@ -94,6 +106,29 @@ export default function ClientsPage() {
   const [bulkStatus, setBulkStatus] = useState<Client['status']>('Active');
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
 
+  const loadSegmentCounts = useCallback(async () => {
+    setSegmentCountsLoading(true);
+    const [clientsRes, prospectsRes, allRes] = await Promise.all([
+      supabase.from('clients').select('id', { count: 'exact', head: true }).neq('status', 'Lead'),
+      supabase.from('clients').select('id', { count: 'exact', head: true }).eq('status', 'Lead'),
+      supabase.from('clients').select('id', { count: 'exact', head: true }),
+    ]);
+
+    if (clientsRes.error || prospectsRes.error || allRes.error) {
+      setSegmentCountsError(true);
+      setSegmentCountsLoading(false);
+      return;
+    }
+
+    setSegmentCounts({
+      clients: clientsRes.count || 0,
+      prospects: prospectsRes.count || 0,
+      all: allRes.count || 0,
+    });
+    setSegmentCountsError(false);
+    setSegmentCountsLoading(false);
+  }, []);
+
   const loadFilterCounts = useCallback(async () => {
     const now = new Date();
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -103,21 +138,27 @@ export default function ClientsPage() {
 
     const [hotLeadsRes, expiringRes, allClientsRes, activitiesRes, highValueRes, crossSellRes, policiesRes, fromLeadsRes] = await Promise.all([
       supabase.from('clients').select('id').eq('status', 'Lead').gte('created_at', sevenDaysAgo),
-      supabase.from('policies').select('client_id').eq('status', 'Active').gte('expiration_date', today).lte('expiration_date', sixtyDaysFromNow),
-      supabase.from('clients').select('id, phone, email, address_street, created_at'),
+      supabase.from('policies').select('client_id').ilike('status', 'Active').gte('expiration_date', today).lte('expiration_date', sixtyDaysFromNow),
+      supabase.from('clients').select('id, phone, email, address_street, created_at, status'),
       supabase.from('activities').select('client_id, activity_date').order('activity_date', { ascending: false }),
-      supabase.from('policies').select('client_id, annual_premium').eq('status', 'Active'),
+      supabase.from('policies').select('client_id, annual_premium').ilike('status', 'Active'),
       supabase.from('cross_sell_opportunities').select('client_id').eq('status', 'open'),
-      supabase.from('policies').select('client_id, policy_type').eq('status', 'Active'),
+      supabase.from('policies').select('client_id, policy_type').ilike('status', 'Active'),
       supabase.from('clients').select('id').not('source_lead_id', 'is', null),
     ]);
 
-    const hotLeadIds = new Set((hotLeadsRes.data || []).map((r: any) => r.id));
-    const expiringClientIds = new Set((expiringRes.data || []).map((r: any) => r.client_id));
-
     const allClients = allClientsRes.data || [];
-    const newThisWeekIds = new Set(allClients.filter((c: any) => c.created_at >= sevenDaysAgo).map((c: any) => c.id));
-    const missingInfoIds = new Set(allClients.filter((c: any) => !c.phone || !c.email || !c.address_street).map((c: any) => c.id));
+    const segmentIds = new Set(
+      allClients
+        .filter((c: any) => (segment === 'all' ? true : segment === 'clients' ? c.status !== 'Lead' : c.status === 'Lead'))
+        .map((c: any) => c.id)
+    );
+
+    const hotLeadIds = new Set((hotLeadsRes.data || []).map((r: any) => r.id).filter((id: string) => segmentIds.has(id)));
+    const expiringClientIds = new Set((expiringRes.data || []).map((r: any) => r.client_id).filter((id: string) => segmentIds.has(id)));
+
+    const newThisWeekIds = new Set(allClients.filter((c: any) => c.created_at >= sevenDaysAgo && segmentIds.has(c.id)).map((c: any) => c.id));
+    const missingInfoIds = new Set(allClients.filter((c: any) => (!c.phone || !c.email || !c.address_street) && segmentIds.has(c.id)).map((c: any) => c.id));
 
     const lastActivityByClient: Record<string, string> = {};
     (activitiesRes.data || []).forEach((a: any) => {
@@ -125,25 +166,27 @@ export default function ClientsPage() {
         lastActivityByClient[a.client_id] = a.activity_date;
       }
     });
-    const allClientIds = new Set(allClients.map((c: any) => c.id));
     const noActivityIds = new Set<string>();
-    allClientIds.forEach((cid) => {
-      const last = lastActivityByClient[cid];
-      if (!last || last < thirtyDaysAgo) noActivityIds.add(cid);
+    segmentIds.forEach((cid) => {
+      const last = lastActivityByClient[cid as string];
+      if (!last || last < thirtyDaysAgo) noActivityIds.add(cid as string);
     });
 
     const premiumByClient: Record<string, number> = {};
     (highValueRes.data || []).forEach((p: any) => {
       premiumByClient[p.client_id] = (premiumByClient[p.client_id] || 0) + (p.annual_premium || 0);
     });
-    const highValueIds = new Set(Object.entries(premiumByClient).filter(([, v]) => v > 2000).map(([k]) => k));
+    const highValueIds = new Set(
+      Object.entries(premiumByClient).filter(([k, v]) => v > 2000 && segmentIds.has(k)).map(([k]) => k)
+    );
 
-    const crossSellClientIds = new Set((crossSellRes.data || []).map((r: any) => r.client_id));
-    const fromLeadsClientIds = new Set((fromLeadsRes.data || []).map((r: any) => r.id));
+    const crossSellClientIds = new Set((crossSellRes.data || []).map((r: any) => r.client_id).filter((id: string) => segmentIds.has(id)));
+    const fromLeadsClientIds = new Set((fromLeadsRes.data || []).map((r: any) => r.id).filter((id: string) => segmentIds.has(id)));
 
     const ptCounts: Record<string, number> = {};
     const ptClientSets: Record<string, Set<string>> = {};
     (policiesRes.data || []).forEach((p: any) => {
+      if (!segmentIds.has(p.client_id)) return;
       const pt = p.policy_type;
       if (!ptCounts[pt]) { ptCounts[pt] = 0; ptClientSets[pt] = new Set(); }
       if (!ptClientSets[pt].has(p.client_id)) {
@@ -174,7 +217,7 @@ export default function ClientsPage() {
       fromLeads: fromLeadsClientIds,
     });
     setCountsLoading(false);
-  }, []);
+  }, [segment]);
 
   const loadClients = useCallback(async () => {
     const { data: { session: currentSession } } = await supabase.auth.getSession();
@@ -189,7 +232,7 @@ export default function ClientsPage() {
         .from('policies')
         .select('client_id')
         .eq('policy_type', policyTypeFilter)
-        .eq('status', 'Active');
+        .ilike('status', 'Active');
       policyFilterIds = new Set((ptData || []).map((p: any) => p.client_id));
       setPolicyTypeClientIds(policyFilterIds);
     }
@@ -198,6 +241,9 @@ export default function ClientsPage() {
       .from('clients')
       .select('*')
       .order('created_at', { ascending: false });
+
+    if (segment === 'clients') query = query.neq('status', 'Lead');
+    else if (segment === 'prospects') query = query.eq('status', 'Lead');
 
     if (statusFilter !== 'all') {
       query = query.eq('status', statusFilter);
@@ -246,7 +292,13 @@ export default function ClientsPage() {
     const { data } = await query.limit(100);
     setClients(data || []);
     setLoading(false);
-  }, [search, statusFilter, activeFilters, filterClientIds, policyTypeFilter]);
+  }, [search, statusFilter, segment, activeFilters, filterClientIds, policyTypeFilter]);
+
+  useEffect(() => {
+    if (session) {
+      loadSegmentCounts();
+    }
+  }, [session, loadSegmentCounts]);
 
   useEffect(() => {
     if (session) {
@@ -313,6 +365,7 @@ export default function ClientsPage() {
     setSelectedIds(new Set());
     loadClients();
     loadFilterCounts();
+    loadSegmentCounts();
     setBulkActionLoading(false);
     setShowDeleteConfirm(false);
 
@@ -349,6 +402,7 @@ export default function ClientsPage() {
             toast.success(`${count} client${count > 1 ? 's' : ''} restored`);
             loadClients();
             loadFilterCounts();
+            loadSegmentCounts();
           }
         },
       },
@@ -429,6 +483,7 @@ export default function ClientsPage() {
     setShowForm(false);
     setEditingClient(null);
     loadClients();
+    loadSegmentCounts();
   };
 
   const isAllSelected = clients.length > 0 && selectedIds.size === clients.length;
@@ -439,7 +494,34 @@ export default function ClientsPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Clients</h1>
-          <p className="text-sm text-muted-foreground">{clients.length} clients found</p>
+          <p className="text-sm text-muted-foreground">
+            {segmentCountsError ? (
+              <span title="Couldn't load count">Showing {clients.length} of &mdash;</span>
+            ) : (
+              `Showing ${clients.length} of ${segmentCountsLoading ? '…' : segmentCounts[segment].toLocaleString()}`
+            )}
+          </p>
+          <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-muted p-1 w-fit">
+            {SEGMENTS.map((s) => (
+              <button
+                key={s.key}
+                onClick={() => setSegment(s.key)}
+                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+                  segment === s.key ? 'bg-white shadow-sm text-[#2C3E6B]' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {s.label}
+                {!segmentCountsLoading && !segmentCountsError && (
+                  <Badge
+                    variant="secondary"
+                    className={`h-4 min-w-[16px] px-1 text-[10px] ${segment === s.key ? 'bg-[#2C3E6B]/10 text-[#2C3E6B]' : ''}`}
+                  >
+                    {segmentCounts[s.key].toLocaleString()}
+                  </Badge>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setShowImport(true)}>

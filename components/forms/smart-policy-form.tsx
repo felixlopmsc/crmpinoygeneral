@@ -555,8 +555,8 @@ export function SmartPolicyForm({ open, onOpenChange, clientId, userId, onSaved 
                             <Badge
                               variant="secondary"
                               className={`text-[10px] px-1.5 py-0 ${
-                                policy.status === 'Active' ? 'bg-emerald-50 text-emerald-700' :
-                                policy.status === 'Expired' ? 'bg-gray-100 text-gray-600' :
+                                policy.status?.toLowerCase() === 'active' ? 'bg-emerald-50 text-emerald-700' :
+                                policy.status?.toLowerCase() === 'expired' ? 'bg-gray-100 text-gray-600' :
                                 'bg-amber-50 text-amber-700'
                               }`}
                             >

@@ -9,9 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChartBar as BarChart3, TrendingUp, Users, FileText, DollarSign, Download, RefreshCw } from 'lucide-react';
 import { useActivePolicyCount } from '@/hooks/use-active-policy-count';
+import { useClientCounts } from '@/hooks/use-client-counts';
 
 interface ReportData {
-  totalClients: number;
   totalPolicies: number;
   activePolicies: number;
   totalPremium: number | null;
@@ -36,15 +36,15 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [activeReport, setActiveReport] = useState('overview');
   const { count: activePolicyCount, loading: countLoading, error: countError } = useActivePolicyCount();
+  const { clients: clientCount, prospects: prospectCount, loading: clientCountsLoading, error: clientCountsError } = useClientCounts();
 
   useEffect(() => { loadReports(); }, []);
 
   async function loadReports() {
     setLoading(true);
     const [
-      clientsRes, policiesRes, commissionsRes, dealsRes, activitiesRes, claimsRes, premiumRes,
+      policiesRes, commissionsRes, dealsRes, activitiesRes, claimsRes, premiumRes,
     ] = await Promise.all([
-      supabase.from('clients').select('id', { count: 'exact', head: true }),
       supabase.from('policies').select('*'),
       supabase.from('commissions').select('*'),
       supabase.from('deals').select('*'),
@@ -56,7 +56,7 @@ export default function ReportsPage() {
     const policies = policiesRes.data || [];
     const commissions = commissionsRes.data || [];
     const deals = dealsRes.data || [];
-    const activePolicies = policies.filter((p) => p.status === 'Active');
+    const activePolicies = policies.filter((p) => p.status?.toLowerCase() === 'active');
 
     const policyBreakdown: Record<string, number> = {};
     const carrierBreakdown: Record<string, number> = {};
@@ -81,7 +81,6 @@ export default function ReportsPage() {
     const totalPremium = (!premiumRes.error && premiumRes.data != null) ? Number(premiumRes.data) : null;
 
     setData({
-      totalClients: clientsRes.count || 0,
       totalPolicies: policies.length,
       activePolicies: activePolicies.length,
       totalPremium,
@@ -150,7 +149,21 @@ export default function ReportsPage() {
       {activeReport === 'overview' && (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Total Clients</p><p className="text-2xl font-bold">{data.totalClients}</p></CardContent></Card>
+            <Card>
+              <CardContent className="p-5">
+                <p className="text-sm text-muted-foreground">Total Clients</p>
+                {clientCountsLoading ? (
+                  <div className="h-8 w-12 animate-pulse rounded bg-muted mt-1" />
+                ) : clientCountsError ? (
+                  <p className="text-2xl font-bold text-muted-foreground" title="Couldn't load count">&mdash;</p>
+                ) : (
+                  <>
+                    <p className="text-2xl font-bold">{clientCount?.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">(prospects: {prospectCount?.toLocaleString()})</p>
+                  </>
+                )}
+              </CardContent>
+            </Card>
             <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Active Policies</p>{countLoading ? <div className="h-8 w-12 animate-pulse rounded bg-muted mt-1" /> : countError ? <p className="text-2xl font-bold text-muted-foreground" title="Couldn't load count">&mdash;</p> : <p className="text-2xl font-bold text-emerald-600">{activePolicyCount}</p>}</CardContent></Card>
             <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Total Premium</p><p className="text-2xl font-bold">{data.totalPremium != null ? formatCurrency(data.totalPremium) : '\u2014'}</p></CardContent></Card>
             <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Win Rate</p><p className="text-2xl font-bold text-[#2C3E6B]">{winRate}%</p></CardContent></Card>
@@ -328,7 +341,7 @@ export default function ReportsPage() {
               <div className="space-y-4">
                 <div className="flex justify-between border-b pb-2"><span className="text-sm text-muted-foreground">Avg Commission per Policy</span><span className="font-semibold">{data.totalPolicies > 0 ? formatCurrency(data.totalCommissions / data.totalPolicies) : '$0'}</span></div>
                 <div className="flex justify-between border-b pb-2"><span className="text-sm text-muted-foreground">Avg Premium per Policy</span><span className="font-semibold">{(activePolicyCount ?? 0) > 0 && data.totalPremium != null ? formatCurrency(data.totalPremium / activePolicyCount!) : '\u2014'}</span></div>
-                <div className="flex justify-between"><span className="text-sm text-muted-foreground">Policies per Client</span><span className="font-semibold">{data.totalClients > 0 ? (data.totalPolicies / data.totalClients).toFixed(1) : '0'}</span></div>
+                <div className="flex justify-between"><span className="text-sm text-muted-foreground">Policies per Client</span><span className="font-semibold">{clientCount && clientCount > 0 ? (data.totalPolicies / clientCount).toFixed(1) : '0'}</span></div>
               </div>
             </CardContent>
           </Card>

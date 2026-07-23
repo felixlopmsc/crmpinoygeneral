@@ -62,7 +62,7 @@ export default function RenewalsPage() {
     const { data } = await supabase
       .from('policies')
       .select('*, client:clients(id, first_name, last_name, email, phone)')
-      .eq('status', 'Active')
+      .ilike('status', 'Active')
       .is('deleted_at', null)
       .gte('expiration_date', today)
       .lte('expiration_date', future30)

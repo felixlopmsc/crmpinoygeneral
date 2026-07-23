@@ -162,7 +162,7 @@ export default function PoliciesPage() {
                       <TableCell>{policy.carrier}</TableCell>
                       <TableCell className="text-muted-foreground">{policy.policy_number || '-'}</TableCell>
                       <TableCell>
-                        <span className={days <= 7 && policy.status === 'Active' ? 'text-red-600 font-medium' : days <= 30 && policy.status === 'Active' ? 'text-amber-600' : ''}>
+                        <span className={days <= 7 && policy.status?.toLowerCase() === 'active' ? 'text-red-600 font-medium' : days <= 30 && policy.status?.toLowerCase() === 'active' ? 'text-amber-600' : ''}>
                           {formatDate(policy.expiration_date)}
                         </span>
                       </TableCell>
