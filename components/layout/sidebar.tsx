@@ -18,6 +18,7 @@ import {
   Shield,
   FolderOpen,
   Mail,
+  MessageSquare,
   ChartBar as BarChart3,
   ChevronLeft,
   ChevronRight,
@@ -25,6 +26,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useNewMessagesCount } from '@/hooks/use-new-messages-count';
 
 interface NavItem {
   href: string;
@@ -64,6 +66,7 @@ const navGroups: NavGroup[] = [
   {
     title: 'Operations',
     items: [
+      { href: '/messages', label: 'Messages', icon: MessageSquare },
       { href: '/activities', label: 'Activities', icon: Activity },
       { href: '/tasks', label: 'Tasks', icon: CheckSquare },
       { href: '/claims', label: 'Claims', icon: Shield },
@@ -82,6 +85,7 @@ const navGroups: NavGroup[] = [
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+  const newMessagesCount = useNewMessagesCount();
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -128,6 +132,7 @@ export default function Sidebar() {
               <ul className="space-y-0.5">
                 {group.items.map((item) => {
                   const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+                  const badgeCount = item.href === '/messages' ? newMessagesCount : 0;
                   const linkContent = (
                     <Link
                       key={item.href}
@@ -139,8 +144,18 @@ export default function Sidebar() {
                           : 'text-white/70 hover:bg-white/5 hover:text-white border-l-2 border-transparent'
                       )}
                     >
-                      <item.icon className="h-[18px] w-[18px] flex-shrink-0" />
-                      {!collapsed && <span>{item.label}</span>}
+                      <span className="relative flex-shrink-0">
+                        <item.icon className="h-[18px] w-[18px]" />
+                        {collapsed && badgeCount > 0 && (
+                          <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-destructive" />
+                        )}
+                      </span>
+                      {!collapsed && <span className="flex-1">{item.label}</span>}
+                      {!collapsed && badgeCount > 0 && (
+                        <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-white">
+                          {badgeCount > 9 ? '9+' : badgeCount}
+                        </span>
+                      )}
                     </Link>
                   );
 

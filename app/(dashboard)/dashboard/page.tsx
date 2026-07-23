@@ -32,6 +32,7 @@ import {
 import { BulkClientImportDialog } from '@/components/forms/bulk-client-import';
 import { UpcomingRenewalsWidget } from '@/components/dashboard/upcoming-renewals-widget';
 import { CrossSellWidget } from '@/components/dashboard/cross-sell-widget';
+import { NewMessagesWidget } from '@/components/dashboard/new-messages-widget';
 import { useActivePolicyCount } from '@/hooks/use-active-policy-count';
 
 interface DashboardStats {
@@ -402,6 +403,8 @@ export default function DashboardPage() {
             )}
           </CardContent>
         </Card>
+
+        <NewMessagesWidget />
 
         <UpcomingRenewalsWidget />
 

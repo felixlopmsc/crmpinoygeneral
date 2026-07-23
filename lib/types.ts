@@ -264,3 +264,18 @@ export const STAGE_PROBABILITIES: Record<string, number> = {
 
 export const TASK_PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'] as const;
 export const TASK_STATUSES = ['To Do', 'In Progress', 'Completed', 'Cancelled'] as const;
+
+export interface ContactSubmission {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  message: string;
+  created_at: string;
+  status: 'New' | 'Replied' | 'Closed';
+  handled_by: string | null;
+  handled_at: string | null;
+  lead_id: string | null;
+}
+
+export const CONTACT_SUBMISSION_STATUSES = ['New', 'Replied', 'Closed'] as const;

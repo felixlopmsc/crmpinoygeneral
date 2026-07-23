@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Users, TrendingUp, SquareCheck as CheckSquare, Menu } from 'lucide-react';
+import { LayoutDashboard, Users, TrendingUp, SquareCheck as CheckSquare, Menu, MessageSquare } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +21,7 @@ const mainTabs = [
 ];
 
 const moreItems = [
+  { href: '/messages', label: 'Messages', icon: MessageSquare },
   { href: '/policies', label: 'Policies', icon: FileText },
   { href: '/renewals', label: 'Renewals', icon: RefreshCw },
   { href: '/commissions', label: 'Commissions', icon: DollarSign },
