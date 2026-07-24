@@ -21,6 +21,7 @@ import {
   MessageSquare,
   FileSpreadsheet,
   ChartBar as BarChart3,
+  Database,
   ChevronLeft,
   ChevronRight,
   Target,
@@ -29,11 +30,14 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useNewMessagesCount } from '@/hooks/use-new-messages-count';
 import { useNewQuoteRequestsCount } from '@/hooks/use-new-quote-requests-count';
+import { useAuth } from '@/lib/auth-context';
+import { isStaffUser } from '@/lib/is-staff';
 
 interface NavItem {
   href: string;
   label: string;
   icon: typeof LayoutDashboard;
+  staffOnly?: boolean;
 }
 
 interface NavGroup {
@@ -81,6 +85,7 @@ const navGroups: NavGroup[] = [
     title: 'Reporting',
     items: [
       { href: '/reports', label: 'Reports', icon: BarChart3 },
+      { href: '/settings/data-quality', label: 'Data Quality', icon: Database, staffOnly: true },
     ],
   },
 ];
@@ -90,6 +95,8 @@ export default function Sidebar() {
   const pathname = usePathname();
   const newMessagesCount = useNewMessagesCount();
   const newQuoteRequestsCount = useNewQuoteRequestsCount();
+  const { user } = useAuth();
+  const staff = isStaffUser(user);
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -134,7 +141,7 @@ export default function Sidebar() {
                 <div className="mx-auto my-2 h-px w-8 bg-white/10" />
               )}
               <ul className="space-y-0.5">
-                {group.items.map((item) => {
+                {group.items.filter((item) => !item.staffOnly || staff).map((item) => {
                   const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                   const badgeCount =
                     item.href === '/messages' ? newMessagesCount
