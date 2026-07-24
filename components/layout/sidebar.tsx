@@ -19,6 +19,7 @@ import {
   FolderOpen,
   Mail,
   MessageSquare,
+  FileSpreadsheet,
   ChartBar as BarChart3,
   ChevronLeft,
   ChevronRight,
@@ -27,6 +28,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useNewMessagesCount } from '@/hooks/use-new-messages-count';
+import { useNewQuoteRequestsCount } from '@/hooks/use-new-quote-requests-count';
 
 interface NavItem {
   href: string;
@@ -51,6 +53,7 @@ const navGroups: NavGroup[] = [
     items: [
       { href: '/clients', label: 'Clients', icon: Users },
       { href: '/leads', label: 'Leads', icon: UserPlus },
+      { href: '/quote-requests', label: 'Quote Requests', icon: FileSpreadsheet },
       { href: '/policies', label: 'Policies', icon: FileText },
       { href: '/renewals', label: 'Renewals', icon: RefreshCw },
     ],
@@ -86,6 +89,7 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
   const newMessagesCount = useNewMessagesCount();
+  const newQuoteRequestsCount = useNewQuoteRequestsCount();
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -132,7 +136,10 @@ export default function Sidebar() {
               <ul className="space-y-0.5">
                 {group.items.map((item) => {
                   const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-                  const badgeCount = item.href === '/messages' ? newMessagesCount : 0;
+                  const badgeCount =
+                    item.href === '/messages' ? newMessagesCount
+                    : item.href === '/quote-requests' ? newQuoteRequestsCount
+                    : 0;
                   const linkContent = (
                     <Link
                       key={item.href}

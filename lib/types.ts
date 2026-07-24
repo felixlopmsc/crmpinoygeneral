@@ -279,3 +279,93 @@ export interface ContactSubmission {
 }
 
 export const CONTACT_SUBMISSION_STATUSES = ['New', 'Replied', 'Closed'] as const;
+
+export interface QuoteRequest {
+  id: string;
+  created_at: string;
+  updated_at: string | null;
+  deleted_at: string | null;
+  status: 'New' | 'Contacted' | 'Quoted' | 'Won' | 'Lost';
+  coverage_type: string | null;
+  source: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  phone: string | null;
+  date_of_birth: string | null;
+  address_street: string | null;
+  address_city: string | null;
+  address_state: string | null;
+  address_zip: string | null;
+  business_legal_name: string | null;
+  business_dba: string | null;
+  business_fein: string | null;
+  business_entity_type: string | null;
+  business_year_est: number | null;
+  business_phone: string | null;
+  business_website: string | null;
+  business_description: string | null;
+  form_data_auto: Record<string, unknown> | null;
+  form_data_home: Record<string, unknown> | null;
+  form_data_renters: Record<string, unknown> | null;
+  form_data_bop: Record<string, unknown> | null;
+  form_data_cgl: Record<string, unknown> | null;
+  form_data_wc: Record<string, unknown> | null;
+  form_data_commercial_auto: Record<string, unknown> | null;
+  form_data_umbrella: Record<string, unknown> | null;
+  has_prior_losses: boolean | null;
+  loss_history: unknown;
+  prior_cancellation: boolean | null;
+  prior_cancellation_explanation: string | null;
+  prior_carrier: string | null;
+  prior_policy_expiration: string | null;
+  years_continuously_insured: number | null;
+  internal_notes: string | null;
+  estimate_low: number | null;
+  estimate_high: number | null;
+  estimate_factors: Record<string, unknown> | null;
+  lead_id: string | null;
+  client_id: string | null;
+  assigned_agent_id: string | null;
+}
+
+export interface QuoteRequestDocument {
+  id: string;
+  created_at: string;
+  quote_request_id: string;
+  file_name: string;
+  file_path: string;
+  file_size: number | null;
+  mime_type: string | null;
+  document_type: string | null;
+}
+
+export const QUOTE_REQUEST_STATUSES = ['New', 'Contacted', 'Quoted', 'Won', 'Lost'] as const;
+
+// Maps a coverage_type label to the jsonb column that holds its answers, and
+// whether it is a commercial coverage (business fields shown). Coverage types
+// not listed here fall back to whichever form_data_* column is non-empty.
+export const QUOTE_COVERAGE_MAP: Record<string, { column: keyof QuoteRequest; commercial: boolean }> = {
+  'Personal Auto': { column: 'form_data_auto', commercial: false },
+  'Auto': { column: 'form_data_auto', commercial: false },
+  'Homeowners': { column: 'form_data_home', commercial: false },
+  'Home': { column: 'form_data_home', commercial: false },
+  'Renters': { column: 'form_data_renters', commercial: false },
+  'BOP': { column: 'form_data_bop', commercial: true },
+  'Business Owners Policy': { column: 'form_data_bop', commercial: true },
+  'General Liability': { column: 'form_data_cgl', commercial: true },
+  'CGL': { column: 'form_data_cgl', commercial: true },
+  'Workers Comp': { column: 'form_data_wc', commercial: true },
+  'Workers Compensation': { column: 'form_data_wc', commercial: true },
+  'Commercial Auto': { column: 'form_data_commercial_auto', commercial: true },
+  'Umbrella': { column: 'form_data_umbrella', commercial: false },
+};
+
+export const QUOTE_FORM_DATA_COLUMNS: (keyof QuoteRequest)[] = [
+  'form_data_auto', 'form_data_home', 'form_data_renters', 'form_data_bop',
+  'form_data_cgl', 'form_data_wc', 'form_data_commercial_auto', 'form_data_umbrella',
+];
+
+export const COMMERCIAL_FORM_DATA_COLUMNS: (keyof QuoteRequest)[] = [
+  'form_data_bop', 'form_data_cgl', 'form_data_wc', 'form_data_commercial_auto',
+];

@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { FileText, RefreshCw, DollarSign, Activity, Shield, FolderOpen, Mail, ChartBar as BarChart3 } from 'lucide-react';
+import { FileText, RefreshCw, DollarSign, Activity, Shield, FolderOpen, Mail, ChartBar as BarChart3, FileSpreadsheet } from 'lucide-react';
 
 const mainTabs = [
   { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
@@ -22,6 +22,7 @@ const mainTabs = [
 
 const moreItems = [
   { href: '/messages', label: 'Messages', icon: MessageSquare },
+  { href: '/quote-requests', label: 'Quote Requests', icon: FileSpreadsheet },
   { href: '/policies', label: 'Policies', icon: FileText },
   { href: '/renewals', label: 'Renewals', icon: RefreshCw },
   { href: '/commissions', label: 'Commissions', icon: DollarSign },
