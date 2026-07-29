@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AgilaWordmark from '@/components/landing/agila-wordmark';
+import { cn } from '@/lib/utils';
 
 const LINKS = [
   { href: '#problem', label: 'The problem' },
@@ -16,9 +17,27 @@ const LINKS = [
 
 export default function LandingNav() {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Lift the bar off the page once it stops sitting over the hero. Passive
+  // listener so scrolling stays smooth, and a boolean (not a scroll-linked
+  // value) so this never animates per frame.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#1B2A4A]/10 bg-white/85 backdrop-blur-md">
+    <header
+      className={cn(
+        'sticky top-0 z-50 border-b bg-white/85 backdrop-blur-md transition-[border-color,box-shadow] duration-300 ease-out-strong',
+        scrolled
+          ? 'border-[#1B2A4A]/10 shadow-sm shadow-[#1B2A4A]/5'
+          : 'border-transparent'
+      )}
+    >
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
         <Link href="/">
           <AgilaWordmark size="sm" />

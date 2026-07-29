@@ -83,6 +83,14 @@ const config: Config = {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
       },
+      // The built-in CSS curves are too weak to read as intentional. These are
+      // stronger variants: 'out' for entrances (fast start = feels responsive),
+      // 'in-out' for on-screen movement, 'drawer' for iOS-like sheets.
+      transitionTimingFunction: {
+        'out-strong': 'cubic-bezier(0.23, 1, 0.32, 1)',
+        'in-out-strong': 'cubic-bezier(0.77, 0, 0.175, 1)',
+        drawer: 'cubic-bezier(0.32, 0.72, 0, 1)',
+      },
     },
   },
   plugins: [require('tailwindcss-animate')],
