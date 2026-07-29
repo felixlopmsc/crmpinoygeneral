@@ -342,6 +342,28 @@ export interface QuoteRequestDocument {
 
 export const QUOTE_REQUEST_STATUSES = ['New', 'Contacted', 'Quoted', 'Won', 'Lost'] as const;
 
+// Demo / sales requests captured from the public product marketing landing
+// page (app/page.tsx). Public form inserts via the anon client (status 'New'
+// only); staff read/triage. See migration create_demo_requests.
+export interface DemoRequest {
+  id: string;
+  created_at: string;
+  updated_at: string | null;
+  status: 'New' | 'Contacted' | 'Demoed' | 'Won' | 'Lost';
+  full_name: string | null;
+  work_email: string | null;
+  company: string | null;
+  phone: string | null;
+  team_size: string | null;
+  interest: string | null;
+  message: string | null;
+  source: string | null;
+  internal_notes: string | null;
+  assigned_agent_id: string | null;
+}
+
+export const DEMO_REQUEST_STATUSES = ['New', 'Contacted', 'Demoed', 'Won', 'Lost'] as const;
+
 // Maps a coverage_type label to the jsonb column that holds its answers, and
 // whether it is a commercial coverage (business fields shown). Coverage types
 // not listed here fall back to whichever form_data_* column is non-empty.
