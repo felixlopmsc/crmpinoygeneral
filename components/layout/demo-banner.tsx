@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { FlaskConical, X } from 'lucide-react';
-import { DEMO_MODE, DEMO_FLAG_KEY, supabase } from '@/lib/supabase';
+import { DEMO_MODE, DEMO_FLAG_KEY, DEMO_VIA_HOSTNAME, APP_URL, supabase } from '@/lib/supabase';
 
 // Persistent bar shown only inside the sandbox demo. Renders nothing in the
 // real app (DEMO_MODE is false there).
@@ -22,7 +22,10 @@ export default function DemoBanner() {
     } catch {
       /* ignore */
     }
-    window.location.replace('/');
+    // On a dedicated demo host there is no local flag to clear — the whole
+    // origin is the sandbox — so send the visitor to the real app if we know
+    // where it lives, and otherwise back to this host's landing page.
+    window.location.replace(DEMO_VIA_HOSTNAME && APP_URL ? APP_URL : '/');
   }
 
   return (
@@ -37,7 +40,8 @@ export default function DemoBanner() {
         disabled={exiting}
         className="ml-2 inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-[#1B2A4A] px-3 py-1 text-[11px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
       >
-        <X className="h-3 w-3" /> {exiting ? 'Exiting…' : 'Exit demo'}
+        <X className="h-3 w-3" />
+        {exiting ? 'Exiting…' : DEMO_VIA_HOSTNAME && APP_URL ? 'Go to real app' : 'Exit demo'}
       </button>
     </div>
   );

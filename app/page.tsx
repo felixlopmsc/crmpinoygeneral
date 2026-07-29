@@ -29,6 +29,7 @@ import LandingNav from '@/components/landing/landing-nav';
 import BookDemoForm from '@/components/landing/book-demo-form';
 import AgilaWordmark from '@/components/landing/agila-wordmark';
 import Reveal from '@/components/landing/reveal';
+import LoginLink from '@/components/landing/login-link';
 
 export const metadata: Metadata = {
   title: 'Agila Management Systems — The agency system for independent insurance agents',
@@ -547,7 +548,7 @@ export default function LandingPage() {
               <a href="#solution" className="hover:text-white">Solution</a>
               <a href="#pricing" className="hover:text-white">Pricing</a>
               <Link href="/demo" className="hover:text-white">Live demo</Link>
-              <Link href="/login" className="hover:text-white">Log in</Link>
+              <LoginLink className="hover:text-white">Log in</LoginLink>
             </div>
           </div>
           <div className="mt-8 border-t border-white/10 pt-6 text-center text-xs text-white/40">

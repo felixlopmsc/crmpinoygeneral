@@ -6,6 +6,7 @@ import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AgilaWordmark from '@/components/landing/agila-wordmark';
 import { cn } from '@/lib/utils';
+import { loginHref } from '@/lib/supabase';
 
 const LINKS = [
   { href: '#problem', label: 'The problem' },
@@ -52,7 +53,7 @@ export default function LandingNav() {
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
-          <Link href="/login">
+          <Link href={loginHref()}>
             <Button variant="ghost" className="text-[#1B2A4A] hover:bg-[#1B2A4A]/5">Log in</Button>
           </Link>
           <Link href="/demo">
@@ -90,7 +91,7 @@ export default function LandingNav() {
               </a>
             ))}
             <div className="flex flex-col gap-2 pt-2">
-              <Link href="/login" onClick={() => setOpen(false)}>
+              <Link href={loginHref()} onClick={() => setOpen(false)}>
                 <Button variant="ghost" className="w-full">Log in</Button>
               </Link>
               <Link href="/demo" onClick={() => setOpen(false)}>
