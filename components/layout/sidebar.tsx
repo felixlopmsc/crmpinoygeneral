@@ -25,11 +25,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Target,
+  Inbox,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useNewMessagesCount } from '@/hooks/use-new-messages-count';
 import { useNewQuoteRequestsCount } from '@/hooks/use-new-quote-requests-count';
+import { useNewDemoRequestsCount } from '@/hooks/use-new-demo-requests-count';
 import { useAuth } from '@/lib/auth-context';
 import { isStaffUser } from '@/lib/is-staff';
 
@@ -85,6 +87,7 @@ const navGroups: NavGroup[] = [
     title: 'Reporting',
     items: [
       { href: '/reports', label: 'Reports', icon: BarChart3 },
+      { href: '/demo-requests', label: 'Demo Requests', icon: Inbox, staffOnly: true },
       { href: '/settings/data-quality', label: 'Data Quality', icon: Database, staffOnly: true },
     ],
   },
@@ -95,6 +98,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const newMessagesCount = useNewMessagesCount();
   const newQuoteRequestsCount = useNewQuoteRequestsCount();
+  const newDemoRequestsCount = useNewDemoRequestsCount();
   const { user } = useAuth();
   const staff = isStaffUser(user);
 
@@ -146,6 +150,7 @@ export default function Sidebar() {
                   const badgeCount =
                     item.href === '/messages' ? newMessagesCount
                     : item.href === '/quote-requests' ? newQuoteRequestsCount
+                    : item.href === '/demo-requests' ? newDemoRequestsCount
                     : 0;
                   const linkContent = (
                     <Link

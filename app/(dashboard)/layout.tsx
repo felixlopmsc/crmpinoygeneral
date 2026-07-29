@@ -6,6 +6,8 @@ import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import AppShell from '@/components/layout/app-shell';
 import OnboardingDialog from '@/components/layout/onboarding-dialog';
+import DemoBanner from '@/components/layout/demo-banner';
+import { DEMO_MODE } from '@/lib/supabase';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { session, user, loading } = useAuth();
@@ -15,12 +17,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   useEffect(() => {
     if (!loading && !session) {
-      router.replace('/');
+      router.replace('/login');
     }
   }, [session, loading, router]);
 
   useEffect(() => {
-    if (!user || onboardingChecked) return;
+    // The sandbox seeds onboarding as complete; never prompt a demo visitor.
+    if (DEMO_MODE || !user || onboardingChecked) return;
     async function checkOnboarding() {
       const { data } = await supabase
         .from('onboarding_progress')
@@ -47,12 +50,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!session) return null;
 
   return (
-    <AppShell>
-      {children}
-      <OnboardingDialog
-        open={showOnboarding}
-        onComplete={() => setShowOnboarding(false)}
-      />
-    </AppShell>
+    <>
+      <DemoBanner />
+      <AppShell>
+        {children}
+        <OnboardingDialog
+          open={showOnboarding}
+          onComplete={() => setShowOnboarding(false)}
+        />
+      </AppShell>
+    </>
   );
 }

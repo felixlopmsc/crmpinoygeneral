@@ -82,7 +82,7 @@ export default function ResetPasswordPage() {
             <Button
               variant="outline"
               className="mt-4"
-              onClick={() => router.replace('/')}
+              onClick={() => router.replace('/login')}
             >
               Back to Sign In
             </Button>
