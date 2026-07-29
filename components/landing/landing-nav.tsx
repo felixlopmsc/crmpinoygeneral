@@ -2,14 +2,15 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import AgilaWordmark from '@/components/landing/agila-wordmark';
 
 const LINKS = [
-  { href: '#features', label: 'Features' },
-  { href: '#preview', label: 'Product' },
-  { href: '#plans', label: 'Plans' },
+  { href: '#problem', label: 'The problem' },
+  { href: '#solution', label: 'Solution' },
+  { href: '#results', label: 'Results' },
+  { href: '#pricing', label: 'Pricing' },
   { href: '#faq', label: 'FAQ' },
 ];
 
@@ -19,20 +20,11 @@ export default function LandingNav() {
   return (
     <header className="sticky top-0 z-50 border-b border-[#1B2A4A]/10 bg-white/85 backdrop-blur-md">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-        <Link href="/" className="flex items-center gap-2.5">
-          <Image
-            src="/Copy_of_Pinoy_General_Insurance_Logo_(800_×_800_px).png"
-            alt="Pinoy General CRM"
-            width={36}
-            height={36}
-            className="rounded-lg"
-          />
-          <span className="text-base font-bold text-[#1B2A4A]">
-            Pinoy General <span className="text-[#B8962E]">CRM</span>
-          </span>
+        <Link href="/">
+          <AgilaWordmark size="sm" />
         </Link>
 
-        <div className="hidden items-center gap-8 md:flex">
+        <div className="hidden items-center gap-7 md:flex">
           {LINKS.map((l) => (
             <a key={l.href} href={l.href} className="text-sm font-medium text-[#1B2A4A]/70 transition-colors hover:text-[#1B2A4A]">
               {l.label}
@@ -40,9 +32,14 @@ export default function LandingNav() {
           ))}
         </div>
 
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden items-center gap-2 md:flex">
           <Link href="/login">
             <Button variant="ghost" className="text-[#1B2A4A] hover:bg-[#1B2A4A]/5">Log in</Button>
+          </Link>
+          <Link href="/demo">
+            <Button variant="outline" className="border-[#1B2A4A]/20 text-[#1B2A4A] hover:bg-[#1B2A4A]/5">
+              Try the demo
+            </Button>
           </Link>
           <a href="#book-demo">
             <Button className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] text-white border border-[#B8962E]/30 hover:from-[#1B2A4A] hover:to-[#2C3E6B]">
@@ -75,7 +72,10 @@ export default function LandingNav() {
             ))}
             <div className="flex flex-col gap-2 pt-2">
               <Link href="/login" onClick={() => setOpen(false)}>
-                <Button variant="outline" className="w-full">Log in</Button>
+                <Button variant="ghost" className="w-full">Log in</Button>
+              </Link>
+              <Link href="/demo" onClick={() => setOpen(false)}>
+                <Button variant="outline" className="w-full">Try the demo</Button>
               </Link>
               <a href="#book-demo" onClick={() => setOpen(false)}>
                 <Button className="w-full bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] text-white">

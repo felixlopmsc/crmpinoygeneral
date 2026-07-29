@@ -7,8 +7,8 @@ import { Toaster } from '@/components/ui/sonner';
 const montserrat = Montserrat({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Pinoy General CRM',
-  description: 'Customer Relationship Management for Pinoy General Insurance Services',
+  title: 'Agila Management Systems',
+  description: 'Agency management system for independent insurance agencies',
   icons: {
     icon: '/Copy_of_Copy_of_Pinoy_General_Insurance_Logo_(800_×_800_px)_(1).png',
     apple: '/Copy_of_Copy_of_Pinoy_General_Insurance_Logo_(800_×_800_px)_(1).png',
