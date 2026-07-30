@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import AgilaWordmark from '@/components/landing/agila-wordmark';
 import { cn } from '@/lib/utils';
 import { loginHref } from '@/lib/supabase';
+import DemoLink from '@/components/landing/demo-link';
 
 const LINKS = [
   { href: '#problem', label: 'The problem' },
@@ -56,11 +57,11 @@ export default function LandingNav() {
           <Link href={loginHref()}>
             <Button variant="ghost" className="text-[#1B2A4A] hover:bg-[#1B2A4A]/5">Log in</Button>
           </Link>
-          <Link href="/demo">
+          <DemoLink>
             <Button variant="outline" className="border-[#1B2A4A]/20 text-[#1B2A4A] hover:bg-[#1B2A4A]/5">
               Try the demo
             </Button>
-          </Link>
+          </DemoLink>
           <a href="#book-demo">
             <Button className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] text-white border border-[#B8962E]/30 hover:from-[#1B2A4A] hover:to-[#2C3E6B]">
               Book a demo
@@ -94,9 +95,9 @@ export default function LandingNav() {
               <Link href={loginHref()} onClick={() => setOpen(false)}>
                 <Button variant="ghost" className="w-full">Log in</Button>
               </Link>
-              <Link href="/demo" onClick={() => setOpen(false)}>
+              <DemoLink onClick={() => setOpen(false)}>
                 <Button variant="outline" className="w-full">Try the demo</Button>
-              </Link>
+              </DemoLink>
               <a href="#book-demo" onClick={() => setOpen(false)}>
                 <Button className="w-full bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] text-white">
                   Book a demo

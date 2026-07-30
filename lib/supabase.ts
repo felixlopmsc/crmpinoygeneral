@@ -55,6 +55,25 @@ export function loginHref(): string {
   return DEMO_VIA_HOSTNAME && APP_URL ? `${APP_URL}/login` : '/login';
 }
 
+// Canonical home of the sandbox.
+export const DEMO_URL = 'https://demo.agilams.com';
+
+// Where "Try the demo" should send the visitor. On the real domains this must
+// be the absolute demo host: a relative /demo would fall back to the
+// localStorage flag and sandbox the *current* origin — the same deployment
+// serves /login there, so a staff member on that browser would then have real
+// credentials checked against the sandbox and fail. Previews and localhost
+// have no demo subdomain, so they keep the relative flag-based flow.
+export function demoHref(): string {
+  if (typeof window === 'undefined') return '/demo';
+  const h = window.location.hostname;
+  if (isDemoHostname(h)) return '/demo';
+  if (h.endsWith('agilams.com') || h.endsWith('pinoygeneralinsurance.com')) {
+    return DEMO_URL;
+  }
+  return '/demo';
+}
+
 // Seeded demo staff account (public by design — the project is a sandbox).
 export const DEMO_CREDENTIALS = {
   email: 'demo@pinoygeneralcrm.com',
