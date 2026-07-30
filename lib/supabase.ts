@@ -48,11 +48,25 @@ function detectDemoMode(): boolean {
 
 export const DEMO_MODE = detectDemoMode();
 
+// Two different people leave the sandbox with two different intents, and
+// neither destination may depend on an env var being set:
+//  - A prospect exiting the demo belongs on the marketing site.
+//  - A staff member looking for "the real app" belongs on the staff CRM.
+export const MARKETING_URL = 'https://agilams.com';
+const STAFF_APP_FALLBACK = 'https://ams.pinoygeneralinsurance.com';
+
+// NEXT_PUBLIC_APP_URL overrides where "the real app" lives; the hard-coded
+// staff host keeps things correct when it is unset (or set but not rebuilt —
+// NEXT_PUBLIC_* is inlined at build time, an easy step to miss).
+export function staffAppUrl(): string {
+  return APP_URL || STAFF_APP_FALLBACK;
+}
+
 // On a demo host, "Log in" must point at the real app — otherwise real staff
 // credentials get checked against the sandbox database and simply fail, which
 // is a confusing thing to hit while presenting.
 export function loginHref(): string {
-  return DEMO_VIA_HOSTNAME && APP_URL ? `${APP_URL}/login` : '/login';
+  return DEMO_VIA_HOSTNAME ? `${staffAppUrl()}/login` : '/login';
 }
 
 // Canonical home of the sandbox.
