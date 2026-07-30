@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import {
   Users,
   BellRing,
@@ -30,6 +29,7 @@ import BookDemoForm from '@/components/landing/book-demo-form';
 import AgilaWordmark from '@/components/landing/agila-wordmark';
 import Reveal from '@/components/landing/reveal';
 import LoginLink from '@/components/landing/login-link';
+import DemoLink from '@/components/landing/demo-link';
 
 export const metadata: Metadata = {
   title: 'Agila Management Systems — The agency system for independent insurance agents',
@@ -213,11 +213,11 @@ export default function LandingPage() {
             closes those gaps.
           </Reveal>
           <Reveal delay={240} className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link href="/demo">
+            <DemoLink>
               <Button size="lg" className="gap-2 bg-[#B8962E] font-semibold text-[#1B2A4A] hover:bg-[#D4AD3C]">
                 Try the live demo <ArrowRight className="h-4 w-4" />
               </Button>
-            </Link>
+            </DemoLink>
             <a href="#book-demo">
               <Button
                 size="lg"
@@ -322,11 +322,11 @@ export default function LandingPage() {
                 anything: it resets hourly. Nothing to install, nothing to fill in.
               </p>
             </div>
-            <Link href="/demo" className="flex-shrink-0">
+            <DemoLink className="flex-shrink-0">
               <Button size="lg" className="gap-2 bg-[#B8962E] font-semibold text-[#1B2A4A] hover:bg-[#D4AD3C]">
                 Open the live demo <ArrowRight className="h-4 w-4" />
               </Button>
-            </Link>
+            </DemoLink>
           </div>
         </Reveal>
       </section>
@@ -510,11 +510,11 @@ export default function LandingPage() {
               <p className="mt-1 text-sm text-[#1B2A4A]/60">
                 The live demo opens instantly — no form required.
               </p>
-              <Link href="/demo">
+              <DemoLink>
                 <Button variant="outline" className="mt-3 gap-2 border-[#1B2A4A]/20 text-[#1B2A4A]">
                   Open the demo <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
-              </Link>
+              </DemoLink>
             </div>
           </Reveal>
           <Reveal delay={100}>
@@ -547,7 +547,7 @@ export default function LandingPage() {
               <a href="#problem" className="hover:text-white">The problem</a>
               <a href="#solution" className="hover:text-white">Solution</a>
               <a href="#pricing" className="hover:text-white">Pricing</a>
-              <Link href="/demo" className="hover:text-white">Live demo</Link>
+              <DemoLink className="hover:text-white">Live demo</DemoLink>
               <LoginLink className="hover:text-white">Log in</LoginLink>
             </div>
           </div>
