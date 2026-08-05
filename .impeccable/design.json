@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 2,
+  "extensions": {
+    "colorMeta": {
+      "harbor-navy": {
+        "role": "primary",
+        "displayName": "Harbor Navy",
+        "canonical": "#1B2A4A",
+        "hsl": "hsl(220.9, 46.5%, 19.8%)"
+      },
+      "channel-navy": {
+        "role": "primary",
+        "displayName": "Channel Navy",
+        "canonical": "#2C3E6B",
+        "hsl": "hsl(222.9, 41.7%, 29.6%)",
+        "note": "globals.css --primary (hsl 220 42% 30% = #2C426D) is a rounded approximation of this hex; hex is normative"
+      },
+      "heritage-gold": {
+        "role": "accent",
+        "displayName": "Heritage Gold",
+        "canonical": "#B8962E",
+        "hsl": "hsl(45.2, 60.0%, 45.1%)",
+        "note": "globals.css --secondary (hsl 44 60% 45% = #B8932E) is a rounded approximation"
+      },
+      "sunrise-gold": {
+        "role": "accent-on-dark",
+        "displayName": "Sunrise Gold",
+        "canonical": "#D4AD3C",
+        "hsl": "hsl(44.6, 63.9%, 53.3%)"
+      },
+      "barong-crimson": {
+        "role": "danger",
+        "displayName": "Barong Crimson",
+        "canonical": "#8B2D3B",
+        "hsl": "hsl(351.1, 51.1%, 36.1%)",
+        "note": "globals.css --accent/--destructive (hsl 350 50% 36% = #8A2E3D) is a rounded approximation"
+      },
+      "parchment-cream": {
+        "role": "surface-tint",
+        "displayName": "Parchment Cream",
+        "canonical": "#F5F0E8",
+        "hsl": "hsl(36.9, 39.4%, 93.5%)",
+        "note": "distinct from --background #FAF8F5 (warm white); both are real tokens"
+      }
+    },
+    "shadows": [
+      { "name": "ambient", "value": "0 20px 25px -5px rgba(27,42,74,0.05), 0 8px 10px -6px rgba(27,42,74,0.05)" },
+      { "name": "feature", "value": "0 25px 50px -12px rgba(27,42,74,0.20)" }
+    ],
+    "easings": [
+      { "name": "out-strong", "value": "cubic-bezier(0.23, 1, 0.32, 1)", "use": "entrances, presses" },
+      { "name": "in-out-strong", "value": "cubic-bezier(0.77, 0, 0.175, 1)", "use": "on-screen movement" },
+      { "name": "drawer", "value": "cubic-bezier(0.32, 0.72, 0, 1)", "use": "sheets and drawers" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Gold CTA Button",
+      "html": "<button class=\"ds-btn-gold\">Try the live demo</button>",
+      "css": ".ds-btn-gold { background-color: #B8962E; color: #1B2A4A; font-family: Montserrat, sans-serif; font-size: 14px; font-weight: 600; height: 44px; padding: 0 32px; border: none; border-radius: 6px; cursor: pointer; transition: background-color 200ms cubic-bezier(0.23,1,0.32,1), transform 150ms cubic-bezier(0.23,1,0.32,1); } .ds-btn-gold:hover { background-color: #D4AD3C; } .ds-btn-gold:focus-visible { outline: 2px solid #B8962E; outline-offset: 2px; } @media (prefers-reduced-motion: no-preference) { .ds-btn-gold:active { transform: scale(0.97); } }"
+    },
+    {
+      "name": "Primary Button",
+      "html": "<button class=\"ds-btn-primary\">Save client</button>",
+      "css": ".ds-btn-primary { background-color: #1B2A4A; color: #FFFFFF; font-family: Montserrat, sans-serif; font-size: 14px; font-weight: 500; height: 40px; padding: 0 16px; border: none; border-radius: 6px; cursor: pointer; transition: background-color 200ms cubic-bezier(0.23,1,0.32,1), transform 150ms cubic-bezier(0.23,1,0.32,1); } .ds-btn-primary:hover { background-color: #2C3E6B; } .ds-btn-primary:focus-visible { outline: 2px solid #B8962E; outline-offset: 2px; } @media (prefers-reduced-motion: no-preference) { .ds-btn-primary:active { transform: scale(0.97); } }"
+    },
+    {
+      "name": "Interactive Card",
+      "html": "<div class=\"ds-card\"><h3>360° client view</h3><p>Households, policies, documents and history in one record.</p></div>",
+      "css": ".ds-card { background-color: #FFFFFF; border: 1px solid rgba(27,42,74,0.10); border-radius: 16px; padding: 24px; transition: border-color 200ms cubic-bezier(0.23,1,0.32,1), box-shadow 200ms cubic-bezier(0.23,1,0.32,1); } .ds-card:hover { border-color: rgba(184,150,46,0.40); box-shadow: 0 20px 25px -5px rgba(27,42,74,0.05); } .ds-card h3 { font-family: Montserrat, sans-serif; font-size: 18px; font-weight: 600; color: #1B2A4A; margin: 0 0 8px; } .ds-card p { font-family: Montserrat, sans-serif; font-size: 14px; color: rgba(27,42,74,0.60); margin: 0; line-height: 1.6; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Eagle's Watch",
+    "overview": "Vigilant navy carries structure and daily work; gold is reserved for the single decisive action; crimson appears only when something is at stake. One typeface (Montserrat) at every register, motion spent on first-visit surfaces and denied to daily ones.",
+    "rules": [
+      "The One Gold Rule: one gold action per screen.",
+      "The Crimson Reserve: crimson signals stakes, never decoration."
+    ]
+  }
+}
