@@ -17,6 +17,24 @@ export const metadata: Metadata = {
     icon: '/favicon.ico',
     apple: '/agila-eagle.png',
   },
+  // Required for the relative image path below to resolve. Without it Next
+  // emits a warning and no absolute og:image URL, which is the same as having
+  // no share card at all — the crawlers need an absolute URL.
+  metadataBase: new URL('https://agilams.com'),
+  openGraph: {
+    type: 'website',
+    siteName: 'Agila Management Systems',
+    url: 'https://agilams.com',
+    title: 'Agila Management Systems',
+    description: 'The agency management system for independent insurance agents.',
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Agila Management Systems' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Agila Management Systems',
+    description: 'The agency management system for independent insurance agents.',
+    images: ['/og-image.jpg'],
+  },
 };
 
 export default function RootLayout({
