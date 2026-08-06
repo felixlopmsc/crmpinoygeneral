@@ -225,6 +225,11 @@ surfaces, precise instruments.
 - **Durations:** 150ms press, 200ms hover, 400ms reveal. Interactive UI
   stays under 300ms. Entrance and hover never share an element, so they never
   share a `transition-duration`.
+- **The Scarce Motion Rule:** Reveal is spent on the hero, the live-sandbox
+  invitation, the founding-agency offer and the pricing grid — and nowhere
+  else. Section headings never animate: a heading that fades in is a heading
+  the reader cannot read yet, and it is the first thing they need. Motion is
+  a spotlight; pointing it at everything lights nothing.
 
 ## Do's and Don'ts
 

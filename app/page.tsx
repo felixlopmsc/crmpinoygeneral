@@ -186,8 +186,9 @@ const FAQS = [
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white">
-      {/* Reveal renders its initial state hidden, so without JS the page would
-          be blank. This forces everything visible in that case. */}
+      {/* Reveal renders its initial state hidden, so without JS the few
+          elements that still use it would never appear. This forces them
+          visible in that case. */}
       <noscript>
         <style>{`[data-reveal]{opacity:1 !important;transform:none !important}`}</style>
       </noscript>
@@ -237,7 +238,7 @@ export default function LandingPage() {
       {/* ============ TENSION ============ */}
       <section id="problem" className="scroll-mt-20 bg-[#F5F0E8]/40 py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <Reveal className="mx-auto max-w-2xl text-center">
+          <div className="mx-auto max-w-2xl text-center">
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B2D3B]">
               The daily reality
             </span>
@@ -248,13 +249,12 @@ export default function LandingPage() {
               An independent agency does not fail loudly — it leaks quietly. Here is where, and what
               Agila does about each one.
             </p>
-          </Reveal>
+          </div>
 
           <div className="mt-14 space-y-4">
-            {PAINS.map((p, i) => (
-              <Reveal
+            {PAINS.map((p) => (
+              <div
                 key={p.pain}
-                delay={staggerDelay(i, 60)}
                 className="grid gap-6 rounded-2xl border border-[#1B2A4A]/10 bg-white p-6 sm:p-8 lg:grid-cols-[1.15fr_1fr]"
               >
                 <div>
@@ -274,7 +274,7 @@ export default function LandingPage() {
                   </p>
                   <p className="mt-2 text-sm font-medium leading-relaxed text-[#1B2A4A]/85">{p.fix}</p>
                 </div>
-              </Reveal>
+              </div>
             ))}
           </div>
         </div>
@@ -282,7 +282,7 @@ export default function LandingPage() {
 
       {/* ============ ACTION ============ */}
       <section id="solution" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-6">
-        <Reveal className="mx-auto max-w-2xl text-center">
+        <div className="mx-auto max-w-2xl text-center">
           <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#B8962E]">
             The system
           </span>
@@ -292,22 +292,20 @@ export default function LandingPage() {
           <p className="mt-3 text-[#1B2A4A]/60">
             Not eight tools stitched together. Everything below shares the same client record.
           </p>
-        </Reveal>
+        </div>
 
         <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {CAPABILITIES.map((f, i) => (
-            <Reveal key={f.title} delay={staggerDelay(i, 45)}>
-              {/* Hover lives on this child, not on Reveal: entrance and
-                  interaction need different durations, and sharing one element
-                  means sharing one transition-duration. */}
-              <div className="group h-full rounded-2xl border border-[#1B2A4A]/10 bg-[#F5F0E8]/40 p-6 transition-[border-color,background-color,box-shadow] duration-200 ease-out-strong hover:border-[#B8962E]/40 hover:bg-white hover:shadow-lg hover:shadow-[#1B2A4A]/5">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#1B2A4A] text-[#D4AD3C] transition-transform duration-200 ease-out-strong motion-safe:group-hover:-translate-y-0.5">
-                  <f.icon className="h-5 w-5" />
-                </div>
-                <h3 className="mt-4 font-semibold text-[#1B2A4A]">{f.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-[#1B2A4A]/60">{f.body}</p>
+          {CAPABILITIES.map((f) => (
+            <div
+              key={f.title}
+              className="group rounded-2xl border border-[#1B2A4A]/10 bg-[#F5F0E8]/40 p-6 transition-[border-color,background-color,box-shadow] duration-200 ease-out-strong hover:border-[#B8962E]/40 hover:bg-white hover:shadow-lg hover:shadow-[#1B2A4A]/5"
+            >
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#1B2A4A] text-[#D4AD3C] transition-transform duration-200 ease-out-strong motion-safe:group-hover:-translate-y-0.5">
+                <f.icon className="h-5 w-5" />
               </div>
-            </Reveal>
+              <h3 className="mt-4 font-semibold text-[#1B2A4A]">{f.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-[#1B2A4A]/60">{f.body}</p>
+            </div>
           ))}
         </div>
 
@@ -335,7 +333,7 @@ export default function LandingPage() {
       {/* ============ GROWTH ============ */}
       <section id="results" className="scroll-mt-20 bg-[#F5F0E8]/50 py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <Reveal className="mx-auto max-w-2xl text-center">
+          <div className="mx-auto max-w-2xl text-center">
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#B8962E]">
               What changes
             </span>
@@ -343,14 +341,14 @@ export default function LandingPage() {
             <p className="mt-3 text-[#1B2A4A]/60">
               Retention and cross-sell are not growth hacks — they are the compounding parts of a book.
             </p>
-          </Reveal>
+          </div>
           <div className="mt-14 grid gap-6 lg:grid-cols-3">
-            {OUTCOMES.map((o, i) => (
-              <Reveal key={o.stat} delay={staggerDelay(i, 70)} className="rounded-2xl border border-[#1B2A4A]/10 bg-white p-7">
+            {OUTCOMES.map((o) => (
+              <div key={o.stat} className="rounded-2xl border border-[#1B2A4A]/10 bg-white p-7">
                 <p className="text-sm font-bold uppercase tracking-wide text-[#B8962E]">{o.stat}</p>
                 <h3 className="mt-2 text-lg font-semibold text-[#1B2A4A]">{o.label}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-[#1B2A4A]/60">{o.body}</p>
-              </Reveal>
+              </div>
             ))}
           </div>
         </div>
@@ -358,7 +356,7 @@ export default function LandingPage() {
 
       {/* ============ PRICING ============ */}
       <section id="pricing" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-6">
-        <Reveal className="mx-auto max-w-2xl text-center">
+        <div className="mx-auto max-w-2xl text-center">
           <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#B8962E]">
             Pricing
           </span>
@@ -369,7 +367,7 @@ export default function LandingPage() {
             Comparable agency systems start north of $300/month. Agila does the core work for less,
             because it was built to run one agency well before it was sold to others.
           </p>
-        </Reveal>
+        </div>
 
         {/* Founding-agency offer */}
         <Reveal className="mt-12 overflow-hidden rounded-2xl border-2 border-[#B8962E] bg-gradient-to-br from-[#B8962E]/10 to-transparent p-6 sm:p-8">
@@ -466,7 +464,7 @@ export default function LandingPage() {
 
       {/* ============ EMOTION ============ */}
       <section className="bg-[#1B2A4A] py-20">
-        <Reveal className="mx-auto max-w-3xl px-4 text-center sm:px-6">
+        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <div className="mx-auto mb-8 h-px w-16 bg-gradient-to-r from-transparent via-[#B8962E] to-transparent" />
           <h2 className="text-3xl font-bold text-white">Why we built this</h2>
           <p className="mt-5 text-lg leading-relaxed text-white/70">
@@ -482,13 +480,13 @@ export default function LandingPage() {
           <p className="mt-8 text-sm font-medium text-[#D4AD3C]">
             An independent agency should not lose business to bad software.
           </p>
-        </Reveal>
+        </div>
       </section>
 
       {/* ============ BOOK A DEMO ============ */}
       <section id="book-demo" className="scroll-mt-20 bg-[#F5F0E8]/50 py-20">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2">
-          <Reveal>
+          <div>
             <h2 className="text-3xl font-bold text-[#1B2A4A]">Let&apos;s look at your book together</h2>
             <p className="mt-4 text-[#1B2A4A]/60">
               Tell us a little about your agency and we&apos;ll walk you through Agila on a live call —
@@ -517,18 +515,14 @@ export default function LandingPage() {
                 </Button>
               </DemoLink>
             </div>
-          </Reveal>
-          <Reveal delay={100}>
-            <BookDemoForm />
-          </Reveal>
+          </div>
+          <BookDemoForm />
         </div>
       </section>
 
       {/* ============ FAQ ============ */}
       <section id="faq" className="mx-auto max-w-3xl scroll-mt-20 px-4 py-20 sm:px-6">
-        <Reveal as="h2" className="text-center text-3xl font-bold text-[#1B2A4A]">
-          Questions, answered
-        </Reveal>
+        <h2 className="text-center text-3xl font-bold text-[#1B2A4A]">Questions, answered</h2>
         <Accordion type="single" collapsible className="mt-10">
           {FAQS.map((f, i) => (
             <AccordionItem key={i} value={`item-${i}`}>
