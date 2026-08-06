@@ -217,9 +217,14 @@ surfaces, precise instruments.
   `cubic-bezier(0.77,0,0.175,1)` for on-screen movement; `ease-drawer`
   `cubic-bezier(0.32,0.72,0,1)` for sheets.
 - **Reveal** (`components/landing/reveal.tsx`): opacity + 12px translate,
-  600ms, fires once at `-100px` root margin; stagger siblings 45–80ms.
-- **Durations:** 150ms press, 200ms hover, 600ms reveal. Interactive UI
-  stays under 300ms.
+  400ms, fires once at `+120px` root margin so it settles before it is read.
+  Stagger siblings 45–80ms via `staggerDelay(i)`, which caps at the fourth
+  sibling — an uncapped `i * n` grows with the array until it reads as lag.
+  Under `prefers-reduced-motion` the translate and the stagger both drop and
+  the fade shortens to 150ms.
+- **Durations:** 150ms press, 200ms hover, 400ms reveal. Interactive UI
+  stays under 300ms. Entrance and hover never share an element, so they never
+  share a `transition-duration`.
 
 ## Do's and Don'ts
 

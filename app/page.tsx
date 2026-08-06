@@ -27,7 +27,7 @@ import {
 import LandingNav from '@/components/landing/landing-nav';
 import BookDemoForm from '@/components/landing/book-demo-form';
 import AgilaWordmark from '@/components/landing/agila-wordmark';
-import Reveal from '@/components/landing/reveal';
+import Reveal, { staggerDelay } from '@/components/landing/reveal';
 import LoginLink from '@/components/landing/login-link';
 import DemoLink from '@/components/landing/demo-link';
 
@@ -254,7 +254,7 @@ export default function LandingPage() {
             {PAINS.map((p, i) => (
               <Reveal
                 key={p.pain}
-                delay={i * 60}
+                delay={staggerDelay(i, 60)}
                 className="grid gap-6 rounded-2xl border border-[#1B2A4A]/10 bg-white p-6 sm:p-8 lg:grid-cols-[1.15fr_1fr]"
               >
                 <div>
@@ -296,16 +296,17 @@ export default function LandingPage() {
 
         <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {CAPABILITIES.map((f, i) => (
-            <Reveal
-              key={f.title}
-              delay={i * 45}
-              className="group rounded-2xl border border-[#1B2A4A]/10 bg-[#F5F0E8]/40 p-6 [transition-property:opacity,transform,border-color,background-color,box-shadow] hover:border-[#B8962E]/40 hover:bg-white hover:shadow-lg hover:shadow-[#1B2A4A]/5"
-            >
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#1B2A4A] text-[#D4AD3C] transition-transform duration-200 ease-out-strong motion-safe:group-hover:-translate-y-0.5">
-                <f.icon className="h-5 w-5" />
+            <Reveal key={f.title} delay={staggerDelay(i, 45)}>
+              {/* Hover lives on this child, not on Reveal: entrance and
+                  interaction need different durations, and sharing one element
+                  means sharing one transition-duration. */}
+              <div className="group h-full rounded-2xl border border-[#1B2A4A]/10 bg-[#F5F0E8]/40 p-6 transition-[border-color,background-color,box-shadow] duration-200 ease-out-strong hover:border-[#B8962E]/40 hover:bg-white hover:shadow-lg hover:shadow-[#1B2A4A]/5">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#1B2A4A] text-[#D4AD3C] transition-transform duration-200 ease-out-strong motion-safe:group-hover:-translate-y-0.5">
+                  <f.icon className="h-5 w-5" />
+                </div>
+                <h3 className="mt-4 font-semibold text-[#1B2A4A]">{f.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[#1B2A4A]/60">{f.body}</p>
               </div>
-              <h3 className="mt-4 font-semibold text-[#1B2A4A]">{f.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-[#1B2A4A]/60">{f.body}</p>
             </Reveal>
           ))}
         </div>
@@ -345,7 +346,7 @@ export default function LandingPage() {
           </Reveal>
           <div className="mt-14 grid gap-6 lg:grid-cols-3">
             {OUTCOMES.map((o, i) => (
-              <Reveal key={o.stat} delay={i * 70} className="rounded-2xl border border-[#1B2A4A]/10 bg-white p-7">
+              <Reveal key={o.stat} delay={staggerDelay(i, 70)} className="rounded-2xl border border-[#1B2A4A]/10 bg-white p-7">
                 <p className="text-sm font-bold uppercase tracking-wide text-[#B8962E]">{o.stat}</p>
                 <h3 className="mt-2 text-lg font-semibold text-[#1B2A4A]">{o.label}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-[#1B2A4A]/60">{o.body}</p>
@@ -397,7 +398,7 @@ export default function LandingPage() {
           {PLANS.map((p, i) => (
             <Reveal
               key={p.name}
-              delay={i * 80}
+              delay={staggerDelay(i, 80)}
               className={`relative flex flex-col rounded-2xl border p-8 ${
                 p.highlight
                   ? 'border-[#B8962E] bg-[#1B2A4A] text-white shadow-2xl shadow-[#1B2A4A]/20'
