@@ -88,7 +88,7 @@ export default function LoginPage() {
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#8B2D3B] to-transparent" />
         <div className="relative z-10 text-center px-12">
           <Image
-            src="/Copy_of_Pinoy_General_Insurance_Logo_(800_×_800_px).png"
+            src="/pinoy-general-logo.png"
             alt="Pinoy General Insurance"
             width={200}
             height={200}
@@ -122,7 +122,7 @@ export default function LoginPage() {
         <div className="relative w-full max-w-md">
           <div className="lg:hidden mb-8 text-center">
             <Image
-              src="/Copy_of_Pinoy_General_Insurance_Logo_(800_×_800_px).png"
+              src="/pinoy-general-logo.png"
               alt="Pinoy General Insurance"
               width={80}
               height={80}

@@ -62,7 +62,7 @@ export default function ResetPasswordPage() {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <Image
-            src="/Copy_of_Pinoy_General_Insurance_Logo_(800_×_800_px).png"
+            src="/pinoy-general-logo.png"
             alt="Pinoy General Insurance"
             width={80}
             height={80}

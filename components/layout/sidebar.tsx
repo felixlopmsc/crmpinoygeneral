@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
@@ -34,6 +34,7 @@ import { useNewQuoteRequestsCount } from '@/hooks/use-new-quote-requests-count';
 import { useNewDemoRequestsCount } from '@/hooks/use-new-demo-requests-count';
 import { useAuth } from '@/lib/auth-context';
 import { isStaffUser } from '@/lib/is-staff';
+import { DEMO_MODE } from '@/lib/supabase';
 
 interface NavItem {
   href: string;
@@ -96,6 +97,18 @@ const navGroups: NavGroup[] = [
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+
+  // One sidebar, two brands. demo.agilams.com is a prospect looking at the
+  // product, so it wears Agila; ams.pinoygeneralinsurance.com is the agency's
+  // own staff, so it keeps Pinoy General. DEMO_MODE is hostname-derived and
+  // therefore false during server render — read it in an effect rather than at
+  // module scope, or the two renders disagree and React throws a hydration
+  // mismatch. Cost of doing it this way: one frame of Pinoy branding before the
+  // effect runs. Acceptable for a logo. If that frame ever becomes visible
+  // enough to matter, the durable fix is a middleware header — not worth
+  // building until it actually annoys someone.
+  const [isDemo, setIsDemo] = useState(false);
+  useEffect(() => setIsDemo(DEMO_MODE), []);
   const newMessagesCount = useNewMessagesCount();
   const newQuoteRequestsCount = useNewQuoteRequestsCount();
   const newDemoRequestsCount = useNewDemoRequestsCount();
@@ -106,7 +119,7 @@ export default function Sidebar() {
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
-          'fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-[#B8962E]/20 bg-gradient-to-b from-[#1B2A4A] to-[#2C3E6B] transition-all duration-300',
+          'fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-[#B8962E]/20 bg-gradient-to-b from-[#1B2A4A] to-[#2C3E6B] transition-[width] duration-300 ease-out-strong',
           collapsed ? 'w-[68px]' : 'w-[240px]'
         )}
       >
@@ -118,17 +131,27 @@ export default function Sidebar() {
             collapsed ? 'justify-center h-[72px]' : 'gap-3 h-[72px]'
           )}
         >
+          {/* Decorative — the two lines of text beside it carry the name.
+              The Pinoy asset here is the square officer silhouette, not the
+              horizontal PINOY GENERAL lockup: the lockup is 744×193 artwork
+              inside an 800×800 file, so forcing it into a square box rendered
+              a white card with ~15px of illegible type on the navy gradient. */}
           <Image
-            src="/Copy_of_Pinoy_General_Insurance_Logo_(800_×_800_px).png"
-            alt="Pinoy General Insurance"
+            src={isDemo ? '/agila-glyph.svg' : '/pinoy-general-logo-alt.png'}
+            alt=""
+            aria-hidden="true"
             width={collapsed ? 44 : 64}
             height={collapsed ? 44 : 64}
             className="flex-shrink-0"
           />
           {!collapsed && (
             <div className="min-w-0">
-              <p className="truncate text-sm font-bold text-[#D4AD3C]">Pinoy General</p>
-              <p className="truncate text-[11px] text-white/50">Insurance CRM</p>
+              <p className="truncate text-sm font-bold text-[#D4AD3C]">
+                {isDemo ? 'Agila' : 'Pinoy General'}
+              </p>
+              <p className="truncate text-[11px] text-white/50">
+                {isDemo ? 'Management Systems' : 'Insurance CRM'}
+              </p>
             </div>
           )}
         </Link>
@@ -157,7 +180,7 @@ export default function Sidebar() {
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
+                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-[color,background-color,border-color,box-shadow] duration-150',
                         isActive
                           ? 'bg-white/10 text-white border-l-2 border-[#B8962E] shadow-sm shadow-[#B8962E]/10'
                           : 'text-white/70 hover:bg-white/5 hover:text-white border-l-2 border-transparent'

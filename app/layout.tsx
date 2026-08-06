@@ -9,9 +9,13 @@ const montserrat = Montserrat({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'Agila Management Systems',
   description: 'Agency management system for independent insurance agencies',
+  // The root layout is shared by all three hostnames, so there is one favicon
+  // for three brands. Agila is the product being sold; the tab icon is Agila's.
+  // Accepted trade-off: Pinoy staff on ams.pinoygeneralinsurance.com get an
+  // eagle in their tab.
   icons: {
-    icon: '/Copy_of_Copy_of_Pinoy_General_Insurance_Logo_(800_×_800_px)_(1).png',
-    apple: '/Copy_of_Copy_of_Pinoy_General_Insurance_Logo_(800_×_800_px)_(1).png',
+    icon: '/favicon.ico',
+    apple: '/agila-eagle.png',
   },
 };
 
