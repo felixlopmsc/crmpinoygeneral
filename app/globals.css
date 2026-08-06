@@ -10,22 +10,26 @@
     --card-foreground: 220 20% 10%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 10%;
-    --primary: 220 42% 30%;
+    /* Brand values are the exact HSL of the canonical hexes, not rounded
+       approximations of them: #2C3E6B, #B8962E, #8B2D3B. Rounding these to
+       whole degrees is what put the stylesheet out of step with the ~650 hex
+       literals in the components. */
+    --primary: 222.9 41.7% 29.6%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 44 60% 45%;
+    --secondary: 45.2 60% 45.1%;
     --secondary-foreground: 0 0% 100%;
     --muted: 38 20% 95%;
     --muted-foreground: 220 15% 35%;
-    --accent: 350 50% 36%;
+    --accent: 351.1 51.1% 36.1%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 350 50% 36%;
+    --destructive: 351.1 51.1% 36.1%;
     --destructive-foreground: 0 0% 100%;
     --border: 38 20% 88%;
     --input: 38 20% 88%;
-    --ring: 44 60% 45%;
-    --chart-1: 220 42% 30%;
-    --chart-2: 44 60% 45%;
-    --chart-3: 350 50% 36%;
+    --ring: 45.2 60% 45.1%;
+    --chart-1: 222.9 41.7% 29.6%;
+    --chart-2: 45.2 60% 45.1%;
+    --chart-3: 351.1 51.1% 36.1%;
     --chart-4: 215 39% 39%;
     --chart-5: 44 59% 53%;
     --radius: 0.5rem;
