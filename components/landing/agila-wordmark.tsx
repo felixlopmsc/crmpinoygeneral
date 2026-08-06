@@ -5,6 +5,12 @@ import { cn } from '@/lib/utils';
 // The wordmark mirrors the concept art — heavy geometric sans (Montserrat 800,
 // already the app font) with "AGILA" on top and "MANAGEMENT SYSTEMS" tracked
 // out beneath it.
+//
+// Mark and wordmark are sized to the same optical height on purpose. Rendered
+// side by side at mismatched heights this reads as an icon with text glued to
+// it; matched, it reads as one lockup. The mark floor is 44px — below that the
+// eagle inside the disc stops resolving and the whole thing reads as a gold
+// smudge. That floor was measured, not assumed.
 export default function AgilaWordmark({
   size = 'md',
   onDark = false,
@@ -14,18 +20,21 @@ export default function AgilaWordmark({
   onDark?: boolean;
   className?: string;
 }) {
-  const mark = { sm: 30, md: 38, lg: 52 }[size];
-  const primary = { sm: 'text-base', md: 'text-xl', lg: 'text-3xl' }[size];
-  const secondary = { sm: 'text-[7px]', md: 'text-[8px]', lg: 'text-[11px]' }[size];
+  const mark = { sm: 44, md: 56, lg: 72 }[size];
+  const primary = { sm: 'text-lg', md: 'text-2xl', lg: 'text-3xl' }[size];
+  const secondary = { sm: 'text-[8px]', md: 'text-[9px]', lg: 'text-[11px]' }[size];
 
   return (
     <span className={cn('flex items-center gap-2.5', className)}>
+      {/* Decorative: the wordmark beside it already names the product, so an
+          alt here would announce "Agila Management Systems" twice. */}
       <Image
-        src="/Copy_of_Pinoy_General_Insurance_Logo_(800_×_800_px).png"
-        alt="Agila Management Systems"
+        src="/agila-glyph.svg"
+        alt=""
+        aria-hidden="true"
         width={mark}
         height={mark}
-        className="flex-shrink-0 rounded-lg"
+        className="flex-shrink-0"
         priority
       />
       <span className="flex flex-col leading-none">

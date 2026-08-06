@@ -32,6 +32,14 @@ typography:
     fontFamily: "Montserrat"
     fontSize: "12px"
     fontWeight: 600
+  micro:
+    fontFamily: "Montserrat"
+    fontSize: "11px"
+    fontWeight: 600
+  nano:
+    fontFamily: "Montserrat"
+    fontSize: "10px"
+    fontWeight: 600
 rounded:
   md: "6px"
   lg: "8px"
@@ -151,8 +159,17 @@ tracking.
 - **Headline** (700, 30px): Section titles.
 - **Title** (600, 18–20px): Card and pain-point headings.
 - **Body** (400, 14–16px, relaxed leading): Prose at 60–70ch max width.
-- **Eyebrow** (600, 12px, uppercase, tracking 0.14–0.18em): Section kickers
-  and the wordmark's "MANAGEMENT SYSTEMS" line (0.18em).
+- **Eyebrow** (600, 12px, uppercase, tracking 0.14–0.18em): Section kickers.
+- **Micro** (600, 10–11px): Badge counts, table column labels, timestamps,
+  and dense metadata inside cards. This step is real and used in ~120 places
+  across the CRM; it was missing from this document, not from the product.
+  10px is the floor — anything smaller is a logotype, not text.
+
+**Logotype exemption.** `AgilaWordmark` is drawn, not set: its "MANAGEMENT
+SYSTEMS" line runs 8–11px with 0.18em tracking so it optically matches the
+width of "AGILA" above it. Logotype metrics answer to the lockup, not to this
+ramp, and the eagle mark's 44px floor is part of the same lockup — below that
+the bird stops resolving inside its disc.
 
 ## Layout
 
@@ -190,7 +207,9 @@ surfaces, precise instruments.
 ## Components
 
 ### Buttons
-- **Shape:** 6px radius; heights 40px (default) / 44px (lg).
+- **Shape:** 6px radius; heights 36px (sm) / 44px (default) / 48px (lg). The
+  default is 44px because it carries every primary CTA on a phone and 44px is
+  the Apple HIG touch minimum — not because 44 looks better than 40.
 - **Primary:** Harbor Navy fill, white text; hover shifts toward Channel
   Navy. Gradient variant `from-[#2C3E6B] to-[#1B2A4A]` with a
   `border-[#B8962E]/30` gold hairline for marketing CTAs.
@@ -246,8 +265,20 @@ surfaces, precise instruments.
   a token change propagates and a hex literal does not.
 
 ### Don't:
-- **Don't** use `transition-all` (17 legacy files still do — flagged for
-  cleanup, not a pattern to copy).
+- **Don't** use `transition-all`. The 20 application-code instances are gone;
+  what remains is six vendored shadcn/ui primitives (`toast`, `tabs`,
+  `accordion` ×2, `input-otp`, `progress`), left alone deliberately because
+  `shadcn add` overwrites them. `toast.tsx` in particular *needs*
+  `transition-all` — it drives transforms through `data-[swipe=move]`
+  attribute selectors, and enumerating properties there breaks
+  swipe-to-dismiss.
+- **Don't** write an opacity modifier that is off Tailwind's scale. The scale
+  is `0 5 10 20 25 30 40 50 60 70 75 80 90 95 100`; anything else — `/85`,
+  `/45`, `/15` — compiles to **no CSS at all**, so the element silently keeps
+  whatever it inherited. This shipped: the landing header carried
+  `bg-white/85`, which meant it had no background in production and content
+  scrolled visibly through the navigation. Off-scale values are fine in the
+  arbitrary form (`bg-white/[0.85]`). `npm run check:opacity` enforces this.
 - **Don't** use crimson decoratively — it is the alarm channel.
 - **Don't** enter elements from `scale(0)`; start at 0.95 with opacity.
 - **Don't** animate keyboard-triggered or high-frequency actions.

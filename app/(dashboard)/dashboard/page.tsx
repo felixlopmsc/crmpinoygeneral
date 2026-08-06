@@ -299,7 +299,7 @@ export default function DashboardPage() {
             !isCardLoading && !isCardError && (typeof card.value === 'number' && card.value === 0);
           return (
             <Link key={card.label} href={card.href}>
-              <Card className={`transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer border-t-2 ${statCards.indexOf(card) % 2 === 0 ? 'border-t-[#B8962E]/40' : 'border-t-[#8B2D3B]/40'}`}>
+              <Card className={`transition-[transform,box-shadow] duration-150 ease-out-strong hover:shadow-md motion-safe:hover:-translate-y-0.5 cursor-pointer border-t-2 ${statCards.indexOf(card) % 2 === 0 ? 'border-t-[#B8962E]/40' : 'border-t-[#8B2D3B]/40'}`}>
                 <CardContent className="p-5">
                   <div className="flex items-center gap-4">
                     <div className={`rounded-xl p-3 ${card.bg}`}>

@@ -162,7 +162,7 @@ export default function OnboardingDialog({ open, onComplete }: OnboardingDialogP
               <div
                 key={i}
                 className={cn(
-                  'h-1.5 rounded-full transition-all duration-300',
+                  'h-1.5 rounded-full transition-[width,background-color] duration-300 ease-out-strong',
                   i === currentStep ? 'w-6 bg-[#2C3E6B]' : i < currentStep ? 'w-1.5 bg-[#2C3E6B]/60' : 'w-1.5 bg-gray-300'
                 )}
               />

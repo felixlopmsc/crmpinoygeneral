@@ -506,7 +506,7 @@ export default function ClientsPage() {
               <button
                 key={s.key}
                 onClick={() => setSegment(s.key)}
-                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-[color,background-color,box-shadow] duration-150 ${
                   segment === s.key ? 'bg-white shadow-sm text-[#2C3E6B]' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -567,7 +567,7 @@ export default function ClientsPage() {
             <button
               key={pt.key}
               onClick={() => setPolicyTypeFilter(pt.key)}
-              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all ${
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors duration-150 ${
                 isActive
                   ? 'bg-[#2C3E6B] border-[#2C3E6B] text-white'
                   : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-muted/50'
@@ -595,7 +595,7 @@ export default function ClientsPage() {
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => toggleFilter(f.key)}
-                    className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all ${
+                    className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors duration-150 ${
                       isActive
                         ? f.activeColor
                         : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-muted/50'
@@ -643,7 +643,7 @@ export default function ClientsPage() {
             <Button
               size="sm"
               variant="secondary"
-              className="h-7 text-xs bg-white/15 hover:bg-white/25 text-white border-0"
+              className="h-7 text-xs bg-white/20 hover:bg-white/25 text-white border-0"
               onClick={handleExportCSV}
             >
               <Download className="mr-1 h-3 w-3" />
@@ -652,7 +652,7 @@ export default function ClientsPage() {
             <Button
               size="sm"
               variant="secondary"
-              className="h-7 text-xs bg-white/15 hover:bg-white/25 text-white border-0"
+              className="h-7 text-xs bg-white/20 hover:bg-white/25 text-white border-0"
               onClick={() => setShowStatusChange(true)}
             >
               <UserCog className="mr-1 h-3 w-3" />
@@ -669,7 +669,7 @@ export default function ClientsPage() {
             </Button>
             <button
               onClick={() => setSelectedIds(new Set())}
-              className="ml-1 p-1 rounded hover:bg-white/15 transition-colors"
+              className="ml-1 p-1 rounded hover:bg-white/20 transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
@@ -746,7 +746,7 @@ export default function ClientsPage() {
                     />
                   </div>
                   <Link href={`/clients/${client.id}`}>
-                    <Card className={`transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer h-full ${
+                    <Card className={`transition-[transform,box-shadow,background-color] duration-150 ease-out-strong hover:shadow-md motion-safe:hover:-translate-y-0.5 cursor-pointer h-full ${
                       isSelected ? 'ring-2 ring-[#2C3E6B] bg-blue-50/30' : ''
                     }`}>
                       <CardContent className="p-4 pl-8">

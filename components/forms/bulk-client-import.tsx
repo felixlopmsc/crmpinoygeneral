@@ -344,7 +344,7 @@ function DuplicateCard({
               <Merge className="h-3 w-3" />
               Update existing
               {mergeCount > 0 && (
-                <Badge variant="secondary" className="text-[9px] ml-1">
+                <Badge variant="secondary" className="text-[10px] ml-1">
                   +{mergeCount} field{mergeCount > 1 ? 's' : ''}
                 </Badge>
               )}
@@ -934,7 +934,7 @@ export function BulkClientImportDialog({
             </div>
             <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
               <div
-                className="h-full bg-[#2C3E6B] transition-all rounded-full"
+                className="h-full bg-[#2C3E6B] transition-[width] duration-300 ease-out-strong rounded-full"
                 style={{ width: `${importProgress}%` }}
               />
             </div>

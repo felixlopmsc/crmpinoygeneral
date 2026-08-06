@@ -83,7 +83,7 @@ export default function DataQualityPage() {
         {cards.map((c) => {
           const active = openTool === c.key;
           return (
-            <Card key={c.key} className={`transition-all ${active ? 'ring-2 ring-[#B8962E]' : ''}`}>
+            <Card key={c.key} className={`transition-[box-shadow] duration-150 ${active ? 'ring-2 ring-[#B8962E]' : ''}`}>
               <CardContent className="p-5">
                 <div className="flex items-center gap-3">
                   <div className={`rounded-xl p-3 ${c.accent}`}>

@@ -213,7 +213,7 @@ export default function RenewalsPage() {
               {groupPolicies.map((policy) => {
                 const days = daysUntil(policy.expiration_date);
                 return (
-                  <Card key={policy.id} className={`border-l-4 ${group.color} cursor-pointer transition-colors hover:bg-muted/50`} onClick={() => router.push(`/policies/${policy.id}`)}>
+                  <Card key={policy.id} className={`border-l-2 ${group.color} cursor-pointer transition-colors hover:bg-muted/50`} onClick={() => router.push(`/policies/${policy.id}`)}>
                     <CardContent className="p-4">
                       <div className="flex flex-col sm:flex-row items-start gap-3">
                         <Avatar className="h-10 w-10 shrink-0">

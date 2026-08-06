@@ -140,7 +140,7 @@ export default function TasksPage() {
             const isOverdue = task.due_date && daysUntil(task.due_date.split('T')[0]) < 0 && task.status !== 'Completed';
             const isToday = task.due_date && daysUntil(task.due_date.split('T')[0]) === 0;
             return (
-              <Card key={task.id} className={`transition-colors ${isOverdue ? 'border-l-4 border-l-red-500' : isToday ? 'border-l-4 border-l-amber-500' : ''}`}>
+              <Card key={task.id} className={`transition-colors ${isOverdue ? 'border-l-2 border-l-red-500' : isToday ? 'border-l-2 border-l-amber-500' : ''}`}>
                 <CardContent className="p-4 flex items-center gap-3">
                   <Checkbox
                     checked={task.status === 'Completed'}
@@ -250,7 +250,7 @@ function TaskForm({ clients, onSave, onCancel }: { clients: Pick<Client, 'id' | 
                 key={cat}
                 type="button"
                 onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
-                className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-all ${
+                className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 ${
                   selectedCategory === cat
                     ? 'border-[#2C3E6B] bg-[#2C3E6B]/5 text-[#2C3E6B]'
                     : 'hover:border-[#2C3E6B] hover:bg-[#2C3E6B]/5'
@@ -267,7 +267,7 @@ function TaskForm({ clients, onSave, onCancel }: { clients: Pick<Client, 'id' | 
                   key={i}
                   type="button"
                   onClick={() => applySuggestion(s)}
-                  className="w-full flex items-center gap-3 rounded-lg border px-3 py-2 text-left hover:border-[#2C3E6B] hover:bg-[#2C3E6B]/5 transition-all group"
+                  className="w-full flex items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors duration-150 hover:border-[#2C3E6B] hover:bg-[#2C3E6B]/5 group"
                 >
                   <Zap className="h-3.5 w-3.5 text-muted-foreground group-hover:text-[#2C3E6B] shrink-0" />
                   <div className="flex-1 min-w-0">
@@ -287,7 +287,7 @@ function TaskForm({ clients, onSave, onCancel }: { clients: Pick<Client, 'id' | 
                   key={i}
                   type="button"
                   onClick={() => applySuggestion(s)}
-                  className="w-full flex items-center gap-3 rounded-lg border px-3 py-2 text-left hover:border-[#2C3E6B] hover:bg-[#2C3E6B]/5 transition-all group"
+                  className="w-full flex items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors duration-150 hover:border-[#2C3E6B] hover:bg-[#2C3E6B]/5 group"
                 >
                   <Zap className="h-3.5 w-3.5 text-muted-foreground group-hover:text-[#2C3E6B] shrink-0" />
                   <div className="flex-1 min-w-0">

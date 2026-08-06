@@ -467,10 +467,10 @@ export function SmartPolicyForm({ open, onOpenChange, clientId, userId, onSaved 
                       type="button"
                       onClick={() => selectPolicyType(type)}
                       disabled={!clientId && !form.client_id}
-                      className="group relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-all hover:border-[#2C3E6B] hover:bg-[#2C3E6B]/5 hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#2C3E6B]/20"
+                      className="group relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-[color,background-color,border-color,box-shadow,opacity] duration-150 hover:border-[#2C3E6B] hover:bg-[#2C3E6B]/5 hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#2C3E6B]/20"
                     >
                       <div className="flex items-center gap-2 w-full">
-                        <div className="rounded-lg bg-[#2C3E6B]/10 p-2 group-hover:bg-[#2C3E6B]/15 transition-colors">
+                        <div className="rounded-lg bg-[#2C3E6B]/10 p-2 group-hover:bg-[#2C3E6B]/20 transition-colors">
                           <Icon className="h-4 w-4 text-[#2C3E6B]" />
                         </div>
                         <span className="font-semibold text-sm">{type}</span>
@@ -543,7 +543,7 @@ export function SmartPolicyForm({ open, onOpenChange, clientId, userId, onSaved 
                         key={policy.id}
                         type="button"
                         onClick={() => copyFromPolicy(policy)}
-                        className="group w-full flex items-center gap-3 rounded-lg border p-3 text-left transition-all hover:border-[#2C3E6B] hover:bg-[#2C3E6B]/5"
+                        className="group w-full flex items-center gap-3 rounded-lg border p-3 text-left transition-colors duration-150 hover:border-[#2C3E6B] hover:bg-[#2C3E6B]/5"
                       >
                         <div className="rounded-lg bg-[#2C3E6B]/10 p-2 shrink-0">
                           <Icon className="h-4 w-4 text-[#2C3E6B]" />
@@ -613,7 +613,7 @@ export function SmartPolicyForm({ open, onOpenChange, clientId, userId, onSaved 
                         key={preset.id}
                         type="button"
                         onClick={() => applyQuickFill(preset)}
-                        className="group relative inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all hover:border-[#2C3E6B] hover:bg-[#2C3E6B]/5 hover:text-[#2C3E6B]"
+                        className="group relative inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors duration-150 hover:border-[#2C3E6B] hover:bg-[#2C3E6B]/5 hover:text-[#2C3E6B]"
                       >
                         <Zap className="h-3 w-3 text-muted-foreground group-hover:text-[#2C3E6B] transition-colors" />
                         {preset.shortLabel}
