@@ -120,20 +120,19 @@ nothing is.
 **The Crimson Reserve.** Crimson signals something at stake — a lapse, a
 loss, a deletion. It never appears for emphasis or variety.
 
-### Flagged divergences (do not "fix" silently)
-The shadcn theme variables in `app/globals.css` are rounded HSL
-approximations of the canonical hexes, not exact conversions:
+### Theme variables track the canonical hexes
+The shadcn theme variables in `app/globals.css` were rounded HSL
+approximations of the canonical hexes; they are now exact conversions, so
+`bg-primary` and `bg-[#2C3E6B]` render identically:
 
-| Theme variable | Renders as | Canonical intent | Divergence |
-| --- | --- | --- | --- |
-| `--primary: 220 42% 30%` | #2C426D | Channel Navy #2C3E6B | hue 220 vs true 222.9 |
-| `--secondary: 44 60% 45%` | #B8932E | Heritage Gold #B8962E | hue 44 vs true 45.2 |
-| `--accent`/`--destructive: 350 50% 36%` | #8A2E3D | Barong Crimson #8B2D3B | hue 350 vs true 351.1 |
+| Theme variable | Renders as | Canonical |
+| --- | --- | --- |
+| `--primary`, `--chart-1`: `222.9 41.7% 29.6%` | #2C3E6B | Channel Navy |
+| `--secondary`, `--ring`, `--chart-2`: `45.2 60% 45.1%` | #B8962E | Heritage Gold |
+| `--accent`, `--destructive`, `--chart-3`: `351.1 51.1% 36.1%` | #8B2D3B | Barong Crimson |
 
-The differences are imperceptible in isolation but mean brand-hex classes and
-theme-variable classes sit a few RGB points apart on the same screen. A future
-cleanup could re-derive the variables from the canonical hexes; until then,
-the hexes above are normative and the variables are known approximations.
+Keep the decimals. Rounding to whole degrees is what put the stylesheet a few
+RGB points away from the hex literals in the first place.
 `--background` (#FAF8F5) is **not** an approximation of Parchment Cream — it
 is a deliberately lighter warm white and a separate token.
 
@@ -217,9 +216,19 @@ surfaces, precise instruments.
   `cubic-bezier(0.77,0,0.175,1)` for on-screen movement; `ease-drawer`
   `cubic-bezier(0.32,0.72,0,1)` for sheets.
 - **Reveal** (`components/landing/reveal.tsx`): opacity + 12px translate,
-  600ms, fires once at `-100px` root margin; stagger siblings 45–80ms.
-- **Durations:** 150ms press, 200ms hover, 600ms reveal. Interactive UI
-  stays under 300ms.
+  400ms, fires once at `+120px` root margin so it settles before it is read.
+  Stagger siblings 45–80ms via `staggerDelay(i)`, which caps at the fourth
+  sibling — an uncapped `i * n` grows with the array until it reads as lag.
+  Under `prefers-reduced-motion` the translate and the stagger both drop and
+  the fade shortens to 150ms.
+- **Durations:** 150ms press, 200ms hover, 400ms reveal. Interactive UI
+  stays under 300ms. Entrance and hover never share an element, so they never
+  share a `transition-duration`.
+- **The Scarce Motion Rule:** Reveal is spent on the hero, the live-sandbox
+  invitation, the founding-agency offer and the pricing grid — and nowhere
+  else. Section headings never animate: a heading that fades in is a heading
+  the reader cannot read yet, and it is the first thing they need. Motion is
+  a spotlight; pointing it at everything lights nothing.
 
 ## Do's and Don'ts
 
@@ -232,8 +241,9 @@ surfaces, precise instruments.
 - **Do** tint shadows with Harbor Navy, never neutral gray.
 - **Do** spend motion on first-visit surfaces; keep daily CRM screens
   instant.
-- **Do** use the canonical hexes for brand color; treat theme variables as
-  known approximations (see Flagged divergences).
+- **Do** prefer semantic utilities (`bg-primary`, `border-border`) over brand
+  hex literals; the theme variables now render the canonical hexes exactly, so
+  a token change propagates and a hex literal does not.
 
 ### Don't:
 - **Don't** use `transition-all` (17 legacy files still do — flagged for

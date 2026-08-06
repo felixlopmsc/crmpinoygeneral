@@ -13,14 +13,14 @@
         "displayName": "Channel Navy",
         "canonical": "#2C3E6B",
         "hsl": "hsl(222.9, 41.7%, 29.6%)",
-        "note": "globals.css --primary (hsl 220 42% 30% = #2C426D) is a rounded approximation of this hex; hex is normative"
+        "note": "globals.css --primary and --chart-1 are hsl(222.9 41.7% 29.6%), the exact conversion of this hex"
       },
       "heritage-gold": {
         "role": "accent",
         "displayName": "Heritage Gold",
         "canonical": "#B8962E",
         "hsl": "hsl(45.2, 60.0%, 45.1%)",
-        "note": "globals.css --secondary (hsl 44 60% 45% = #B8932E) is a rounded approximation"
+        "note": "globals.css --secondary, --ring and --chart-2 are hsl(45.2 60% 45.1%), the exact conversion of this hex"
       },
       "sunrise-gold": {
         "role": "accent-on-dark",
@@ -33,7 +33,7 @@
         "displayName": "Barong Crimson",
         "canonical": "#8B2D3B",
         "hsl": "hsl(351.1, 51.1%, 36.1%)",
-        "note": "globals.css --accent/--destructive (hsl 350 50% 36% = #8A2E3D) is a rounded approximation"
+        "note": "globals.css --accent, --destructive and --chart-3 are hsl(351.1 51.1% 36.1%), the exact conversion of this hex"
       },
       "parchment-cream": {
         "role": "surface-tint",
