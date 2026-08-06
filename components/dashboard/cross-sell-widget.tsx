@@ -297,7 +297,7 @@ export function CrossSellWidget() {
                       <span className="text-xs w-28 truncate">{typeLabels[type] || type}</span>
                       <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-[#B8962E] transition-all"
+                          className="h-full rounded-full bg-[#B8962E] transition-[width] duration-300 ease-out-strong"
                           style={{ width: `${pct}%` }}
                         />
                       </div>

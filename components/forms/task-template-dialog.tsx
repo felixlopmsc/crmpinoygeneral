@@ -253,7 +253,7 @@ export function TaskTemplateDialog({ open, onOpenChange, clientId, userId, onSav
                     key={template.id}
                     type="button"
                     onClick={() => pickTemplate(template)}
-                    className="group w-full flex items-start gap-3 rounded-xl border p-4 text-left transition-all hover:border-[#2C3E6B] hover:bg-[#2C3E6B]/5 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2C3E6B]/20"
+                    className="group w-full flex items-start gap-3 rounded-xl border p-4 text-left transition-[background-color,border-color,box-shadow] duration-150 hover:border-[#2C3E6B] hover:bg-[#2C3E6B]/5 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2C3E6B]/20"
                   >
                     <div className={`rounded-lg p-2.5 shrink-0 ${template.color}`}>
                       <Icon className="h-5 w-5" />
@@ -325,7 +325,7 @@ export function TaskTemplateDialog({ open, onOpenChange, clientId, userId, onSav
                   return (
                     <div
                       key={index}
-                      className={`flex items-start gap-2.5 rounded-lg border p-3 transition-all cursor-pointer ${
+                      className={`flex items-start gap-2.5 rounded-lg border p-3 transition-[background-color,border-color,opacity] duration-150 cursor-pointer ${
                         enabled
                           ? 'bg-white border-border hover:border-[#2C3E6B]/30'
                           : 'bg-muted/30 border-transparent opacity-50'

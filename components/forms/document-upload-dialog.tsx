@@ -313,7 +313,7 @@ export function DocumentUploadDialog({
 
                         {qf.status === 'uploading' && (
                           <div className="h-1 w-full rounded-full bg-gray-100 overflow-hidden">
-                            <div className="h-full bg-[#2C3E6B] transition-all rounded-full" style={{ width: `${qf.progress}%` }} />
+                            <div className="h-full bg-[#2C3E6B] transition-[width] duration-300 ease-out-strong rounded-full" style={{ width: `${qf.progress}%` }} />
                           </div>
                         )}
                         {qf.status === 'error' && (
