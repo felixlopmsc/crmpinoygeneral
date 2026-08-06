@@ -58,6 +58,8 @@
   }
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background-color: hsl(var(--border));
-    border-radius: 3px;
+    /* Pill, not a 3px literal: the thumb is 6px wide, so 9999px renders
+       identically and stays on the documented radius scale. */
+    border-radius: 9999px;
   }
 }

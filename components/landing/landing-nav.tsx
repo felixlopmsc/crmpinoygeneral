@@ -34,7 +34,13 @@ export default function LandingNav() {
   return (
     <header
       className={cn(
-        'sticky top-0 z-50 border-b bg-white/85 backdrop-blur-md transition-[border-color,box-shadow] duration-300 ease-out-strong',
+        // bg-white/90, not /85: off-scale opacity modifiers compile to no CSS
+        // at all, so /85 left this header fully transparent in production and
+        // the page scrolled visibly through the nav. 90 rather than 80 because
+        // the frosted look needs to actually obscure — and note that raising
+        // backdrop-blur does not help. A wider radius spreads more of the dark
+        // text under the bar, so the ghost gets *more* legible, not less.
+        'sticky top-0 z-50 border-b bg-white/90 backdrop-blur-md transition-[border-color,box-shadow] duration-300 ease-out-strong',
         scrolled
           ? 'border-[#1B2A4A]/10 shadow-sm shadow-[#1B2A4A]/5'
           : 'border-transparent'
@@ -70,7 +76,9 @@ export default function LandingNav() {
         </div>
 
         <button
-          className="rounded-md p-2 text-[#1B2A4A] md:hidden"
+          // 44×44 is the Apple HIG minimum, and on a phone this button is the
+          // only route to the navigation — p-2 around a 20px icon gave 36×36.
+          className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-[#1B2A4A] md:hidden"
           onClick={() => setOpen((v) => !v)}
           aria-label="Toggle menu"
         >

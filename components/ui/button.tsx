@@ -24,9 +24,13 @@ const buttonVariants = cva(
         link: 'text-primary underline-offset-4 hover:underline',
       },
       size: {
-        default: 'h-10 px-4 py-2',
+        // h-11 (44px), not h-10: the default size carries every primary CTA on
+        // the landing page, and 40px is under the 44px touch minimum.
+        default: 'h-11 px-4 py-2',
         sm: 'h-9 rounded-md px-3',
-        lg: 'h-11 rounded-md px-8',
+        // lg moves to 48 now that default is 44 — two steps of a size scale
+        // rendering the same height makes `size="lg"` a no-op.
+        lg: 'h-12 rounded-md px-8',
         icon: 'h-10 w-10',
       },
     },

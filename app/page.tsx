@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import {
   Users,
   BellRing,
@@ -201,20 +202,31 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#B8962E22_0%,_transparent_60%)]" />
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#B8962E] to-transparent" />
         <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28 text-center">
-          <Reveal as="span" className="inline-flex items-center gap-2 rounded-full border border-[#B8962E]/30 bg-white/5 px-4 py-1.5 text-xs font-medium text-[#D4AD3C]">
-            <Sparkles className="h-3.5 w-3.5" />
+          {/* One gold mark above the fold, and it is the CTA. This eyebrow and
+              the emphasis in the headline used to be gold too, which left three
+              things competing to answer "where do I look?" — so none of them
+              did. Emphasis here comes from value instead: the headline sits at
+              80% and the one word that matters sits at 100%.
+
+              80, not 85: Tailwind's opacity modifier only accepts steps from
+              the opacity scale, and 85 is not one of them. `text-white/85`
+              compiles to nothing at all, so the heading silently inherits the
+              dark foreground and disappears against the navy. Off-scale values
+              need the arbitrary form, `text-white/[0.85]`. */}
+          <Reveal as="span" className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-1.5 text-xs font-medium text-white/70">
+            <Sparkles className="h-3.5 w-3.5 text-white/50" />
             Built by an insurance agency, for insurance agencies
           </Reveal>
-          <Reveal as="h1" delay={80} className="mx-auto mt-6 max-w-3xl text-4xl font-bold leading-tight text-white sm:text-5xl">
+          <Reveal as="h1" delay={staggerDelay(1)} className="mx-auto mt-6 max-w-3xl text-4xl font-bold leading-tight text-white/80 sm:text-5xl">
             Your book is worth more than your{' '}
-            <span className="text-[#D4AD3C]">spreadsheet</span> is letting you keep
+            <span className="text-white">spreadsheet</span> is letting you keep
           </Reveal>
-          <Reveal as="p" delay={160} className="mx-auto mt-5 max-w-2xl text-lg text-white/70">
+          <Reveal as="p" delay={staggerDelay(2)} className="mx-auto mt-5 max-w-2xl text-lg text-white/70">
             Every lapsed renewal, every un-worked coverage gap, every quote request that died in an
             inbox — that is commission you already earned and quietly lost. Agila Management Systems
             closes those gaps.
           </Reveal>
-          <Reveal delay={240} className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Reveal delay={staggerDelay(3)} className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <DemoLink>
               <Button size="lg" className="gap-2 bg-[#B8962E] font-semibold text-[#1B2A4A] hover:bg-[#D4AD3C]">
                 Try the live demo <ArrowRight className="h-4 w-4" />
@@ -230,7 +242,7 @@ export default function LandingPage() {
               </Button>
             </a>
           </Reveal>
-          <Reveal as="p" delay={320} className="mt-4 text-xs text-white/50">
+          <Reveal as="p" delay={staggerDelay(4)} className="mt-4 text-xs text-white/50">
             No signup, no card — the demo opens instantly with sample data.
           </Reveal>
         </div>
@@ -273,7 +285,7 @@ export default function LandingPage() {
                   <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#B8962E]">
                     <Check className="h-3 w-3" /> With Agila
                   </p>
-                  <p className="mt-2 text-sm font-medium leading-relaxed text-[#1B2A4A]/85">{p.fix}</p>
+                  <p className="mt-2 text-sm font-medium leading-relaxed text-[#1B2A4A]/80">{p.fix}</p>
                 </div>
               </div>
             ))}
@@ -419,11 +431,11 @@ export default function LandingPage() {
                 <span className={`text-4xl font-bold ${p.highlight ? 'text-[#D4AD3C]' : 'text-[#1B2A4A]'}`}>
                   {p.price}
                 </span>
-                <span className={`text-sm ${p.highlight ? 'text-white/60' : 'text-[#1B2A4A]/55'}`}>
+                <span className={`text-sm ${p.highlight ? 'text-white/60' : 'text-[#1B2A4A]/60'}`}>
                   {p.cadence}
                 </span>
               </p>
-              <p className={`mt-1 text-xs ${p.highlight ? 'text-white/50' : 'text-[#1B2A4A]/45'}`}>
+              <p className={`mt-1 text-xs ${p.highlight ? 'text-white/50' : 'text-[#1B2A4A]/50'}`}>
                 {p.annual}
               </p>
               <ul className="mt-6 flex-1 space-y-3">
@@ -431,7 +443,7 @@ export default function LandingPage() {
                   <li
                     key={f}
                     className={`flex items-start gap-2.5 text-sm ${
-                      p.highlight ? 'text-white/85' : 'text-[#1B2A4A]/75'
+                      p.highlight ? 'text-white/80' : 'text-[#1B2A4A]/75'
                     }`}
                   >
                     <Check
@@ -481,6 +493,28 @@ export default function LandingPage() {
           <p className="mt-8 text-sm font-medium text-[#D4AD3C]">
             An independent agency should not lose business to bad software.
           </p>
+
+          {/* The Pinoy General mark used to sit in the landing header, standing
+              in for a logo Agila did not have — which read as two brands
+              colliding. Here it is doing the opposite job: this section claims
+              Agila was built inside a working agency, and the mark is the
+              evidence for that claim. The white chip is deliberate, not a
+              broken transparency — the artwork is a horizontal lockup drawn on
+              white, so it gets a card rather than being knocked out. */}
+          <div className="mt-12 flex flex-col items-center">
+            <span className="inline-flex items-center rounded-xl bg-white px-5 py-3">
+              <Image
+                src="/pinoy-general-lockup.png"
+                alt="Pinoy General Insurance Services"
+                width={772}
+                height={221}
+                className="h-9 w-auto"
+              />
+            </span>
+            <p className="mt-3 text-xs text-white/50">
+              Built and used every day by Pinoy General Insurance Services — Cerritos, California.
+            </p>
+          </div>
         </div>
       </section>
 

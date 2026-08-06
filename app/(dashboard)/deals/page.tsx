@@ -20,15 +20,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { Plus, GripVertical, List, LayoutGrid } from 'lucide-react';
 
-const stageColors: Record<string, string> = {
-  'New Lead': 'border-t-blue-500',
-  'Contacted': 'border-t-cyan-500',
-  'Quote Sent': 'border-t-amber-500',
-  'Negotiating': 'border-t-orange-500',
-  'Closed Won': 'border-t-emerald-500',
-  'Closed Lost': 'border-t-red-500',
-};
-
 const stageBgColors: Record<string, string> = {
   'New Lead': 'bg-blue-50',
   'Contacted': 'bg-cyan-50',
@@ -128,7 +119,7 @@ export default function DealsPage() {
                   </div>
                   <p className="text-xs text-muted-foreground">{formatCurrency(stageValue)}</p>
                 </div>
-                <div className={`space-y-2 rounded-b-lg border border-t-4 ${stageColors[stage]} bg-muted/30 p-2 min-h-[200px]`}>
+                <div className="space-y-2 rounded-b-lg border bg-muted/30 p-2 min-h-[200px]">
                   {stageDeals.map((deal) => (
                     <Card key={deal.id} className="cursor-pointer hover:shadow-md transition-shadow">
                       <CardContent className="p-3">
