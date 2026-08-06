@@ -5,20 +5,14 @@ import { cn } from '@/lib/utils';
 
 interface RevealProps {
   children: ReactNode;
-  /** Stagger offset in ms. Prefer `staggerDelay(i)` so chains stay capped. */
+  /**
+   * Stagger offset in ms. Prefer `staggerDelay(i)` from ./stagger so chains
+   * stay capped.
+   */
   delay?: number;
   className?: string;
   as?: ElementType;
   id?: string;
-}
-
-/**
- * Index-based stagger with a ceiling. Past the fourth sibling the offset stops
- * growing: a delay only earns its keep while the reader can still perceive it
- * as rhythm, and an uncapped `i * n` grows with the array until it reads as lag.
- */
-export function staggerDelay(index: number, step = 45) {
-  return Math.min(index, 3) * step;
 }
 
 // Scroll-triggered entrance for marketing sections. Fires once, slightly before

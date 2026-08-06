@@ -27,7 +27,8 @@ import {
 import LandingNav from '@/components/landing/landing-nav';
 import BookDemoForm from '@/components/landing/book-demo-form';
 import AgilaWordmark from '@/components/landing/agila-wordmark';
-import Reveal, { staggerDelay } from '@/components/landing/reveal';
+import Reveal from '@/components/landing/reveal';
+import { staggerDelay } from '@/components/landing/stagger';
 import LoginLink from '@/components/landing/login-link';
 import DemoLink from '@/components/landing/demo-link';
 
