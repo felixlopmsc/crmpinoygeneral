@@ -33,10 +33,30 @@ import { staggerDelay } from '@/components/landing/stagger';
 import LoginLink from '@/components/landing/login-link';
 import DemoLink from '@/components/landing/demo-link';
 
+const DESCRIPTION =
+  'Agila Management Systems is the all-in-one management platform for independent insurance agencies: 360° client view, policy tracking, automated renewals, commissions, cross-sell, and a quote inbox. Try the live demo.';
+
 export const metadata: Metadata = {
   title: 'Agila Management Systems — The agency system for independent insurance agents',
-  description:
-    'Agila Management Systems is the all-in-one management platform for independent insurance agencies: 360° client view, policy tracking, automated renewals, commissions, cross-sell, and a quote inbox. Try the live demo.',
+  description: DESCRIPTION,
+  // Next merges metadata per top-level key, not per field: a page that defines
+  // `title` does NOT update the layout's `openGraph.title`. The share card is
+  // for this page specifically, so its og/twitter blocks are restated here with
+  // the marketing copy rather than inherited with the generic layout copy.
+  openGraph: {
+    type: 'website',
+    siteName: 'Agila Management Systems',
+    url: 'https://agilams.com',
+    title: 'Your book is worth more than your spreadsheet is letting you keep',
+    description: DESCRIPTION,
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Agila Management Systems' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Your book is worth more than your spreadsheet is letting you keep',
+    description: DESCRIPTION,
+    images: ['/og-image.jpg'],
+  },
 };
 
 /* ---------------------------------------------------------------------------
