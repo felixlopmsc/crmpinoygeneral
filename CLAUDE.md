@@ -105,7 +105,10 @@ Vercel auto-deploys `main` to production and every branch to a preview. Nothing
 to trigger manually.
 
 Convention for every change: branch → PR → **merge commit** (`gh pr merge
---merge`). No squash, no rebase, no force push. PRs #1–#9 all follow this.
+--merge`). No squash, no rebase, no force push. Every PR except #7 used a merge
+commit; #7 (`be688ee`) was squashed, so an ancestry check against its branch
+returns a false negative. **If `merge-base` says a branch is unmerged, verify by
+content before concluding anything.**
 
 `gh` is installed but not persistently authenticated. Until someone runs
 `gh auth login` interactively, use:

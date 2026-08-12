@@ -70,19 +70,52 @@ schema; mutable `search_path` on three functions in a `dreamlit` schema
 (including `send_supabase_auth_email`, which nothing in this repo references —
 worth finding out what created it).
 
+**`README.md` on `main` is one line** — the string `crmpinoygeneral`, nothing
+else. This repo is public and the product it holds is sold at $12,000; an empty
+README is the first thing a prospect, a candidate or a curious developer sees.
+Not a request to restore the 210-line version from `claude/impeccable-gx1hkr`
+(deleted, and it predated `PRODUCT.md`, `DESIGN.md` and `CLAUDE.md`) — those
+three now hold the real content, so a new README should be short and point at
+them rather than restate them.
+
 ---
 
 ## Repo hygiene
 
-**Delete the `docs/design-system` branch.** It holds an independent
-`DESIGN.md` / `design.json` pass that was never reconciled with the version now
-on `main`. Two competing copies of the same canon is how the wrong one ends up
-being treated as authoritative. `main`'s is canonical.
+~~**Branch cleanup.**~~ Done 2026-08-12. All four deleted; `main` is now the only
+branch, locally and on the remote. What each one was, since two of them are gone
+for good and a future reader should not have to wonder:
 
-**`claude/impeccable-gx1hkr`** — a branch pushed to this public repo by an agent
-session, never reviewed. Read it or delete it.
+- `docs/design-system` (local, `a740def`) — the competing `DESIGN.md` /
+  `design.json` pass. **Never merged**, deliberately discarded; `main`'s is
+  canonical.
+- `fix/landing-motion` (local, `c26c2ae`) — content confirmed present in `main`
+  before deleting. The ancestry test fails, because PR #7 landed as a
+  *single-parent* commit (`be688ee`) rather than a merge commit, so the branch's
+  own commits were rewritten and `merge-base --is-ancestor` reports NO. Verified
+  by content instead: `reveal.tsx`, `stagger.ts` and `.impeccable/design.json`
+  are byte-identical to `main`, and `main` has `components/landing/stagger.ts`.
+  The remaining differences are `main` moving on afterwards, not lost work.
+- `claude/crm-demo-portal-landing-j5dxte` (remote, `0fe3e0d`) — **was never in
+  this backlog**, and it is the branch PRs #1–#6 came from. Verified fully merged
+  (`merge-base --is-ancestor` YES, zero commits ahead of `main`) rather than
+  assumed. Stale, not unreviewed.
+- `claude/impeccable-gx1hkr` (remote, `f0003c8`) — one commit, `README.md` only,
+  210 lines of project documentation written before `PRODUCT.md`, `DESIGN.md` and
+  `CLAUDE.md` existed. Superseded by all three, so deleted rather than merged.
+  That commit is unmerged and will be garbage-collected; it is not recoverable.
 
-**`fix/landing-motion`** — fully merged via PR #7, safe to delete locally.
+**The merge-commit convention holds — PR #7 is the only exception.** Audited by
+parent count across every PR's recorded merge commit: #1–#6 and #8–#11 are true
+merge commits (two parents), `be688ee` (#7) has one. `CLAUDE.md` used to claim
+"PRs #1–#9 all follow this" and has been corrected. The durable lesson is the
+method, not the count: **if `merge-base` says a branch is unmerged, verify by
+content before concluding anything** — a squashed PR rewrites its commits, so
+ancestry reports a false negative on work that is genuinely merged.
+
+Note that `git log --grep='Merge pull request #'` finds only four of the ten:
+#1–#6 were merged with custom titles. Check each PR's recorded merge commit
+instead of grepping subjects.
 
 **`gh auth login`** — run it once interactively so the `GH_TOKEN` workaround in
 `CLAUDE.md` stops being necessary.
