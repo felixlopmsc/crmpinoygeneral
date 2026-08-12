@@ -130,6 +130,46 @@ works for create/view/merge.
 `lib/supabase.ts` picks between them from the hostname. `DEMO_MODE` is derived
 from the host, with a localStorage fallback for previews and localhost.
 
+### Local dev points at **production** by default
+
+The intuition is backwards, so be precise about it. On localhost,
+`detectDemoMode()` evaluates `'localhost'.split('.')[0] === 'demo'` → false,
+then falls back to the `pgi-demo` localStorage flag, which is unset in a fresh
+browser. `DEMO_MODE` is therefore `false`, and the client is built from
+`NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Point those at the
+production project and `npm run dev` reads and writes **real client data**, with
+no cue beyond the absent demo banner.
+
+Two ways to actually be on the sandbox locally:
+
+- **Visit `/demo` once.** Sets `pgi-demo=1`, hard-reloads so the `lib/supabase`
+  singleton re-inits against the sandbox, and signs into the seeded demo
+  account. Per-origin and sticky until "Exit demo".
+- **Put the sandbox values in `.env.local`** — the safer default for routine
+  local work, because it holds even when `DEMO_MODE` is false:
+
+  ```
+  NEXT_PUBLIC_SUPABASE_URL=https://wdynqlrbirvartitpwcn.supabase.co
+  NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkeW5xbHJiaXJ2YXJ0aXRwd2NuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5MTIzMzAsImV4cCI6MjA4MTQ4ODMzMH0.m746YzH9k96Q-8xfVjxpyN-ULaHUQNqzDcfj2vcbpww
+  ```
+
+  These are mirrored from `lib/supabase.ts:9-11`, where they are already
+  hardcoded. That is deliberate, not a leak: an anon key is designed to ship in
+  a browser bundle, the project holds only generated data, and this repo is
+  public. No rotation needed.
+
+**The prefix is `NEXT_PUBLIC_`, never `VITE_`.** `VITE_` appears nowhere in this
+repo and Next.js will not read it — that prefix belongs to the sibling
+`felixlopmsc/pinoy-insurance-portal`, which is Vite/React. A `.env.local` of
+`VITE_SUPABASE_*` configures nothing here, and fails in one of two ways: if
+`NEXT_PUBLIC_*` is unset, `createClient(undefined, undefined)` throws at
+runtime; if it still holds production values, **you are silently on production
+while believing you are sandboxed.** Textbook case of the silent-substitution
+class below.
+
+**Production must keep pointing at `fetiakfllzxwibqzfedh`.** Never repoint a
+deployed environment at the sandbox, or the sandbox at production.
+
 **`DEMO_MODE` is `false` during server render.** Branching on it at module scope
 causes a hydration mismatch — read it in an effect. `sidebar.tsx` shows the
 pattern.
@@ -156,7 +196,11 @@ PowerShell**. Backslash paths fail silently-ish — use forward slashes and keep
 `MSYS_NO_PATHCONV=1` set. `C:/Users/fblop/...`, never `$HOME\Downloads\...`.
 
 `npm run build` needs `NEXT_PUBLIC_SUPABASE_URL` and
-`NEXT_PUBLIC_SUPABASE_ANON_KEY`. There is no `.env` in the repo.
+`NEXT_PUBLIC_SUPABASE_ANON_KEY`. There is no `.env` in the repo — `.env` and
+`.env*.local` are gitignored, and no local copy exists, so a fresh clone has
+nothing set. Which project those two variables name decides whether local dev
+touches real client data; see **Local dev points at production by default**
+under Supabase before creating `.env.local`.
 
 ---
 

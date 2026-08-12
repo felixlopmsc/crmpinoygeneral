@@ -10,15 +10,30 @@ Ordered by cost-of-not-doing, not by effort. Delete items as they land.
 Supabase → Authentication → Policies. One toggle; checks new passwords against
 HaveIBeenPwned. Currently off. Do this before setting any new password.
 
-**Two unguarded `SECURITY DEFINER` functions**, callable by anonymous internet
-users with no check at all:
+~~**Two unguarded `SECURITY DEFINER` functions.**~~ Done 2026-08-11, and the
+entry was wrong on both counts. Recorded here so it does not get "re-fixed":
 
-- `public.enroll_demo_nurture()` — no arguments, so anyone can call it in a loop
-- `public.quote_request_accepts_documents(qid uuid)` — returns a boolean; needs a
-  guessed UUID, so lower severity
+- `public.enroll_demo_nurture()` returns `trigger` and is wired as
+  `trg_enroll_demo_nurture` on `demo_requests`. PostgREST does not expose
+  trigger-returning functions and a direct call errors, so it was never callable
+  in a loop. The `PUBLIC`/`anon`/`authenticated` `EXECUTE` grants were real but
+  unreachable, and are now revoked. Triggers do not consult `EXECUTE` at fire
+  time — verified on the demo project with an equivalent scratch trigger, which
+  fired with `has_function_privilege('anon', …) = false`.
+- `public.quote_request_accepts_documents(qid uuid)` **must keep its `anon`
+  `EXECUTE` grant.** It is the entire `WITH CHECK` expression of the `anon`
+  INSERT policy `"Public can upload quote documents"` on
+  `quote_request_documents`. RLS evaluates policy expressions as the calling
+  role, so revoking the grant — or adding the `is_staff()` guard this entry
+  originally called for — breaks anonymous quote-document upload. The
+  `SECURITY DEFINER` is load-bearing: it lets `anon` test existence in
+  `quote_requests` without being able to read that table, and
+  `created_at > now() - interval '1 hour'` bounds the window. Exposure is one
+  boolean per correctly-guessed v4 UUID.
 
-Either revoke `EXECUTE` from `anon`, or add an `is_staff()` / ownership check to
-match how every other `SECURITY DEFINER` function in this schema behaves.
+Both functions now carry `COMMENT`s stating the above, since the advisor will
+keep flagging the second one. This is the same false-alarm class `CLAUDE.md`
+already documents for `merge_clients` and the `dq_*` family.
 
 **Verify custom SMTP actually delivers to staff.** Enabled 2026-08-07; the auth
 log shows the email rate limiter moving 2 → 30, which is the signature of it
