@@ -46,6 +46,72 @@ new sending domains; check spam before debugging.
 
 ## In this repo
 
+**Have renewal alerts ever actually fired?** Open question — the evidence below
+narrows it a long way but does not close it, and the headline marketed feature
+depends on the answer.
+
+Baseline, measured 2026-08-12 on the production project:
+
+| Measure | Count |
+|---|---|
+| `policies` | 3,693 |
+| …expiring in the next 90 days | 31 |
+| …expired in the last 90 days | 18 |
+| `renewals` | **0** |
+| `renewal_log` | 0 |
+| `renewal_email_log` | 0 |
+
+A 2026-08-11 reading gave 3,688 / 31 / 17. The drift is ordinary day-to-day
+movement plus new policies, not a discrepancy — but it does mean **these numbers
+must be re-measured, not quoted**, before anyone concludes anything from them.
+
+What is established:
+
+- **`renewal_email_log` is written by nothing.** No app code, no edge function,
+  no database function or trigger references it; its only mentions in the repo
+  are the truncate lists in `supabase/demo/04_reset.sql`. Its emptiness
+  therefore says nothing at all about whether email was sent. It is the wrong
+  table to reason from.
+- **`renewal_log` is the real log.** Written at
+  `supabase/functions/check-renewals/index.ts:290`, read by
+  `app/(dashboard)/renewals/page.tsx:77` and
+  `components/dashboard/upcoming-renewals-widget.tsx:45`. Also 0 rows.
+- **Email is fully built — this is not in-app-only.** `check-renewals` composes
+  an HTML reminder and POSTs it to the Resend API, gated on `RESEND_API_KEY`.
+  Note that a run with the key *unset* still writes a `renewal_log` row with
+  `email_status = 'failed'`. So even a keyless run leaves evidence, and there is
+  none.
+- **Nothing schedules it.** The only row in `cron.job` is `expire-stale-policies`
+  (`0 2 * * *`). `check-renewals` is invoked solely by UI buttons on the renewals
+  page and the dashboard widget, and its `verify_jwt` is true, so it cannot be
+  triggered unauthenticated.
+- **The function reads `renewals`, which is empty.** Its query is
+  `.from("renewals").in("status", ["Upcoming","Pending","Contacted"])` — with 0
+  rows it iterates nothing and sends nothing, no matter who invokes it. Nothing
+  in the database populates `renewals`: no trigger, no function. The table's
+  INSERT policy grants `authenticated`, so it was designed to be filled by staff
+  through the UI.
+
+What is still open — the actual question:
+
+1. **What was supposed to turn 3,693 policies into `renewals` rows?** This is the
+   likely root cause and the first thing to chase. If the answer is "a step that
+   was never built", the headline feature simply has no input, and both log
+   tables are empty for that reason rather than any fault in the email path.
+2. Was `renewals` ever populated and later emptied, or has it always been empty?
+   If any renewal had been processed, `renewal_log` would hold a row and
+   `reminder_30_days` would be `true` on that record. Both are empty, which
+   points hard at "never" — but does not prove it.
+3. Was `RESEND_API_KEY` ever set on the production project?
+4. Is `renewal_email_log` vestigial — an earlier design superseded by
+   `renewal_log`? If so it should be dropped rather than left sitting there as a
+   decoy for exactly this investigation.
+
+**Not established:** whether `check-renewals` has ever been invoked at all.
+Edge-function logs cover only the last 24 hours and came back empty, which proves
+nothing about history. Supabase Dashboard → Edge Functions → `check-renewals` →
+Invocations retains longer; that is where to look.
+
 **`app/(dashboard)/dashboard/page.tsx:302`** — stat cards carry `border-t-2`
 alternating gold and crimson by array index. Same anti-pattern as the kanban
 column that was removed, and **Impeccable's detector cannot see it**: the rule is
