@@ -71,12 +71,31 @@ expired. Every active policy has a future expiration date — zero null, zero in
 the past, running 2026-08-14 to 2028-11-07 — and of those, **30 expire within 90
 days and 12 within 30**.
 
-**The 31st is a `Cancelled` policy that also expires inside 90 days, and that is
-a design constraint rather than a wording detail: the materializer must filter on
-`status = 'Active'`, not on date alone.** A date-only `WHERE` clause enrols a
-cancelled policy in a renewal campaign — an automated "your policy is expiring"
-email to someone who already cancelled. One row today, but it is the kind of
-thing that is invisible until it goes out.
+**The 31st is a `Cancelled` policy that also expires inside 90 days. So
+`status = 'Active'` is the only correct filter — permanently, not as a workaround
+for one odd row.**
+
+That row is not a data-quality artifact. It is a normal 181-day CA auto term
+(2026-02-17 → 2026-08-17). The reason a cancelled policy carries a *future*
+expiration date is structural: **`policies` has no cancellation-date column at
+all.** Twenty columns, and the nearest candidates are `updated_at` (generic) and
+`deleted_at` (soft delete) — neither records when cancellation occurred. So
+`expiration_date` keeps the original term end permanently, and **every** cancelled
+policy will look like this until its original term lapses. There is exactly one
+today only because the book is small.
+
+A date-only `WHERE` clause therefore enrols cancelled policies in renewal
+campaigns — an automated "your policy is expiring" email to someone who already
+cancelled.
+
+**And do not key off `auto_renewal` instead.** It is `DEFAULT true NOT NULL` and
+nothing has ever set it `false`: **all 3,693 rows are `true`**, including all
+3,518 expired ones and the cancelled one. The column carries zero signal. Nothing
+reads it today either — `lib/types.ts:52` declares it, and
+`app/(dashboard)/policies/[id]/page.tsx` stores and displays it, but no query
+filters on it. Anything downstream that keys off `auto_renewal` rather than
+`status` does not merely pick up the cancelled policy; it selects the entire
+book.
 
 A 2026-08-11 reading gave 3,688 / 31 / 17. The drift is ordinary day-to-day
 movement plus new policies, not a discrepancy — but it does mean **these numbers
