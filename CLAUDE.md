@@ -119,7 +119,13 @@ export GH_TOKEN=$(printf 'protocol=https\nhost=github.com\n\n' | git credential 
 
 The stored credential is a `gho_` OAuth token missing the `read:org` scope that
 `gh auth login --with-token` validates against. `GH_TOKEN` skips that check and
-works for create/view/merge.
+works for create/view/merge — **but not `gh pr edit`**, which goes through
+GraphQL and requests org fields, so it fails on the missing `read:org`. To change
+a PR body or title, use the REST API instead:
+
+```bash
+gh api -X PATCH repos/{owner}/{repo}/pulls/N -f body="$(cat body.md)"
+```
 
 ---
 

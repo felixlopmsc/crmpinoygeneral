@@ -54,12 +54,48 @@ Baseline, measured 2026-08-12 on the production project:
 
 | Measure | Count |
 |---|---|
-| `policies` | 3,693 |
-| …expiring in the next 90 days | 31 |
+| `policies` total | 3,693 |
+| …`status = 'Active'` | **174** |
+| …`status = 'Expired'` | 3,518 |
+| …`status = 'Cancelled'` | 1 |
+| …expiring in the next 90 days | 31 — **30 `Active` + 1 `Cancelled`** |
+| …expiring in the next 30 days | 13 — **12 `Active` + 1 `Cancelled`** |
 | …expired in the last 90 days | 18 |
 | `renewals` | **0** |
 | `renewal_log` | 0 |
 | `renewal_email_log` | 0 |
+
+**The 3,693 figure is misleading and should not be the one anyone reasons from.**
+The renewal-relevant book is the **174 active** policies; 3,518 are already
+expired. Every active policy has a future expiration date — zero null, zero in
+the past, running 2026-08-14 to 2028-11-07 — and of those, **30 expire within 90
+days and 12 within 30**.
+
+**The 31st is a `Cancelled` policy that also expires inside 90 days. So
+`status = 'Active'` is the only correct filter — permanently, not as a workaround
+for one odd row.**
+
+That row is not a data-quality artifact. It is a normal 181-day CA auto term
+(2026-02-17 → 2026-08-17). The reason a cancelled policy carries a *future*
+expiration date is structural: **`policies` has no cancellation-date column at
+all.** Twenty columns, and the nearest candidates are `updated_at` (generic) and
+`deleted_at` (soft delete) — neither records when cancellation occurred. So
+`expiration_date` keeps the original term end permanently, and **every** cancelled
+policy will look like this until its original term lapses. There is exactly one
+today only because the book is small.
+
+A date-only `WHERE` clause therefore enrols cancelled policies in renewal
+campaigns — an automated "your policy is expiring" email to someone who already
+cancelled.
+
+**And do not key off `auto_renewal` instead.** It is `DEFAULT true NOT NULL` and
+nothing has ever set it `false`: **all 3,693 rows are `true`**, including all
+3,518 expired ones and the cancelled one. The column carries zero signal. Nothing
+reads it today either — `lib/types.ts:52` declares it, and
+`app/(dashboard)/policies/[id]/page.tsx` stores and displays it, but no query
+filters on it. Anything downstream that keys off `auto_renewal` rather than
+`status` does not merely pick up the cancelled policy; it selects the entire
+book.
 
 A 2026-08-11 reading gave 3,688 / 31 / 17. The drift is ordinary day-to-day
 movement plus new policies, not a discrepancy — but it does mean **these numbers
@@ -85,6 +121,19 @@ What is established:
   (`0 2 * * *`). `check-renewals` is invoked solely by UI buttons on the renewals
   page and the dashboard widget, and its `verify_jwt` is true, so it cannot be
   triggered unauthenticated.
+- **pg_cron itself works — this is a missing schedule, not a broken scheduler.**
+  `cron.job_run_details` holds 76 runs with **zero** failures, and
+  `public.cron_job_log` holds 51 rows running daily from 2026-06-23 through
+  2026-08-12 02:00 UTC. So "add a schedule for `check-renewals`" is a plausible
+  fix rather than a thing to debug. (Worth noting separately: those 51 runs have
+  flipped only 9 rows in total, consistent with the book already being almost
+  entirely expired.)
+- **Nothing populates `renewals` — searched thoroughly, not assumed.** A
+  `pg_proc` scan across every non-system schema, including procedures, found no
+  function or procedure that inserts into `renewals` or touches
+  `renewal_email_log`. The triggers on `policies` are only
+  `update_policies_updated_at` and `trigger_calculate_commission`; neither
+  creates renewal rows.
 - **The function reads `renewals`, which is empty.** Its query is
   `.from("renewals").in("status", ["Upcoming","Pending","Contacted"])` — with 0
   rows it iterates nothing and sends nothing, no matter who invokes it. Nothing
@@ -94,10 +143,13 @@ What is established:
 
 What is still open — the actual question:
 
-1. **What was supposed to turn 3,693 policies into `renewals` rows?** This is the
-   likely root cause and the first thing to chase. If the answer is "a step that
-   was never built", the headline feature simply has no input, and both log
-   tables are empty for that reason rather than any fault in the email path.
+1. **What was supposed to turn the 174 active policies into `renewals` rows?**
+   This is the likely root cause and the first thing to chase. If the answer is
+   "a step that was never built", the headline feature simply has no input, and
+   both log tables are empty for that reason rather than any fault in the email
+   path. Note the scale this implies: 174 active policies with 31 expiring inside
+   90 days is a volume a person could work by hand, which is one explanation for
+   why an absent automation might never have been noticed as missing.
 2. Was `renewals` ever populated and later emptied, or has it always been empty?
    If any renewal had been processed, `renewal_log` would hold a row and
    `reminder_30_days` would be `true` on that record. Both are empty, which
