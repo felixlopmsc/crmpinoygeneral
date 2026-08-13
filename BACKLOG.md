@@ -58,7 +58,8 @@ Baseline, measured 2026-08-12 on the production project:
 | …`status = 'Active'` | **174** |
 | …`status = 'Expired'` | 3,518 |
 | …`status = 'Cancelled'` | 1 |
-| …expiring in the next 90 days | 31 |
+| …expiring in the next 90 days | 31 — **30 `Active` + 1 `Cancelled`** |
+| …expiring in the next 30 days | 13 — **12 `Active` + 1 `Cancelled`** |
 | …expired in the last 90 days | 18 |
 | `renewals` | **0** |
 | `renewal_log` | 0 |
@@ -66,8 +67,16 @@ Baseline, measured 2026-08-12 on the production project:
 
 **The 3,693 figure is misleading and should not be the one anyone reasons from.**
 The renewal-relevant book is the **174 active** policies; 3,518 are already
-expired. Every active policy has an expiration date in the future, so the 31
-expiring in the next 90 days are all drawn from those 174.
+expired. Every active policy has a future expiration date — zero null, zero in
+the past, running 2026-08-14 to 2028-11-07 — and of those, **30 expire within 90
+days and 12 within 30**.
+
+**The 31st is a `Cancelled` policy that also expires inside 90 days, and that is
+a design constraint rather than a wording detail: the materializer must filter on
+`status = 'Active'`, not on date alone.** A date-only `WHERE` clause enrols a
+cancelled policy in a renewal campaign — an automated "your policy is expiring"
+email to someone who already cancelled. One row today, but it is the kind of
+thing that is invisible until it goes out.
 
 A 2026-08-11 reading gave 3,688 / 31 / 17. The drift is ordinary day-to-day
 movement plus new policies, not a discrepancy — but it does mean **these numbers
