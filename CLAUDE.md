@@ -36,7 +36,7 @@ Site URL, redirect URLs, SMTP, and RLS. Ask first, every time.
 ## `npm run check` before every commit
 
 ```
-npm run check     # typecheck + opacity guard + lint
+npm run check     # typecheck + opacity guard + demo-host guard + lint
 ```
 
 **Always also run `npx next build`.** The production build catches things
@@ -58,6 +58,14 @@ as a rendering glitch, not a typo, which is why it survived review.
 
 Off-scale values are fine in the arbitrary form: `bg-white/[0.85]`.
 `scripts/check-opacity-scale.mjs` enforces this and runs in `npm run check`.
+
+### The demo-host guard
+
+`scripts/check-demo-host.mjs` asserts that no production hostname can resolve
+to demo mode, whatever the `pgi-demo` flag says. It imports `lib/demo-host.ts`
+directly (Node strips the types) and runs a table of hostname/flag pairs plus
+every entry in `PRODUCTION_HOSTNAMES`. See **Demo/production resolution** under
+Supabase for what it is protecting and why.
 
 ### `transition-all` is banned
 
@@ -139,6 +147,41 @@ gh api -X PATCH repos/{owner}/{repo}/pulls/N -f body="$(cat body.md)"
 `lib/supabase.ts` picks between them from the hostname. `DEMO_MODE` is derived
 from the host, with a localStorage fallback for previews and localhost.
 
+### Demo/production resolution — the hostname decides
+
+**`lib/demo-host.ts` is the single source of this decision.** It is pure: every
+function takes a hostname argument and touches no `window` and no
+`process.env`, so `middleware.ts` (edge runtime) and `scripts/check-demo-host.mjs`
+can both import it without pulling in `@supabase/supabase-js`. `lib/supabase.ts`
+wraps it with the real `window.location` and re-exports, so app code keeps
+importing from `@/lib/supabase`.
+
+`resolveDemoMode` answers in a fixed order, and the order is the whole point:
+
+1. **Demo host** (first label is `demo`) → sandbox, always.
+2. **Production host** (in `PRODUCTION_HOSTNAMES`) → production, always. **The
+   `pgi-demo` flag is not consulted.**
+3. **Anywhere else** — previews, branch deploys, localhost → the flag decides.
+   That is the only thing it was ever for; those hosts have no demo subdomain.
+
+Step 2 is a bug fix, not a redundant guard. Resolution used to be "demo host
+OR flag", so a stale `pgi-demo=1` in a staff browser repointed
+`ams.pinoygeneralinsurance.com` at the **sandbox that resets hourly**. Real
+credentials were checked against it, `/auth/v1/token` returned 400, and staff
+simply could not log in. `app/demo/page.tsx` had been setting that flag on
+*any* host, production included.
+
+**When a domain is added in Vercel, add it to `PRODUCTION_HOSTNAMES`.** That
+list is what makes a host immune to the flag; a production domain missing from
+it falls through to step 3 and is one stale localStorage key away from the
+sandbox. `scripts/check-demo-host.mjs` asserts the invariant over every entry
+in the list, so a new domain gets covered the moment it is added — but only if
+it is added.
+
+Hostnames are normalised for case, a trailing root dot and `:port` before
+comparison: `window.location.hostname` arrives clean, the `Host` header in
+middleware does not.
+
 ### Local dev points at **production** by default
 
 The intuition is backwards, so be precise about it. On localhost,
@@ -166,6 +209,15 @@ Two ways to actually be on the sandbox locally:
   hardcoded. That is deliberate, not a leak: an anon key is designed to ship in
   a browser bundle, the project holds only generated data, and this repo is
   public. No rotation needed.
+
+  **This `.env.local` now exists in the local checkout**, holding those sandbox
+  values. It was added on 2026-08-19 because there was none, and without
+  `NEXT_PUBLIC_SUPABASE_URL` set `npx next build` fails on every page with
+  `Error: supabaseUrl is required.` — `createClient` runs at module scope in
+  `lib/supabase.ts`, so a bare checkout cannot build at all. If you hit that
+  error, the file is missing, not the code. It is gitignored by `.env*.local`
+  (`.gitignore:29`), so it does not travel with the repo and a fresh clone will
+  need it recreated.
 
 **The prefix is `NEXT_PUBLIC_`, never `VITE_`.** `VITE_` appears nowhere in this
 repo and Next.js will not read it — that prefix belongs to the sibling
