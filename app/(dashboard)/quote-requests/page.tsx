@@ -481,6 +481,16 @@ export default function QuoteRequestsPage() {
                 <p className="text-xs text-muted-foreground">
                   {selected.coverage_type || 'Quote'} · Received {formatDateTime(selected.created_at)}
                 </p>
+                {/* The drawer is for skimming. Rekeying into a carrier portal
+                    wants the full page: nothing truncated, every field
+                    individually copyable, and a window you can put side by
+                    side with Mercury or Progressive. */}
+                <Link
+                  href={`/quote-requests/${selected.id}`}
+                  className="inline-flex items-center gap-1 pt-1 text-xs font-medium text-[#1B2A4A] hover:underline"
+                >
+                  <ExternalLink className="h-3 w-3" /> Open full view for carrier entry
+                </Link>
               </SheetHeader>
 
               <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">

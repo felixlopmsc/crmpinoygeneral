@@ -21,6 +21,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { LinkedQuoteRequests } from '@/components/quote/linked-quote-requests';
 import { ArrowLeft, Phone, Mail, MapPin, Calendar, Plus, Zap, FileText, TrendingUp, Shield, SquareCheck as CheckSquare, Clock, TriangleAlert as AlertTriangle, ExternalLink, StickyNote, CalendarPlus, Menu, DollarSign, Target, RefreshCw, Pencil } from 'lucide-react';
 import { Select as StatusSelect, SelectContent as StatusSelectContent, SelectItem as StatusSelectItem, SelectTrigger as StatusSelectTrigger, SelectValue as StatusSelectValue } from '@/components/ui/select';
 import {
@@ -375,6 +376,11 @@ export default function ClientProfilePage() {
           </DropdownMenu>
         </div>
       </div>
+
+      {/* Above the tabs rather than inside one: it is collapsed, so it
+          costs a single row when unused, and a client quoted from the
+          website has this data nowhere else in the CRM. */}
+      <LinkedQuoteRequests clientId={client.id} />
 
       <Tabs defaultValue="policies">
         <TabsList className="w-full justify-start overflow-x-auto">
