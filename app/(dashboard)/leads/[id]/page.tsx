@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
+import { LinkedQuoteRequests } from '@/components/quote/linked-quote-requests';
 import { ArrowLeft, Pencil, UserCheck, Phone, Mail, MapPin, Calendar, Target, Zap, StickyNote, CheckCircle } from 'lucide-react';
 import { formatPhoneInput, formatZipInput } from '@/lib/form-autocomplete';
 import { friendlyError } from '@/lib/errors';
@@ -273,6 +274,11 @@ export default function LeadDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Everything the applicant submitted, for copying into a carrier
+          portal. Sits above Notes because the trigger's auto-note is a
+          summary of exactly this, and the detail is what staff actually need. */}
+      <LinkedQuoteRequests leadId={lead.id} />
 
       {/* Notes Section */}
       <Card>

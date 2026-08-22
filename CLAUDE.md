@@ -228,6 +228,28 @@ runtime; if it still holds production values, **you are silently on production
 while believing you are sandboxed.** Textbook case of the silent-substitution
 class below.
 
+### `leads.status` and `quote_requests.status` are different vocabularies
+
+They look interchangeable and are not. Mixing them fails at the database, not
+in review.
+
+| Table | Allowed values | Case |
+|---|---|---|
+| `leads.status` | `new` `contacted` `qualified` `converted` `declined` | lowercase |
+| `quote_requests.status` | `New` `Contacted` `Quoted` `Won` `Lost` | Capitalised |
+
+`leads_status_check` is a real CHECK constraint (added in
+`20260723200000_normalize_lead_status_priority.sql`), so **writing `'Lost'` to
+`leads.status` fails the write** — and `'Lost'` is the obvious wrong guess,
+because it is valid on `quote_requests` and reads like the natural
+terminal-negative value. The leads equivalent is **`declined`**; `lost` is a
+Deals-only status. `LEAD_STATUSES` in `lib/types.ts` is the client-side mirror.
+
+**`leads` has no `deleted_at`** — `quote_requests` and `policies` do. Also note
+`app/(dashboard)/leads/page.tsx` hard-deletes via `.delete()`, and there is no
+DELETE policy on `leads`: RLS drops the statement, zero rows change, no error
+comes back, and the page reports success. That delete button does nothing.
+
 **Production must keep pointing at `fetiakfllzxwibqzfedh`.** Never repoint a
 deployed environment at the sandbox, or the sandbox at production.
 
