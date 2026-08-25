@@ -19,6 +19,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { toast } from 'sonner';
 import { Plus, Search, Users, Sparkles, Flame, TrendingUp, ArrowUpDown, UserCheck, Trash2, Pencil, Filter } from 'lucide-react';
 import { formatPhoneInput, formatZipInput } from '@/lib/form-autocomplete';
+import { convertLeadToClient } from '@/lib/convert-lead';
+import { friendlyError, NOT_PERMITTED } from '@/lib/errors';
 
 type FilterKey = 'all' | 'new' | 'contacted' | 'qualified' | 'converted' | 'high_priority' | 'unassigned';
 
@@ -212,11 +214,11 @@ export default function LeadsPage() {
 
     if (editingLead) {
       const { error } = await supabase.from('leads').update(payload).eq('id', editingLead.id);
-      if (error) { toast.error(error.message); setFormLoading(false); return; }
+      if (error) { toast.error(friendlyError(error)); setFormLoading(false); return; }
       toast.success('Lead updated');
     } else {
       const { error } = await supabase.from('leads').insert(payload);
-      if (error) { toast.error(error.message); setFormLoading(false); return; }
+      if (error) { toast.error(friendlyError(error)); setFormLoading(false); return; }
       toast.success('Lead created');
     }
 
@@ -228,8 +230,17 @@ export default function LeadsPage() {
 
   async function handleDelete() {
     if (!deleteId) return;
-    const { error } = await supabase.from('leads').delete().eq('id', deleteId);
-    if (error) { toast.error(error.message); return; }
+    // .select() so there is a row count: a policy that hides the row makes the
+    // delete match nothing and return no error, which must not read as success.
+    const { data, error } = await supabase
+      .from('leads')
+      .delete()
+      .eq('id', deleteId)
+      .select('id');
+
+    if (error) { toast.error(friendlyError(error, { action: 'delete this lead' })); return; }
+    if (!data || data.length === 0) { toast.error(NOT_PERMITTED); setDeleteId(null); return; }
+
     toast.success('Lead deleted');
     setDeleteId(null);
     loadLeads();
@@ -237,28 +248,11 @@ export default function LeadsPage() {
   }
 
   async function handleConvert(lead: Lead) {
-    const { data, error } = await supabase.from('clients').insert({
-      first_name: lead.first_name,
-      last_name: lead.last_name,
-      phone: lead.phone || '',
-      email: lead.email || '',
-      address_zip: lead.address_zip || '',
-      source: 'Lead Conversion',
-      source_lead_id: lead.id,
-      status: 'Active',
-    }).select('id').maybeSingle();
+    const result = await convertLeadToClient(lead);
+    if (!result.ok) { toast.error(friendlyError(result)); return; }
 
-    if (error) { toast.error(error.message); return; }
-
-    await supabase.from('leads').update({ status: 'converted', updated_at: new Date().toISOString() }).eq('id', lead.id);
-    toast.success('Lead converted to client');
-
-    if (data?.id) {
-      window.location.href = `/clients/${data.id}`;
-    } else {
-      loadLeads();
-      loadKpi();
-    }
+    toast.success(`${lead.first_name} ${lead.last_name} is now a client`);
+    window.location.href = `/clients/${result.clientId}`;
   }
 
   return (

@@ -25,6 +25,7 @@ import { getInitials } from '@/lib/format';
 import { formatPhoneInput, formatZipInput, US_STATES } from '@/lib/form-autocomplete';
 import { BulkClientImportDialog } from '@/components/forms/bulk-client-import';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { friendlyError } from '@/lib/errors';
 
 const statusColors: Record<string, string> = {
   Lead: 'bg-blue-100 text-blue-700',
@@ -356,7 +357,7 @@ export default function ClientsPage() {
 
     const { error } = await supabase.from('clients').delete().in('id', ids);
     if (error) {
-      toast.error(`Failed to delete: ${error.message}`);
+      toast.error(friendlyError(error, { action: 'delete those clients' }));
       setBulkActionLoading(false);
       setShowDeleteConfirm(false);
       return;
@@ -417,7 +418,7 @@ export default function ClientsPage() {
       .update({ status: bulkStatus, updated_at: new Date().toISOString() })
       .in('id', ids);
     if (error) {
-      toast.error(`Failed to update: ${error.message}`);
+      toast.error(friendlyError(error, { action: 'update those clients' }));
     } else {
       toast.success(`${ids.length} client${ids.length > 1 ? 's' : ''} moved to ${bulkStatus}`);
       setSelectedIds(new Set());
@@ -459,7 +460,7 @@ export default function ClientsPage() {
         .update({ ...formData, updated_at: new Date().toISOString() })
         .eq('id', editingClient.id);
       if (error) {
-        toast.error(error.message);
+        toast.error(friendlyError(error));
         return;
       }
       toast.success('Client updated');
@@ -475,7 +476,7 @@ export default function ClientsPage() {
         assigned_agent_id: agentId,
       });
       if (error) {
-        toast.error(error.message);
+        toast.error(friendlyError(error));
         return;
       }
       toast.success('Client created');

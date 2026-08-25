@@ -24,6 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { getInitials } from '@/lib/format';
+import { friendlyError } from '@/lib/errors';
 
 export default function ProfilePage() {
   const { user, session, refreshUser } = useAuth();
@@ -129,7 +130,7 @@ export default function ProfilePage() {
                         .from('avatars')
                         .upload(path, file, { upsert: true });
                       if (uploadError) {
-                        toast.error('Upload failed: ' + uploadError.message);
+                        toast.error(friendlyError(uploadError, { action: 'upload that photo' }));
                         return;
                       }
                       const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
