@@ -293,6 +293,43 @@ Any migration touching a shared table (`quote_requests`, `leads`, `clients`,
 `policies`, `documents`, `client_profiles`) **must say so in the first line of
 its PR description**, because it can break the other app.
 
+### Internal test submissions — mark them, never delete them
+
+`quote_requests.is_test` flags internal submissions. **Flag, don't delete:** the
+history survives, and a row that was once counted can still be explained.
+
+**Every staff-facing read must exclude `is_test = true`** — the quote-request
+inbox, its counts row, the dashboard widget, and any DR-001 gate
+instrumentation. Three query sites do this today
+(`app/(dashboard)/quote-requests/page.tsx` ×2,
+`components/dashboard/new-quote-requests-widget.tsx`). Add a fourth reader and
+it needs the same filter.
+
+**The convention going forward: internal submissions use a `+test`
+sub-address** — `felix+test@…`, `felix+test7@…`, any suffix. A `BEFORE INSERT`
+trigger derives `is_test` from the email; it is never taken from the client,
+because the portal's insert policy is `WITH CHECK (true)` for `anon`, so a
+client-supplied flag could otherwise hide a genuine request from the inbox.
+
+Nine rows were flagged on 2026-08-25 after Felix confirmed them individually.
+**The list was checked, not assumed** — the instruction described nine rows, the
+table held ten, and the tenth was a real client whose policy had just been
+bound. Re-measure before flagging anything here: a wrongly flagged row is a
+customer who silently leaves the queue.
+
+### DR-001's gate needs `contacted_at`
+
+`contacted_at` records the first time a request was acted on. It did not exist
+before 2026-08-25 — the table had only `created_at` / `updated_at` /
+`deleted_at`, and `updated_at` moves on any edit, so "median first response"
+could not be computed at all.
+
+A `BEFORE UPDATE` trigger stamps it on the **first** status transition and never
+overwrites. Rows predating the column carry the earliest *known* touch, or null
+where none is known, so early figures are conservative rather than flattering.
+**Do not backfill it from `created_at`** — that invents a response that never
+happened, which is the one thing the gate exists to detect.
+
 ### Known gap — leaked-password protection is off, deliberately
 
 Supabase Auth can check new passwords against HaveIBeenPwned. It is **disabled

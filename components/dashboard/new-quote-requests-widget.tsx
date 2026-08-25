@@ -34,6 +34,7 @@ export function NewQuoteRequestsWidget() {
       .from('quote_requests')
       .select('*')
       .is('deleted_at', null)
+      .eq('is_test', false)
       .eq('status', 'New')
       .order('created_at', { ascending: false })
       .limit(5);

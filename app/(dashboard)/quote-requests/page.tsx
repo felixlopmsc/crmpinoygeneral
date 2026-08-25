@@ -157,7 +157,9 @@ export default function QuoteRequestsPage() {
   const [creatingLead, setCreatingLead] = useState(false);
 
   const loadCounts = useCallback(async () => {
-    const base = () => supabase.from('quote_requests').select('id', { count: 'exact', head: true }).is('deleted_at', null);
+    // Internal/test submissions never appear in staff counts -- see is_test in
+    // supabase/migrations/20260825010000_quote_requests_is_test_and_contacted_at.sql
+    const base = () => supabase.from('quote_requests').select('id', { count: 'exact', head: true }).is('deleted_at', null).eq('is_test', false);
     const [allRes, newRes, contactedRes, quotedRes, wonRes, lostRes] = await Promise.all([
       base(),
       base().eq('status', 'New'),
@@ -183,6 +185,7 @@ export default function QuoteRequestsPage() {
       .from('quote_requests')
       .select('*')
       .is('deleted_at', null)
+      .eq('is_test', false)
       .order('created_at', { ascending: false });
     if (activeFilter !== 'all') query = query.eq('status', activeFilter);
 
