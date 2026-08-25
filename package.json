@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "check:opacity": "node scripts/check-opacity-scale.mjs",
     "check:demo-host": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-demo-host.mjs",
-    "check": "npm run typecheck && npm run check:opacity && npm run check:demo-host && npm run lint"
+    "check": "npm run typecheck && npm run check:opacity && npm run check:demo-host && npm run lint && npm test",
+    "test": "node --test lib/*.test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

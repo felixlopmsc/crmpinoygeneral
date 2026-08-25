@@ -16,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { toast } from 'sonner';
+import { friendlyError, NOT_PERMITTED } from '@/lib/errors';
 import {
   Filter,
   Mail,
@@ -27,6 +28,7 @@ import {
   ExternalLink,
   Link2,
   Paperclip,
+  Trash2,
 } from 'lucide-react';
 
 type FilterKey = 'all' | 'New' | 'Contacted' | 'Quoted' | 'Won' | 'Lost';
@@ -266,6 +268,42 @@ export default function QuoteRequestsPage() {
     setQuotes((qs) => qs.map((q) => (selected && q.id === selected.id ? { ...q, ...patch } : q)));
   }
 
+  // Soft delete: quote_requests already carries deleted_at and every list
+  // query filters on it, so clearing a row is an UPDATE the existing staff
+  // update policy already permits — no new delete grant, and a mistake is
+  // reversible by clearing the column. Two-step: the button arms, the second
+  // press commits.
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDelete() {
+    if (!selected) return;
+    setDeleting(true);
+
+    const { data, error: delError } = await supabase
+      .from('quote_requests')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', selected.id)
+      .select('id');
+
+    setDeleting(false);
+
+    if (delError) {
+      toast.error(friendlyError(delError, { action: 'remove this quote request' }));
+      return;
+    }
+    if (!data || data.length === 0) {
+      toast.error(NOT_PERMITTED);
+      return;
+    }
+
+    toast.success('Quote request removed');
+    setConfirmingDelete(false);
+    setSelected(null);
+    loadQuotes();
+    loadCounts();
+  }
+
   async function handleStatusChange(newStatus: string) {
     if (!selected) return;
     const prevStatus = selected.status;
@@ -430,7 +468,7 @@ export default function QuoteRequestsPage() {
                   {quotes.map((q) => (
                     <tr
                       key={q.id}
-                      onClick={() => setSelected(q)}
+                      onClick={() => { setConfirmingDelete(false); setSelected(q); }}
                       className="cursor-pointer hover:bg-gray-50/60 transition-colors"
                     >
                       <td
@@ -674,6 +712,48 @@ export default function QuoteRequestsPage() {
                     {attaching ? 'Attaching...' : `Attach to ${clientMatches[0].first_name} ${clientMatches[0].last_name}`}
                   </Button>
                 ) : null}
+
+                {/* Destructive, so it sits apart from the actions above and
+                    stays quiet until armed. Crimson only on the confirm step. */}
+                <div className="border-t pt-3">
+                  {confirmingDelete ? (
+                    <div className="space-y-2">
+                      <p className="text-xs text-muted-foreground">
+                        Remove this quote request from the inbox? You can ask an administrator to
+                        restore it later.
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="flex-1"
+                          disabled={deleting}
+                          onClick={handleDelete}
+                        >
+                          {deleting ? 'Removing…' : 'Yes, remove it'}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1"
+                          disabled={deleting}
+                          onClick={() => setConfirmingDelete(false)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="w-full text-muted-foreground hover:text-destructive"
+                      onClick={() => setConfirmingDelete(true)}
+                    >
+                      <Trash2 className="mr-2 h-3.5 w-3.5" /> Remove from inbox
+                    </Button>
+                  )}
+                </div>
               </div>
             </>
           )}
