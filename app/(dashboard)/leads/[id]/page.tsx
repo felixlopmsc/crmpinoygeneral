@@ -20,6 +20,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { toast } from 'sonner';
 import { ArrowLeft, Pencil, UserCheck, Phone, Mail, MapPin, Calendar, Target, Zap, StickyNote, CheckCircle } from 'lucide-react';
 import { formatPhoneInput, formatZipInput } from '@/lib/form-autocomplete';
+import { friendlyError } from '@/lib/errors';
+import { convertLeadToClient } from '@/lib/convert-lead';
 
 const statusColors: Record<string, string> = {
   new: 'bg-blue-100 text-blue-700',
@@ -128,7 +130,7 @@ export default function LeadDetailPage() {
       updated_at: new Date().toISOString(),
     }).eq('id', lead.id);
 
-    if (error) { toast.error(error.message); setFormLoading(false); return; }
+    if (error) { toast.error(friendlyError(error)); setFormLoading(false); return; }
     toast.success('Lead updated');
     setShowEdit(false);
     setFormLoading(false);
@@ -139,36 +141,14 @@ export default function LeadDetailPage() {
     if (!lead) return;
     setConverting(true);
 
-    const { data, error } = await supabase.from('clients').insert({
-      first_name: lead.first_name,
-      last_name: lead.last_name,
-      phone: lead.phone || '',
-      email: lead.email || '',
-      address_zip: lead.address_zip || '',
-      source: 'Lead Conversion',
-      source_lead_id: lead.id,
-      status: 'Active',
-    }).select('id').maybeSingle();
-
-    if (error) {
-      if (error.code === '23505' || error.message?.toLowerCase().includes('duplicate') || error.message?.toLowerCase().includes('already exists')) {
-        toast.error('A client with this email already exists.');
-      } else {
-        toast.error(error.message);
-      }
-      setConverting(false);
-      setShowConvertModal(false);
-      return;
-    }
-
-    await supabase.from('leads').update({ status: 'converted', updated_at: new Date().toISOString() }).eq('id', lead.id);
-    toast.success('Lead converted to client');
+    const result = await convertLeadToClient(lead);
     setConverting(false);
     setShowConvertModal(false);
 
-    if (data?.id) {
-      router.push(`/clients/${data.id}`);
-    }
+    if (!result.ok) { toast.error(friendlyError(result)); return; }
+
+    toast.success(`${lead.first_name} ${lead.last_name} is now a client`);
+    router.push(`/clients/${result.clientId}`);
   }
 
   async function saveNotes() {
@@ -179,7 +159,7 @@ export default function LeadDetailPage() {
       updated_at: new Date().toISOString(),
     }).eq('id', lead.id);
 
-    if (error) { toast.error(error.message); setSavingNotes(false); return; }
+    if (error) { toast.error(friendlyError(error)); setSavingNotes(false); return; }
     toast.success('Notes saved');
     setSavingNotes(false);
     setLead({ ...lead, notes: notesValue || null });

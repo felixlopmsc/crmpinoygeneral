@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { friendlyError } from '@/lib/errors';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -49,7 +50,7 @@ export default function ResetPasswordPage() {
     const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(friendlyError(error));
     } else {
       toast.success('Password updated successfully');
       router.replace('/dashboard');

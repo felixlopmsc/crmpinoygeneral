@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RefreshCw, ArrowRight, TriangleAlert as AlertTriangle, Check } from 'lucide-react';
+import { friendlyError } from '@/lib/errors';
 
 interface NameRow {
   id: string;
@@ -83,7 +84,7 @@ export function NamesTool({ onApplied }: { onApplied: () => void }) {
       p_last: d.last.trim(),
     });
     if (err) {
-      toast.error(err.message || 'Could not apply name fix');
+      toast.error(friendlyError(err));
       setApplyingId(null);
       return;
     }

@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
+import { friendlyError } from '@/lib/errors';
 
 export default function LoginPage() {
   const { session, loading, signIn, signUp } = useAuth();
@@ -62,7 +63,7 @@ export default function LoginPage() {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     if (error) {
-      toast.error(error.message);
+      toast.error(friendlyError(error));
     } else {
       setResetSent(true);
     }

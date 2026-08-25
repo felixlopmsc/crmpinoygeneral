@@ -24,6 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
+import { friendlyError } from '@/lib/errors';
 import {
   Car,
   Chrome as Home,
@@ -356,7 +357,7 @@ export function SmartPolicyForm({ open, onOpenChange, clientId, userId, onSaved 
       notes: form.notes,
       assigned_agent_id: userId,
     });
-    if (error) toast.error(error.message);
+    if (error) toast.error(friendlyError(error));
     else {
       toast.success('Policy created');
       onOpenChange(false);

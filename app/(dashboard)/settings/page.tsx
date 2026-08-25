@@ -20,6 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { friendlyError } from '@/lib/errors';
 
 interface UserSettings {
   email_notifications: boolean;
@@ -105,7 +106,7 @@ export default function SettingsPage() {
       password: passwordForm.newPassword,
     });
     if (error) {
-      toast.error(error.message);
+      toast.error(friendlyError(error));
     } else {
       toast.success('Password updated successfully');
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });

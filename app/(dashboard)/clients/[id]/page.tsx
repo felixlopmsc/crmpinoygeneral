@@ -23,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { ArrowLeft, Phone, Mail, MapPin, Calendar, Plus, Zap, FileText, TrendingUp, Shield, SquareCheck as CheckSquare, Clock, TriangleAlert as AlertTriangle, ExternalLink, StickyNote, CalendarPlus, Menu, DollarSign, Target, RefreshCw, Pencil } from 'lucide-react';
 import { Select as StatusSelect, SelectContent as StatusSelectContent, SelectItem as StatusSelectItem, SelectTrigger as StatusSelectTrigger, SelectValue as StatusSelectValue } from '@/components/ui/select';
+import { friendlyError } from '@/lib/errors';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -642,7 +643,7 @@ function ActivityFormDialog({ open, onOpenChange, clientId, userId, onSaved }: {
       activity_date: new Date().toISOString(),
       created_by: userId,
     });
-    if (error) toast.error(error.message);
+    if (error) toast.error(friendlyError(error));
     else { toast.success('Activity logged'); onOpenChange(false); setForm({ activity_type: 'Call', subject: '', description: '' }); onSaved(); }
     setSaving(false);
   };
@@ -739,7 +740,7 @@ function TaskFormDialog({ open, onOpenChange, clientId, userId, onSaved }: { ope
       assigned_to: userId,
       created_by: userId,
     });
-    if (error) { toast.error(error.message); }
+    if (error) { toast.error(friendlyError(error)); }
     else {
       await supabase.from('activities').insert({
         client_id: clientId,
