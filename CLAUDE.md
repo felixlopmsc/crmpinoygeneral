@@ -335,6 +335,45 @@ where none is known, so early figures are conservative rather than flattering.
 **Do not backfill it from `created_at`** — that invents a response that never
 happened, which is the one thing the gate exists to detect.
 
+### `handle_new_user` creates a `users` row for EVERY auth user
+
+`on_auth_user_created` fires `AFTER INSERT` on `auth.users` and inserts into
+`public.users`. It is the **only** thing that creates a staff row: the CRM's
+`/login` has a signup view calling `supabase.auth.signUp()`, and no code in
+either repo inserts into `public.users`.
+
+Two consequences that have both bitten:
+
+**1. The role literal and `users_role_check` must agree, or nothing can sign
+up.** The trigger originally inserted `'Admin'` — which is why four of five
+staff rows share a timestamp with their auth user, and also meant anyone who
+signed up became an admin. Changing it to `'Client'` was right, but the
+constraint still only allowed `Admin|Agent|Viewer`, so the trigger raised, the
+transaction aborted, and **`auth.users` never got the row**. Signup failed
+outright in both apps. `client_profiles` held exactly one row for months —
+that account already had an Admin row, so `ON CONFLICT DO NOTHING` skipped the
+illegal insert. Fixed by `20260825030000_allow_client_role_on_users.sql`.
+
+**If you change the role the trigger inserts, change the constraint in the
+same migration.**
+
+**2. A staff member who signs up lands as `Client` and must be promoted by an
+Admin.** That is deliberate, not a gap — see the self-serve-admin history
+above.
+
+**Rejected: having portal signups create no `users` row at all.** Cleaner in
+principle (clients belong in `client_profiles`; `users` is the staff table),
+but staff onboarding runs through the same trigger, so removing the insert
+means no new staff member can ever be onboarded. Rejected on that alone.
+Gating it on signup metadata — the portal sends `first_name`/`phone`, the CRM
+sends `full_name` — was also rejected: a silent, guessable signal deciding
+whether someone can access the CRM is the kind of thing that fails quietly
+years later.
+
+There is no staff user list in this app to filter `Client` rows out of; every
+`from('users')` query is scoped to a single id (own profile, audit-log actor
+lookup). If you ever add one, filter `role <> 'Client'`.
+
 ### `client_profiles.client_id` is the key to a client's whole book
 
 That one column decides which policies, documents and client record a portal
