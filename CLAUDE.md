@@ -248,6 +248,62 @@ Several `public` functions are `SECURITY DEFINER` and callable by
 `is_staff()` internally. **Verify the function body before "fixing" an advisor
 warning** — most of them are false alarms.
 
+Re-confirmed empirically 2026-08-25, because the warning keeps prompting people
+to "fix" it. Simulating a signed-in identity with no `public.users` row — which
+is exactly what a portal client is:
+
+| | non-staff | staff |
+|---|---|---|
+| `is_staff()` | `false` | `true` |
+| `merge_clients()` | **blocked — `not authorized`** | — |
+| `dq_counts()` | **blocked — `not authorized`** | returns normally |
+
+**Do not revoke `EXECUTE` from `authenticated` on these.** Every one is called
+from `'use client'` components (`components/data-quality/*`,
+`app/(dashboard)/settings/data-quality/page.tsx`) with the staff user's own
+JWT, not server-side with the service role. Revoking breaks the data-quality
+tools. The in-body `is_staff()` check is the control, and it is already there.
+
+Two more that must stay callable for different reasons:
+
+- **`is_staff()`** — RLS policies evaluate it as the querying role. Revoke it
+  and RLS breaks everywhere.
+- **`quote_request_accepts_documents(qid)`** — backs the RLS policy *"Public
+  can upload quote documents"*, i.e. the portal's **anonymous** quote-wizard
+  document upload. Revoking `anon` breaks public upload. It returns one boolean
+  about a UUID the caller must already know.
+
+The two `SECURITY DEFINER` **views** flagged at ERROR were real and are fixed
+(`20260825000000_harden_security_definer_views.sql`): `expected_slots` and
+`run_health` had granted `anon` full privileges on internal automation health.
+
+### Shared-database DDL lives in THIS repo only
+
+`fetiakfllzxwibqzfedh` is shared with the client portal
+(`felixlopmsc/pinoy-insurance-portal`). **All DDL against it — migrations,
+functions, views, RLS, grants — belongs in `supabase/migrations/` here, in the
+CRM repo, and nowhere else.** The portal repo has its own `supabase/migrations/`
+directory; treat it as historical and do not add shared-schema changes to it.
+
+One schema, two apps, one place that defines it. Two migration histories against
+one database is how you get a change that exists in one repo's history and not
+the other's, and no way to tell which ran.
+
+Any migration touching a shared table (`quote_requests`, `leads`, `clients`,
+`policies`, `documents`, `client_profiles`) **must say so in the first line of
+its PR description**, because it can break the other app.
+
+### Known gap — leaked-password protection is off, deliberately
+
+Supabase Auth can check new passwords against HaveIBeenPwned. It is **disabled
+on purpose**, not overlooked: it sits behind the Supabase Pro plan, and the
+portal is in validation phase with controlled invites.
+
+**Revisit when either is true:** before opening wide client invites, or it
+becomes moot if magic-link becomes the primary sign-in path — there is no
+password to leak. The advisor will keep reporting this; it is a known,
+accepted deferral, so do not "fix" it silently.
+
 ---
 
 ## Environment
