@@ -285,6 +285,11 @@ functions, views, RLS, grants — belongs in `supabase/migrations/` here, in the
 CRM repo, and nowhere else.** The portal repo has its own `supabase/migrations/`
 directory; treat it as historical and do not add shared-schema changes to it.
 
+**PR first, apply after merge.** Open the migration PR, get it merged, then run
+it against production — so the record precedes the change instead of trailing
+it. Applying first and writing the file afterwards leaves a window where the
+database and the repo disagree and nobody can tell which is right.
+
 One schema, two apps, one place that defines it. Two migration histories against
 one database is how you get a change that exists in one repo's history and not
 the other's, and no way to tell which ran.
@@ -329,6 +334,36 @@ overwrites. Rows predating the column carry the earliest *known* touch, or null
 where none is known, so early figures are conservative rather than flattering.
 **Do not backfill it from `created_at`** — that invents a response that never
 happened, which is the one thing the gate exists to detect.
+
+### `client_profiles.client_id` is the key to a client's whole book
+
+That one column decides which policies, documents and client record a portal
+login can read — three RLS policies resolve through it
+(`portal_clients_select_own_policies` / `_documents` / `_client`).
+
+**It is not writable by clients, and that is load-bearing.**
+`client_profiles_update_own` is `WITH CHECK (auth.uid() = id)`, which constrains
+which *row* you may update, not which *columns* — so while `authenticated` held
+table-level `UPDATE`, any portal user could point their own `client_id` at any
+`clients.id` and read that client's book. Fixed by column privileges
+(`20260825020000_client_invite_claim_flow.sql`): `authenticated` may update only
+the profile fields, never `client_id`.
+
+Two ways it gets set now, both `SECURITY DEFINER`, both deciding the value
+themselves rather than accepting one from the caller:
+
+| | who | how |
+|---|---|---|
+| `redeem_client_invite(token)` | the client | reads `client_id` off the invite row |
+| `link_client_profile(profile, client)` | staff, `is_staff()`-guarded | manual match from the queue |
+
+**If you ever need to grant `UPDATE` on `client_profiles` again, grant it by
+column.** A blanket `grant update` re-opens the hole silently. See
+`docs/invite-claim-flow.md`.
+
+Signups with no invite land in `profile_link_requests` (status `pending`) for
+staff to match by hand. That queue existing is what keeps an unmatched signup
+from being a silent empty dashboard.
 
 ### Known gap — leaked-password protection is off, deliberately
 
