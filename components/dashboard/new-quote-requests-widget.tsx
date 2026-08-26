@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, FileSpreadsheet, TriangleAlert as AlertTriangle } from 'lucide-react';
+import { quoteRequestInboxScope } from '@/lib/scopes';
 
 function fullName(q: QuoteRequest): string {
   return [q.first_name, q.last_name].filter(Boolean).join(' ').trim() || 'Unknown';
@@ -30,11 +31,9 @@ export function NewQuoteRequestsWidget() {
   }, []);
 
   async function loadData() {
-    const { data, error: err } = await supabase
-      .from('quote_requests')
-      .select('*')
-      .is('deleted_at', null)
-      .eq('is_test', false)
+    const { data, error: err } = await quoteRequestInboxScope(
+      supabase.from('quote_requests').select('*'),
+    )
       .eq('status', 'New')
       .order('created_at', { ascending: false })
       .limit(5);

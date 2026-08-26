@@ -16,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { toast } from 'sonner';
+import { quoteRequestInboxScope } from '@/lib/scopes';
 import { friendlyError, NOT_PERMITTED } from '@/lib/errors';
 import {
   Filter,
@@ -161,7 +162,9 @@ export default function QuoteRequestsPage() {
   const loadCounts = useCallback(async () => {
     // Internal/test submissions never appear in staff counts -- see is_test in
     // supabase/migrations/20260825010000_quote_requests_is_test_and_contacted_at.sql
-    const base = () => supabase.from('quote_requests').select('id', { count: 'exact', head: true }).is('deleted_at', null).eq('is_test', false);
+    const base = () => quoteRequestInboxScope(
+      supabase.from('quote_requests').select('id', { count: 'exact', head: true }),
+    );
     const [allRes, newRes, contactedRes, quotedRes, wonRes, lostRes] = await Promise.all([
       base(),
       base().eq('status', 'New'),
@@ -183,12 +186,9 @@ export default function QuoteRequestsPage() {
   const loadQuotes = useCallback(async () => {
     setLoading(true);
     setError(false);
-    let query = supabase
-      .from('quote_requests')
-      .select('*')
-      .is('deleted_at', null)
-      .eq('is_test', false)
-      .order('created_at', { ascending: false });
+    let query = quoteRequestInboxScope(
+      supabase.from('quote_requests').select('*'),
+    ).order('created_at', { ascending: false });
     if (activeFilter !== 'all') query = query.eq('status', activeFilter);
 
     const { data, error: err } = await query.limit(200);

@@ -25,6 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { getInitials } from '@/lib/format';
 import { friendlyError } from '@/lib/errors';
+import { livePolicyScope } from '@/lib/scopes';
 
 export default function ProfilePage() {
   const { user, session, refreshUser } = useAuth();
@@ -49,7 +50,7 @@ export default function ProfilePage() {
     async function loadStats() {
       const [clientsRes, policiesRes, dealsRes] = await Promise.all([
         supabase.from('clients').select('id', { count: 'exact', head: true }),
-        supabase.from('policies').select('id', { count: 'exact', head: true }),
+        livePolicyScope(supabase.from('policies').select('id', { count: 'exact', head: true })),
         supabase.from('deals').select('id', { count: 'exact', head: true }).eq('status', 'Open'),
       ]);
       setStats({
