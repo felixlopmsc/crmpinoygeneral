@@ -7,7 +7,6 @@ import {
   DEMO_CREDENTIALS,
   DEMO_URL,
   isDemoHostname,
-  isProductionHostname,
   supabase,
 } from '@/lib/supabase';
 
@@ -31,20 +30,6 @@ export default function DemoEntryPage() {
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-
-    // Step 0 — refuse to run on a production host. Setting the flag here is
-    // what sandboxed the staff CRM: `pgi-demo=1` lands on the *staff* origin,
-    // the reload repoints that browser at the demo project, and real
-    // credentials then fail against a sandbox that resets hourly.
-    //
-    // `middleware.ts` redirects /demo off these hosts, so reaching this line
-    // means that guard did not run — a matcher change, a deployment without
-    // middleware, someone rendering this page from another route. The cost of
-    // being wrong here is asymmetric, so check again rather than assume.
-    if (isProductionHostname(window.location.hostname)) {
-      window.location.replace(DEMO_URL);
-      return;
-    }
 
     // Step 1 — not yet in demo mode: set flag, verify it stuck, reload.
     if (!DEMO_MODE) {

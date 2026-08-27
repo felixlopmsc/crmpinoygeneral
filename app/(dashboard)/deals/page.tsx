@@ -19,7 +19,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Plus, GripVertical, List, LayoutGrid } from 'lucide-react';
-import { friendlyError } from '@/lib/errors';
 
 const stageBgColors: Record<string, string> = {
   'New Lead': 'bg-blue-50',
@@ -72,7 +71,7 @@ export default function DealsPage() {
       assigned_agent_id: user?.id,
       probability: STAGE_PROBABILITIES[formData.stage] ?? 10,
     });
-    if (error) { toast.error(friendlyError(error)); return; }
+    if (error) { toast.error(error.message); return; }
     toast.success('Deal created');
     setShowForm(false);
     loadDeals();

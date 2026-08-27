@@ -7,7 +7,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { friendlyError } from '@/lib/errors';
 import {
   ArrowLeft, RefreshCw, Search, TriangleAlert as AlertTriangle, Mail, Phone, Users, ChevronRight,
 } from 'lucide-react';
@@ -221,7 +220,7 @@ export function DuplicatesTool({ onApplied }: { onApplied: () => void }) {
       p_overrides: overrides,
     });
     if (err) {
-      toast.error(friendlyError(err));
+      toast.error(err.message || 'Merge failed — the group was rolled back');
       setApplying(false);
       return;
     }

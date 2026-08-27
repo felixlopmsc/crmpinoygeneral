@@ -20,7 +20,6 @@ import { toast } from 'sonner';
 import { TaskTemplateDialog } from '@/components/forms/task-template-dialog';
 import { Plus, Zap, SquareCheck as CheckSquare, TriangleAlert as AlertTriangle, Clock, Calendar, Filter, Trash2, Sparkles } from 'lucide-react';
 import { TASK_SUGGESTIONS, getTaskSuggestionsForClient, type TaskSuggestion } from '@/lib/form-autocomplete';
-import { friendlyError } from '@/lib/errors';
 
 const priorityColors: Record<string, string> = {
   Low: 'bg-gray-100 text-gray-700',
@@ -87,7 +86,7 @@ export default function TasksPage() {
       assigned_to: user?.id,
       created_by: user?.id,
     });
-    if (error) { toast.error(friendlyError(error)); return; }
+    if (error) { toast.error(error.message); return; }
     toast.success('Task created');
     setShowForm(false);
     loadTasks();

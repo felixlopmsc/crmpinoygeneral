@@ -18,11 +18,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { LinkedQuoteRequests } from '@/components/quote/linked-quote-requests';
 import { ArrowLeft, Pencil, UserCheck, Phone, Mail, MapPin, Calendar, Target, Zap, StickyNote, CheckCircle } from 'lucide-react';
 import { formatPhoneInput, formatZipInput } from '@/lib/form-autocomplete';
-import { friendlyError } from '@/lib/errors';
-import { convertLeadToClient } from '@/lib/convert-lead';
 
 const statusColors: Record<string, string> = {
   new: 'bg-blue-100 text-blue-700',
@@ -131,7 +128,7 @@ export default function LeadDetailPage() {
       updated_at: new Date().toISOString(),
     }).eq('id', lead.id);
 
-    if (error) { toast.error(friendlyError(error)); setFormLoading(false); return; }
+    if (error) { toast.error(error.message); setFormLoading(false); return; }
     toast.success('Lead updated');
     setShowEdit(false);
     setFormLoading(false);
@@ -142,14 +139,36 @@ export default function LeadDetailPage() {
     if (!lead) return;
     setConverting(true);
 
-    const result = await convertLeadToClient(lead);
+    const { data, error } = await supabase.from('clients').insert({
+      first_name: lead.first_name,
+      last_name: lead.last_name,
+      phone: lead.phone || '',
+      email: lead.email || '',
+      address_zip: lead.address_zip || '',
+      source: 'Lead Conversion',
+      source_lead_id: lead.id,
+      status: 'Active',
+    }).select('id').maybeSingle();
+
+    if (error) {
+      if (error.code === '23505' || error.message?.toLowerCase().includes('duplicate') || error.message?.toLowerCase().includes('already exists')) {
+        toast.error('A client with this email already exists.');
+      } else {
+        toast.error(error.message);
+      }
+      setConverting(false);
+      setShowConvertModal(false);
+      return;
+    }
+
+    await supabase.from('leads').update({ status: 'converted', updated_at: new Date().toISOString() }).eq('id', lead.id);
+    toast.success('Lead converted to client');
     setConverting(false);
     setShowConvertModal(false);
 
-    if (!result.ok) { toast.error(friendlyError(result)); return; }
-
-    toast.success(`${lead.first_name} ${lead.last_name} is now a client`);
-    router.push(`/clients/${result.clientId}`);
+    if (data?.id) {
+      router.push(`/clients/${data.id}`);
+    }
   }
 
   async function saveNotes() {
@@ -160,7 +179,7 @@ export default function LeadDetailPage() {
       updated_at: new Date().toISOString(),
     }).eq('id', lead.id);
 
-    if (error) { toast.error(friendlyError(error)); setSavingNotes(false); return; }
+    if (error) { toast.error(error.message); setSavingNotes(false); return; }
     toast.success('Notes saved');
     setSavingNotes(false);
     setLead({ ...lead, notes: notesValue || null });
@@ -274,11 +293,6 @@ export default function LeadDetailPage() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Everything the applicant submitted, for copying into a carrier
-          portal. Sits above Notes because the trigger's auto-note is a
-          summary of exactly this, and the detail is what staff actually need. */}
-      <LinkedQuoteRequests leadId={lead.id} />
 
       {/* Notes Section */}
       <Card>

@@ -3,7 +3,6 @@ import type { Metadata } from 'next';
 import { Montserrat } from 'next/font/google';
 import { AuthProvider } from '@/lib/auth-context';
 import { Toaster } from '@/components/ui/sonner';
-import DemoFlagReset from '@/components/layout/demo-flag-reset';
 
 const montserrat = Montserrat({ subsets: ['latin'] });
 
@@ -46,10 +45,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={montserrat.className} suppressHydrationWarning>
-        {/* Renders nothing. Outside AuthProvider on purpose: clearing a stale
-            pgi-demo flag must not wait on a session, and the staff this exists
-            for are the ones who cannot get a session at all. */}
-        <DemoFlagReset />
         <AuthProvider>
           {children}
           <Toaster position="top-right" />

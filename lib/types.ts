@@ -286,10 +286,6 @@ export interface QuoteRequest {
   updated_at: string | null;
   deleted_at: string | null;
   status: 'New' | 'Contacted' | 'Quoted' | 'Won' | 'Lost';
-  /** Internal/test submission. Excluded from every staff-facing count and list. */
-  is_test: boolean;
-  /** First time this request was acted on; set by trigger on the first status change. */
-  contacted_at: string | null;
   coverage_type: string | null;
   source: string | null;
   first_name: string | null;

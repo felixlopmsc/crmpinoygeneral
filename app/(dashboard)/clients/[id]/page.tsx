@@ -21,10 +21,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { LinkedQuoteRequests } from '@/components/quote/linked-quote-requests';
 import { ArrowLeft, Phone, Mail, MapPin, Calendar, Plus, Zap, FileText, TrendingUp, Shield, SquareCheck as CheckSquare, Clock, TriangleAlert as AlertTriangle, ExternalLink, StickyNote, CalendarPlus, Menu, DollarSign, Target, RefreshCw, Pencil } from 'lucide-react';
 import { Select as StatusSelect, SelectContent as StatusSelectContent, SelectItem as StatusSelectItem, SelectTrigger as StatusSelectTrigger, SelectValue as StatusSelectValue } from '@/components/ui/select';
-import { friendlyError } from '@/lib/errors';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -378,11 +376,6 @@ export default function ClientProfilePage() {
         </div>
       </div>
 
-      {/* Above the tabs rather than inside one: it is collapsed, so it
-          costs a single row when unused, and a client quoted from the
-          website has this data nowhere else in the CRM. */}
-      <LinkedQuoteRequests clientId={client.id} />
-
       <Tabs defaultValue="policies">
         <TabsList className="w-full justify-start overflow-x-auto">
           <TabsTrigger value="policies" className="gap-1"><FileText className="h-3.5 w-3.5" /> Policies ({policies.length})</TabsTrigger>
@@ -649,7 +642,7 @@ function ActivityFormDialog({ open, onOpenChange, clientId, userId, onSaved }: {
       activity_date: new Date().toISOString(),
       created_by: userId,
     });
-    if (error) toast.error(friendlyError(error));
+    if (error) toast.error(error.message);
     else { toast.success('Activity logged'); onOpenChange(false); setForm({ activity_type: 'Call', subject: '', description: '' }); onSaved(); }
     setSaving(false);
   };
@@ -746,7 +739,7 @@ function TaskFormDialog({ open, onOpenChange, clientId, userId, onSaved }: { ope
       assigned_to: userId,
       created_by: userId,
     });
-    if (error) { toast.error(friendlyError(error)); }
+    if (error) { toast.error(error.message); }
     else {
       await supabase.from('activities').insert({
         client_id: clientId,

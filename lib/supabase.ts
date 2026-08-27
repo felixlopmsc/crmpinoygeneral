@@ -1,22 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import {
-  DEMO_FLAG_KEY,
-  DEMO_URL,
-  isDemoHostname,
-  isProductionHostname,
-  resolveDemoMode,
-} from './demo-host';
-
-// Re-exported so app code keeps a single import site (`@/lib/supabase`) and
-// does not need to know the classification logic lives next door.
-export {
-  DEMO_FLAG_KEY,
-  DEMO_URL,
-  isDemoHostname,
-  isProductionHostname,
-  PRODUCTION_HOSTNAMES,
-  resolveDemoMode,
-} from './demo-host';
 
 const PROD_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const PROD_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -28,9 +10,23 @@ export const DEMO_SUPABASE_URL = 'https://wdynqlrbirvartitpwcn.supabase.co';
 export const DEMO_SUPABASE_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkeW5xbHJiaXJ2YXJ0aXRwd2NuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5MTIzMzAsImV4cCI6MjA4MTQ4ODMzMH0.m746YzH9k96Q-8xfVjxpyN-ULaHUQNqzDcfj2vcbpww';
 
+export const DEMO_FLAG_KEY = 'pgi-demo';
+
 // Where the real app lives, used to send someone from the demo host back to
 // production. Optional: unset just means the demo host links to its own /login.
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
+
+// A host whose first label is "demo" (demo.agilams.com) is permanently a
+// sandbox. Hostname beats the localStorage flag for a reason worth keeping in
+// mind: localStorage is per-origin, so on a single shared origin one visit to
+// /demo would repoint that whole browser at the sandbox until the visitor
+// remembered to click "Exit demo" — and a staff member who didn't would then
+// fail to log in with real credentials. Deriving it from the host removes that
+// failure mode entirely, and keeps the production origin incapable of ever
+// pointing at demo data.
+export function isDemoHostname(hostname: string): boolean {
+  return hostname.split('.')[0] === 'demo';
+}
 
 // True when demo mode came from the host rather than the flag. The banner uses
 // this: on a demo host there is no "exit" to perform locally, so it links out
@@ -38,25 +34,16 @@ export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
 export const DEMO_VIA_HOSTNAME =
   typeof window !== 'undefined' && isDemoHostname(window.location.hostname);
 
-function readDemoFlag(): boolean {
+function detectDemoMode(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (isDemoHostname(window.location.hostname)) return true;
+  // Fallback for previews, branch deploys and localhost, where there is no
+  // demo subdomain: /demo sets this flag and reloads.
   try {
     return window.localStorage.getItem(DEMO_FLAG_KEY) === '1';
   } catch {
-    // Strict privacy modes throw on localStorage access rather than returning
-    // null. No flag readable means no flag set.
     return false;
   }
-}
-
-// The flag is read unconditionally and handed to `resolveDemoMode`, which
-// decides whether it is allowed to matter. Keep it that way: re-inlining a
-// `localStorage` check as the last word here is exactly the bug that shipped.
-function detectDemoMode(): boolean {
-  if (typeof window === 'undefined') return false;
-  return resolveDemoMode({
-    hostname: window.location.hostname,
-    demoFlag: readDemoFlag(),
-  });
 }
 
 export const DEMO_MODE = detectDemoMode();
@@ -82,19 +69,22 @@ export function loginHref(): string {
   return DEMO_VIA_HOSTNAME ? `${staffAppUrl()}/login` : '/login';
 }
 
-// Where "Try the demo" should send the visitor. On a production host this must
-// be the absolute demo host, so the sandbox opens on its own origin instead of
-// the staff one. Previews and localhost have no demo subdomain, so they keep
-// the relative flag-based flow.
-//
-// This is defence in depth, not the guard itself: `middleware.ts` redirects
-// /demo off the production hosts server-side, which is what makes the relative
-// href in `components/landing/demo-link.tsx` safe before hydration corrects it.
+// Canonical home of the sandbox.
+export const DEMO_URL = 'https://demo.agilams.com';
+
+// Where "Try the demo" should send the visitor. On the real domains this must
+// be the absolute demo host: a relative /demo would fall back to the
+// localStorage flag and sandbox the *current* origin — the same deployment
+// serves /login there, so a staff member on that browser would then have real
+// credentials checked against the sandbox and fail. Previews and localhost
+// have no demo subdomain, so they keep the relative flag-based flow.
 export function demoHref(): string {
   if (typeof window === 'undefined') return '/demo';
   const h = window.location.hostname;
   if (isDemoHostname(h)) return '/demo';
-  if (isProductionHostname(h)) return DEMO_URL;
+  if (h.endsWith('agilams.com') || h.endsWith('pinoygeneralinsurance.com')) {
+    return DEMO_URL;
+  }
   return '/demo';
 }
 

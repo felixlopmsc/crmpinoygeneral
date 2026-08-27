@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { ChartBar as BarChart3, TrendingUp, Users, FileText, DollarSign, Download, RefreshCw } from 'lucide-react';
 import { useActivePolicyCount } from '@/hooks/use-active-policy-count';
 import { useClientCounts } from '@/hooks/use-client-counts';
-import { livePolicyScope } from '@/lib/scopes';
 
 interface ReportData {
   totalPolicies: number;
@@ -46,7 +45,7 @@ export default function ReportsPage() {
     const [
       policiesRes, commissionsRes, dealsRes, activitiesRes, claimsRes, premiumRes,
     ] = await Promise.all([
-      livePolicyScope(supabase.from('policies').select('*')),
+      supabase.from('policies').select('*'),
       supabase.from('commissions').select('*'),
       supabase.from('deals').select('*'),
       supabase.from('activities').select('id', { count: 'exact', head: true }),
