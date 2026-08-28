@@ -124,7 +124,9 @@ export const SENTRY_DSN = process.env.NEXT_PUBLIC_SENTRY_DSN;
 export const sharedOptions = {
   dsn: SENTRY_DSN || undefined,
   enabled: Boolean(SENTRY_DSN),
-  environment: process.env.NODE_ENV,
+  // VERCEL_ENV separates preview from production; NODE_ENV calls both
+  // "production" and would file preview noise against real incidents.
+  environment: process.env.NEXT_PUBLIC_VERCEL_ENV || process.env.NODE_ENV,
   // No automatic PII: no IP address, no cookies, no request bodies.
   sendDefaultPii: false,
   // Errors only. No session replay and no performance tracing -- both would
