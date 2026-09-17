@@ -11,7 +11,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { FileText, RefreshCw, DollarSign, Activity, Shield, FolderOpen, Mail, ChartBar as BarChart3, FileSpreadsheet } from 'lucide-react';
+import { FileText, RefreshCw, DollarSign, Activity, FolderOpen, Mail, ChartBar as BarChart3, FileSpreadsheet } from 'lucide-react';
+import { useOpenTasksCount } from '@/hooks/use-open-tasks-count';
 
 const mainTabs = [
   { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
@@ -27,7 +28,6 @@ const moreItems = [
   { href: '/renewals', label: 'Renewals', icon: RefreshCw },
   { href: '/commissions', label: 'Commissions', icon: DollarSign },
   { href: '/activities', label: 'Activities', icon: Activity },
-  { href: '/claims', label: 'Claims', icon: Shield },
   { href: '/documents', label: 'Documents', icon: FolderOpen },
   { href: '/campaigns', label: 'Campaigns', icon: Mail },
   { href: '/reports', label: 'Reports', icon: BarChart3 },
@@ -35,6 +35,7 @@ const moreItems = [
 
 export default function MobileNav() {
   const pathname = usePathname();
+  const openTasksCount = useOpenTasksCount();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t border-[#B8962E]/20 bg-gradient-to-r from-[#1B2A4A] to-[#2C3E6B] md:hidden">
@@ -49,7 +50,14 @@ export default function MobileNav() {
               isActive ? 'text-[#D4AD3C]' : 'text-white/60'
             )}
           >
-            <tab.icon className="h-5 w-5" />
+            <span className="relative">
+              <tab.icon className="h-5 w-5" />
+              {tab.href === '/tasks' && openTasksCount > 0 && (
+                <span className="absolute -right-2.5 -top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-white">
+                  {openTasksCount > 9 ? '9+' : openTasksCount}
+                </span>
+              )}
+            </span>
             {tab.label}
           </Link>
         );

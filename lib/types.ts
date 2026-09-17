@@ -126,27 +126,6 @@ export interface Commission {
   policy?: Policy;
 }
 
-export interface Claim {
-  id: string;
-  created_at: string;
-  updated_at: string;
-  policy_id: string;
-  client_id: string;
-  claim_number: string;
-  claim_date: string;
-  reported_date: string;
-  claim_type: string;
-  description: string;
-  claim_amount: number;
-  status: 'Filed' | 'Under Review' | 'Approved' | 'Denied' | 'Paid' | 'Closed';
-  adjuster_name: string;
-  adjuster_phone: string;
-  resolution_date: string | null;
-  notes: string;
-  client?: Client;
-  policy?: Policy;
-}
-
 export interface Document {
   id: string;
   created_at: string;

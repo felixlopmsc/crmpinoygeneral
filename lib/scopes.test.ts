@@ -2,9 +2,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   activePolicyScope,
+  isoEndOfToday,
   isoToday,
   livePolicyScope,
+  openTaskScope,
   quoteRequestInboxScope,
+  tasksNeedingAttentionScope,
 } from './scopes.ts';
 
 // A stand-in for a Supabase query builder that records the filters applied to
@@ -16,6 +19,8 @@ class FakeQuery {
   is(column: string, value: null) { this.calls.push(`is(${column},${String(value)})`); return this; }
   not(column: string, op: string, value: unknown) { this.calls.push(`not(${column},${op},${String(value)})`); return this; }
   gte(column: string, value: string) { this.calls.push(`gte(${column},${value})`); return this; }
+  lt(column: string, value: string) { this.calls.push(`lt(${column},${value})`); return this; }
+  or(filters: string) { this.calls.push(`or(${filters})`); return this; }
   ilike(column: string, pattern: string) { this.calls.push(`ilike(${column},${pattern})`); return this; }
 }
 
@@ -74,4 +79,29 @@ test('live policy scope only excludes soft deletes', () => {
 test('isoToday yields a Postgres-comparable date', () => {
   assert.equal(isoToday(new Date('2026-08-21T23:59:59Z')), '2026-08-21');
   assert.match(isoToday(), /^\d{4}-\d{2}-\d{2}$/);
+});
+
+test('open task scope keeps To Do and In Progress only', () => {
+  const q = openTaskScope(new FakeQuery());
+  assert.deepEqual(q.calls, ['or(status.eq.To Do,status.eq.In Progress)']);
+});
+
+// The sidebar badge and the page's Overdue + Today groups must be the same
+// number, so both go through this one scope with one boundary.
+test('needs-attention scope is open tasks due before the end of today', () => {
+  const boundary = '2026-09-18T07:00:00.000Z';
+  const badge = tasksNeedingAttentionScope(new FakeQuery(), boundary);
+  const page = tasksNeedingAttentionScope(new FakeQuery(), boundary);
+  assert.deepEqual(badge.calls, ['or(status.eq.To Do,status.eq.In Progress)', `lt(due_date,${boundary})`]);
+  assert.deepEqual(badge.calls, page.calls);
+});
+
+test('isoEndOfToday is the next local midnight', () => {
+  const now = new Date(2026, 8, 17, 15, 30); // 3:30pm local, 17 Sep 2026
+  const end = new Date(isoEndOfToday(now));
+  assert.equal(end.getFullYear(), 2026);
+  assert.equal(end.getMonth(), 8);
+  assert.equal(end.getDate(), 18);
+  assert.equal(end.getHours(), 0);
+  assert.equal(end.getMinutes(), 0);
 });

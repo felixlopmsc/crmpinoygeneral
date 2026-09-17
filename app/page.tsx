@@ -75,7 +75,7 @@ const PAINS = [
     pain: 'Your book lives in six places at once',
     detail:
       'A spreadsheet for renewals, carrier portals for policies, your inbox for documents, sticky notes for follow-ups. Nobody — including you — can see the whole picture.',
-    fix: 'One record per household: every policy, document, claim, note and touchpoint on a single screen.',
+    fix: 'One record per household: every policy, document, task, note and touchpoint on a single screen.',
   },
   {
     icon: Clock,
@@ -109,7 +109,7 @@ const PAINS = [
 
 // ACTION — the capability set, framed as outcomes.
 const CAPABILITIES = [
-  { icon: Users, title: '360° client view', body: 'Households, policies, documents, claims and history in one record.' },
+  { icon: Users, title: '360° client view', body: 'Households, policies, documents, tasks and history in one record.' },
   { icon: ShieldCheck, title: 'Policy management', body: 'Auto, home, renters, life, business and umbrella with carriers and coverage.' },
   { icon: BellRing, title: 'Automated renewals', body: 'Tiered reminders so nothing lapses without you knowing first.' },
   { icon: TrendingUp, title: 'Commission tracking', body: 'Premium and commission by policy, carrier and producing agent.' },

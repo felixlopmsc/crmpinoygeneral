@@ -25,6 +25,8 @@ interface Scopeable<Q> {
   is(column: string, value: null): Q;
   not(column: string, operator: string, value: unknown): Q;
   gte(column: string, value: string): Q;
+  lt(column: string, value: string): Q;
+  or(filters: string): Q;
   ilike(column: string, pattern: string): Q;
 }
 
@@ -59,6 +61,39 @@ export function activePolicyScope<Q extends Scopeable<Q>>(query: Q, today: strin
 /** Policies not soft-deleted, without the active/expiry conditions. */
 export function livePolicyScope<Q extends Scopeable<Q>>(query: Q): Q {
   return query.is('deleted_at', null);
+}
+
+/** Task statuses that still need doing. Cancelled is the soft delete. */
+export const OPEN_TASK_STATUSES = ['To Do', 'In Progress'] as const;
+
+/**
+ * Tasks that are not done and not removed.
+ *
+ * Written as an or() of equalities rather than in(): PostgrestFilterBuilder's
+ * `in` is generic over the row type and makes `Q extends Scopeable<Q>` blow
+ * past TypeScript's instantiation depth for the head-count builders every
+ * badge hook uses. or() takes a plain string and stays cheap.
+ */
+export function openTaskScope<Q extends Scopeable<Q>>(query: Q): Q {
+  return query.or(OPEN_TASK_STATUSES.map((s) => `status.eq.${s}`).join(','));
+}
+
+/**
+ * Open tasks that are overdue or due today — the number on the sidebar
+ * badge, and the same number the Tasks page shows on its Overdue and Today
+ * groups. `endOfToday` is the local-midnight boundary as an ISO timestamp,
+ * passed in so the badge hook and the page compute it once and agree; a
+ * due_date strictly before it is either earlier today or in the past.
+ */
+export function tasksNeedingAttentionScope<Q extends Scopeable<Q>>(query: Q, endOfToday: string): Q {
+  return openTaskScope(query).lt('due_date', endOfToday);
+}
+
+/** Local midnight at the end of today as an ISO timestamp. */
+export function isoEndOfToday(now: Date = new Date()): string {
+  const d = new Date(now);
+  d.setHours(24, 0, 0, 0);
+  return d.toISOString();
 }
 
 /** Today as an ISO date (YYYY-MM-DD), matching Postgres current_date. */

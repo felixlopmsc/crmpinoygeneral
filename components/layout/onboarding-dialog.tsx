@@ -218,7 +218,7 @@ export default function OnboardingDialog({ open, onComplete }: OnboardingDialogP
                 </div>
                 <div>
                   <p className="text-sm font-medium">Client 360 View</p>
-                  <p className="text-xs text-muted-foreground">Policies, activities, claims, documents - all in one place</p>
+                  <p className="text-xs text-muted-foreground">Policies, activities, tasks, documents - all in one place</p>
                 </div>
               </div>
               <div className="flex flex-wrap gap-1.5 mt-2">

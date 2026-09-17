@@ -439,6 +439,53 @@ accepted deferral, so do not "fix" it silently.
 
 ---
 
+### Claims is gone from the UI, on purpose (2026-09-17)
+
+The agency directs clients to their carrier for claims, so the CRM no longer
+has a Claims page, sidebar entry, client-detail tab, report metric or
+tutorial item, and `/claims` redirects to `/dashboard` (next.config.js). The
+`public.claims` table and its RLS are untouched — nothing in either app reads
+or writes it now, but it holds history and dropping it is a separate decision.
+Do not re-add a claims surface without asking; "Claim Form" remains a
+document type because clients still send those in.
+
+### Client pickers search the database — never list every client
+
+`components/forms/client-combobox.tsx` is the one client picker. It queries
+`clients` as you type (first/last/email, either word order) and shows 25
+matches, so it is the same at 100 households or 10,000. The old `<Select>`
+pattern silently capped at the first 100 names alphabetically — an upload for
+a client past "C" could not be filed at all. Use the combobox in any new form
+that needs a client; do not preload a `clients` array into a page for a
+dropdown.
+
+### Tasks and Activities counters — one scope, one number
+
+The sidebar badge on **Tasks** is `tasksNeedingAttentionScope` in
+`lib/scopes.ts` (open tasks due before local end-of-today, i.e. overdue + due
+today). The Tasks page derives its Overdue and Today groups from the same
+open-task query, so the badge and the page agree by construction; the page
+fires `TASKS_CHANGED_EVENT` after every mutation so the badge moves without a
+navigation. Quick-add on the page creates a task due today for that reason —
+it should land on the badge immediately.
+
+The badge on **Activities** is Slack's unread model: activities created by
+*someone else* since this viewer last opened the feed. The high-water mark is
+per browser in localStorage (`lib/activity-seen.ts`, key
+`pgi-activities-seen:<userId>`); first visit on a browser counts the last 24h.
+Opening the Activities page advances the mark and dispatches
+`ACTIVITIES_SEEN_EVENT`, which clears the badge. Own entries never count,
+so a single-user install shows this badge only for trigger-created rows.
+
+### Quote requests can be removed in bulk
+
+The inbox table has row checkboxes and a select-all; "Remove selected" is
+two-step (arm, then a crimson confirm per the Crimson Reserve) and issues one
+`UPDATE ... SET deleted_at` over the checked ids. Like the drawer's single
+remove, it `select()`s on the write and reports honestly when RLS lets fewer
+rows through than were asked for. Nothing is hard-deleted; clearing
+`deleted_at` restores a row.
+
 ## Environment
 
 Felix works on Windows. Claude Code's shell is **bash (git-bash), not

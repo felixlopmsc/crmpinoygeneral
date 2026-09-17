@@ -13,6 +13,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { toast } from 'sonner';
@@ -30,6 +31,7 @@ import {
   Link2,
   Paperclip,
   Trash2,
+  X,
 } from 'lucide-react';
 
 type FilterKey = 'all' | 'New' | 'Contacted' | 'Quoted' | 'Won' | 'Lost';
@@ -391,6 +393,65 @@ export default function QuoteRequestsPage() {
     setAttaching(false);
   }
 
+  // Bulk removal from the list. Same soft delete as the drawer, applied to
+  // every checked row in one UPDATE; the selection is cleared on any filter
+  // change so a stale tick can never remove something that is not on screen.
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [confirmingBulk, setConfirmingBulk] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+
+  useEffect(() => { setChecked(new Set()); setConfirmingBulk(false); }, [activeFilter]);
+
+  const visibleIds = quotes.map((q) => q.id);
+  const allChecked = visibleIds.length > 0 && visibleIds.every((id) => checked.has(id));
+  const someChecked = visibleIds.some((id) => checked.has(id));
+
+  function toggleAll() {
+    setConfirmingBulk(false);
+    setChecked(allChecked ? new Set() : new Set(visibleIds));
+  }
+
+  function toggleOne(id: string) {
+    setConfirmingBulk(false);
+    setChecked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  async function handleBulkDelete() {
+    const ids = visibleIds.filter((id) => checked.has(id));
+    if (ids.length === 0) return;
+    setBulkDeleting(true);
+
+    const { data, error: delError } = await supabase
+      .from('quote_requests')
+      .update({ deleted_at: new Date().toISOString() })
+      .in('id', ids)
+      .select('id');
+
+    setBulkDeleting(false);
+
+    if (delError) {
+      toast.error(friendlyError(delError, { action: 'remove these quote requests' }));
+      return;
+    }
+    const removed = data?.length ?? 0;
+    if (removed === 0) {
+      toast.error(NOT_PERMITTED);
+      return;
+    }
+    toast.success(removed === ids.length
+      ? `${removed} quote request${removed === 1 ? '' : 's'} removed`
+      : `${removed} of ${ids.length} removed — the rest were not permitted`);
+    setChecked(new Set());
+    setConfirmingBulk(false);
+    if (selected && ids.includes(selected.id)) setSelected(null);
+    loadQuotes();
+    loadCounts();
+  }
+
   const coverage = selected ? resolveCoverageColumn(selected) : null;
 
   return (
@@ -414,6 +475,34 @@ export default function QuoteRequestsPage() {
           </button>
         ))}
       </div>
+
+      {someChecked && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#1B2A4A]/[0.15] bg-[#1B2A4A]/[0.04] px-3 py-2">
+          <span className="text-sm font-medium text-[#1B2A4A]">
+            {checked.size} selected
+          </span>
+          <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs text-muted-foreground" onClick={() => { setChecked(new Set()); setConfirmingBulk(false); }}>
+            <X className="h-3.5 w-3.5" /> Clear
+          </Button>
+          <div className="ml-auto flex items-center gap-2">
+            {confirmingBulk ? (
+              <>
+                <span className="text-xs text-muted-foreground">Remove {checked.size} from the inbox?</span>
+                <Button size="sm" variant="outline" className="h-8" onClick={() => setConfirmingBulk(false)} disabled={bulkDeleting}>
+                  Keep them
+                </Button>
+                <Button size="sm" className="h-8 bg-[#8B2D3B] text-white hover:bg-[#6E2330]" onClick={handleBulkDelete} disabled={bulkDeleting}>
+                  <Trash2 className="mr-1.5 h-3.5 w-3.5" /> {bulkDeleting ? 'Removing…' : `Yes, remove ${checked.size}`}
+                </Button>
+              </>
+            ) : (
+              <Button size="sm" variant="outline" className="h-8" onClick={() => setConfirmingBulk(true)}>
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Remove selected
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
 
       <Card>
         <CardContent className="p-0">
@@ -453,6 +542,13 @@ export default function QuoteRequestsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-gray-50/80">
+                    <th className="w-10 px-3 py-3">
+                      <Checkbox
+                        checked={allChecked ? true : someChecked ? 'indeterminate' : false}
+                        onCheckedChange={toggleAll}
+                        aria-label="Select all quote requests on this page"
+                      />
+                    </th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Received</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Name</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Coverage</th>
@@ -469,13 +565,21 @@ export default function QuoteRequestsPage() {
                     <tr
                       key={q.id}
                       onClick={() => { setConfirmingDelete(false); setSelected(q); }}
-                      className="cursor-pointer hover:bg-gray-50/60 transition-colors"
+                      className={`cursor-pointer transition-colors hover:bg-gray-50/60 ${checked.has(q.id) ? 'bg-[#1B2A4A]/[0.04]' : ''}`}
                     >
                       <td
-                        className={`px-4 py-3 text-gray-500 whitespace-nowrap border-l-2 ${
+                        className={`w-10 px-3 py-3 border-l-2 ${
                           q.status === 'New' ? 'border-[#B8962E]' : 'border-transparent'
                         }`}
+                        onClick={(e) => e.stopPropagation()}
                       >
+                        <Checkbox
+                          checked={checked.has(q.id)}
+                          onCheckedChange={() => toggleOne(q.id)}
+                          aria-label={`Select ${fullName(q)}`}
+                        />
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
                         {formatDistanceToNow(new Date(q.created_at), { addSuffix: true })}
                       </td>
                       <td className="px-4 py-3 font-medium text-gray-900 max-w-[160px] truncate">{fullName(q)}</td>

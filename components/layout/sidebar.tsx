@@ -15,7 +15,6 @@ import {
   DollarSign,
   Activity,
   SquareCheck as CheckSquare,
-  Shield,
   FolderOpen,
   Mail,
   MessageSquare,
@@ -32,6 +31,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useNewMessagesCount } from '@/hooks/use-new-messages-count';
 import { useNewQuoteRequestsCount } from '@/hooks/use-new-quote-requests-count';
 import { useNewDemoRequestsCount } from '@/hooks/use-new-demo-requests-count';
+import { useOpenTasksCount } from '@/hooks/use-open-tasks-count';
+import { useNewActivitiesCount } from '@/hooks/use-new-activities-count';
 import { useAuth } from '@/lib/auth-context';
 import { isStaffUser } from '@/lib/is-staff';
 import { DEMO_MODE } from '@/lib/supabase';
@@ -79,7 +80,6 @@ const navGroups: NavGroup[] = [
       { href: '/messages', label: 'Messages', icon: MessageSquare },
       { href: '/activities', label: 'Activities', icon: Activity },
       { href: '/tasks', label: 'Tasks', icon: CheckSquare },
-      { href: '/claims', label: 'Claims', icon: Shield },
       { href: '/documents', label: 'Documents', icon: FolderOpen },
       { href: '/campaigns', label: 'Campaigns', icon: Mail },
     ],
@@ -112,6 +112,10 @@ export default function Sidebar() {
   const newMessagesCount = useNewMessagesCount();
   const newQuoteRequestsCount = useNewQuoteRequestsCount();
   const newDemoRequestsCount = useNewDemoRequestsCount();
+  // Slack-style counters: Tasks is what needs doing today (overdue + due
+  // today), Activities is what others logged since this viewer last looked.
+  const openTasksCount = useOpenTasksCount();
+  const newActivitiesCount = useNewActivitiesCount();
   const { user } = useAuth();
   const staff = isStaffUser(user);
 
@@ -174,6 +178,8 @@ export default function Sidebar() {
                     item.href === '/messages' ? newMessagesCount
                     : item.href === '/quote-requests' ? newQuoteRequestsCount
                     : item.href === '/demo-requests' ? newDemoRequestsCount
+                    : item.href === '/tasks' ? openTasksCount
+                    : item.href === '/activities' ? newActivitiesCount
                     : 0;
                   const linkContent = (
                     <Link
