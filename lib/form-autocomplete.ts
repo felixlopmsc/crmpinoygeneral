@@ -30,22 +30,6 @@ export function formatZipInput(value: string): string {
   return value.replace(/\D/g, '').slice(0, 5);
 }
 
-export const CLAIM_TYPE_BY_POLICY: Record<string, string[]> = {
-  Auto: ['Auto Accident', 'Hit & Run', 'Theft', 'Vandalism', 'Weather Damage', 'Glass/Windshield', 'Other'],
-  Home: ['Property Damage', 'Water Damage', 'Fire', 'Theft', 'Liability', 'Weather/Storm', 'Other'],
-  Renters: ['Personal Property', 'Theft', 'Water Damage', 'Liability', 'Other'],
-  Business: ['Property Damage', 'Liability', 'Workers Comp', 'Business Interruption', 'Theft', 'Other'],
-  Life: ['Death Benefit', 'Accidental Death', 'Other'],
-  Umbrella: ['Liability', 'Excess Claim', 'Other'],
-};
-
-export function generateClaimNumber(policyType: string): string {
-  const prefix = policyType ? policyType.slice(0, 3).toUpperCase() : 'CLM';
-  const year = new Date().getFullYear().toString().slice(-2);
-  const random = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
-  return `${prefix}-${year}-${random}`;
-}
-
 export interface TaskSuggestion {
   title: string;
   description: string;

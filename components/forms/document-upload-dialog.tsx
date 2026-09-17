@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ClientCombobox } from '@/components/forms/client-combobox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { Upload, FileText, CircleCheck as CheckCircle2, Circle as XCircle, Trash2, File, Image, FileSpreadsheet, X } from 'lucide-react';
@@ -67,12 +68,10 @@ export function DocumentUploadDialog({
   open,
   onOpenChange,
   onComplete,
-  clients,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onComplete: () => void;
-  clients: { id: string; first_name: string; last_name: string }[];
 }) {
   const [files, setFiles] = useState<QueuedFile[]>([]);
   const [defaultClientId, setDefaultClientId] = useState('');
@@ -224,22 +223,15 @@ export function DocumentUploadDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-xs">Default Client</Label>
-              <Select
-                value={defaultClientId || 'none'}
-                onValueChange={(v) => {
-                  const clientId = v === 'none' ? '' : v;
+              <ClientCombobox
+                value={defaultClientId}
+                placeholder="Type a client name…"
+                noneLabel="Select client"
+                onChange={(clientId) => {
                   setDefaultClientId(clientId);
                   setFiles((prev) => prev.map((f) => f.status === 'pending' ? { ...f, clientId: f.clientId || clientId } : f));
                 }}
-              >
-                <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Select client</SelectItem>
-                  {clients.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.first_name} {c.last_name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Default Document Type</Label>
@@ -322,20 +314,14 @@ export function DocumentUploadDialog({
 
                         {qf.status === 'pending' && (
                           <div className="flex gap-2">
-                            <Select
-                              value={qf.clientId || 'none'}
-                              onValueChange={(v) => updateFile(qf.id, { clientId: v === 'none' ? '' : v })}
-                            >
-                              <SelectTrigger className="h-7 text-[10px] w-[140px]">
-                                <SelectValue placeholder="Client" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="none">Select client</SelectItem>
-                                {clients.map((c) => (
-                                  <SelectItem key={c.id} value={c.id}>{c.first_name} {c.last_name}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <ClientCombobox
+                              value={qf.clientId}
+                              size="sm"
+                              className="w-[180px]"
+                              placeholder="Client"
+                              noneLabel="Select client"
+                              onChange={(clientId) => updateFile(qf.id, { clientId })}
+                            />
                             <Select
                               value={qf.documentType}
                               onValueChange={(v) => updateFile(qf.id, { documentType: v })}

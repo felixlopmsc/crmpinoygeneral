@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import { formatCurrency, formatDate, formatDateTime, formatPhone, formatRelativeDate, getInitials, daysUntil } from '@/lib/format';
-import type { Client, Policy, Activity, Deal, Task, Claim } from '@/lib/types';
+import type { Client, Policy, Activity, Deal, Task } from '@/lib/types';
 import { POLICY_TYPES, CARRIERS } from '@/lib/types';
 import { SmartPolicyForm } from '@/components/forms/smart-policy-form';
 import { TaskTemplateDialog } from '@/components/forms/task-template-dialog';
@@ -21,8 +21,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { LinkedQuoteRequests } from '@/components/quote/linked-quote-requests';
 import { ArrowLeft, Phone, Mail, MapPin, Calendar, Plus, Zap, FileText, TrendingUp, Shield, SquareCheck as CheckSquare, Clock, TriangleAlert as AlertTriangle, ExternalLink, StickyNote, CalendarPlus, Menu, DollarSign, Target, RefreshCw, Pencil } from 'lucide-react';
 import { Select as StatusSelect, SelectContent as StatusSelectContent, SelectItem as StatusSelectItem, SelectTrigger as StatusSelectTrigger, SelectValue as StatusSelectValue } from '@/components/ui/select';
+import { friendlyError } from '@/lib/errors';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,7 +55,6 @@ export default function ClientProfilePage() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [claims, setClaims] = useState<(Claim & { policy?: Policy })[]>([]);
   const [loading, setLoading] = useState(true);
   const [showActivityForm, setShowActivityForm] = useState(false);
   const [showNoteForm, setShowNoteForm] = useState(false);
@@ -68,13 +69,12 @@ export default function ClientProfilePage() {
   }, [id]);
 
   async function loadClient() {
-    const [clientRes, policiesRes, activitiesRes, dealsRes, tasksRes, claimsRes, crossSellRes] = await Promise.all([
+    const [clientRes, policiesRes, activitiesRes, dealsRes, tasksRes, crossSellRes] = await Promise.all([
       supabase.from('clients').select('*').eq('id', id).maybeSingle(),
       supabase.from('policies').select('*').eq('client_id', id).is('deleted_at', null).order('expiration_date', { ascending: false }),
       supabase.from('activities').select('*').eq('client_id', id).order('activity_date', { ascending: false }).limit(20),
       supabase.from('deals').select('*').eq('client_id', id).order('created_at', { ascending: false }),
       supabase.from('tasks').select('*').eq('related_client_id', id).order('due_date', { ascending: true }),
-      supabase.from('claims').select('*, policy:policies(id, policy_number, policy_type, carrier)').eq('client_id', id).order('claim_date', { ascending: false }),
       supabase.from('cross_sell_opportunities').select('*').eq('client_id', id).eq('status', 'open').order('estimated_value', { ascending: false }),
     ]);
 
@@ -83,7 +83,6 @@ export default function ClientProfilePage() {
     setActivities(activitiesRes.data || []);
     setDeals(dealsRes.data || []);
     setTasks(tasksRes.data || []);
-    setClaims((claimsRes.data as any) || []);
     setCrossSellOpps(crossSellRes.data || []);
     setLoading(false);
   }
@@ -376,13 +375,17 @@ export default function ClientProfilePage() {
         </div>
       </div>
 
+      {/* Above the tabs rather than inside one: it is collapsed, so it
+          costs a single row when unused, and a client quoted from the
+          website has this data nowhere else in the CRM. */}
+      <LinkedQuoteRequests clientId={client.id} />
+
       <Tabs defaultValue="policies">
         <TabsList className="w-full justify-start overflow-x-auto">
           <TabsTrigger value="policies" className="gap-1"><FileText className="h-3.5 w-3.5" /> Policies ({policies.length})</TabsTrigger>
           <TabsTrigger value="activities" className="gap-1"><Clock className="h-3.5 w-3.5" /> Activities ({activities.length})</TabsTrigger>
           <TabsTrigger value="deals" className="gap-1"><TrendingUp className="h-3.5 w-3.5" /> Deals ({deals.length})</TabsTrigger>
           <TabsTrigger value="tasks" className="gap-1"><CheckSquare className="h-3.5 w-3.5" /> Tasks ({tasks.length})</TabsTrigger>
-          <TabsTrigger value="claims" className="gap-1"><Shield className="h-3.5 w-3.5" /> Claims ({claims.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="policies" className="mt-4">
@@ -544,37 +547,6 @@ export default function ClientProfilePage() {
             </div>
           )}
         </TabsContent>
-
-        <TabsContent value="claims" className="mt-4">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="font-semibold">Claims</h3>
-            <Button size="sm" asChild className="bg-gradient-to-r from-[#2C3E6B] to-[#1B2A4A] hover:from-[#1B2A4A] hover:to-[#2C3E6B] text-white border border-[#B8962E]/20">
-              <Link href={`/claims?new=true&client=${client.id}`}>
-                <Plus className="mr-1 h-3.5 w-3.5" /> File Claim
-              </Link>
-            </Button>
-          </div>
-          {claims.length === 0 ? (
-            <Card><CardContent className="py-8 text-center text-sm text-muted-foreground">No claims filed</CardContent></Card>
-          ) : (
-            <div className="space-y-2">
-              {claims.map((claim) => (
-                <Card key={claim.id}>
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium">{claim.claim_type} {claim.claim_number && `- #${claim.claim_number}`}</p>
-                      <p className="text-xs text-muted-foreground">{formatDate(claim.claim_date)} - {(claim.policy as any)?.carrier}</p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="font-semibold">{formatCurrency(claim.claim_amount)}</p>
-                      <Badge variant="secondary" className="text-[10px]">{claim.status}</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
       </Tabs>
 
       <ActivityFormDialog
@@ -642,7 +614,7 @@ function ActivityFormDialog({ open, onOpenChange, clientId, userId, onSaved }: {
       activity_date: new Date().toISOString(),
       created_by: userId,
     });
-    if (error) toast.error(error.message);
+    if (error) toast.error(friendlyError(error));
     else { toast.success('Activity logged'); onOpenChange(false); setForm({ activity_type: 'Call', subject: '', description: '' }); onSaved(); }
     setSaving(false);
   };
@@ -739,7 +711,7 @@ function TaskFormDialog({ open, onOpenChange, clientId, userId, onSaved }: { ope
       assigned_to: userId,
       created_by: userId,
     });
-    if (error) { toast.error(error.message); }
+    if (error) { toast.error(friendlyError(error)); }
     else {
       await supabase.from('activities').insert({
         client_id: clientId,

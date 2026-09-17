@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { UserPlus, RefreshCw, Send, Search, ChevronRight, ArrowLeft, Calendar, Zap, Loader as Loader2, SquareCheck as CheckSquare } from 'lucide-react';
+import { friendlyError } from '@/lib/errors';
 
 const templateIcons: Record<string, any> = {
   UserPlus,
@@ -161,7 +162,7 @@ export function TaskTemplateDialog({ open, onOpenChange, clientId, userId, onSav
     const { error } = await supabase.from('tasks').insert(tasksToInsert);
 
     if (error) {
-      toast.error(error.message);
+      toast.error(friendlyError(error));
     } else {
       toast.success(`Created ${tasksToInsert.length} tasks from "${selectedTemplate.name}"`);
       onOpenChange(false);

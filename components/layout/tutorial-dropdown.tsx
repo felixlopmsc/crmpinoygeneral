@@ -69,14 +69,8 @@ const tutorialSections = [
     color: 'text-emerald-600 bg-emerald-50',
     items: [
       {
-        title: 'Claims Management',
-        description: 'File and track insurance claims with adjuster details, amounts, and resolution tracking.',
-        link: '/claims',
-        icon: Shield,
-      },
-      {
         title: 'Client 360 View',
-        description: 'Click any client to see all their policies, activities, claims, and documents in one place.',
+        description: 'Click any client to see all their policies, activities, tasks, and documents in one place.',
         link: '/clients',
         icon: Users,
       },

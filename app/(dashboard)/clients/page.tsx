@@ -25,6 +25,8 @@ import { getInitials } from '@/lib/format';
 import { formatPhoneInput, formatZipInput, US_STATES } from '@/lib/form-autocomplete';
 import { BulkClientImportDialog } from '@/components/forms/bulk-client-import';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { friendlyError } from '@/lib/errors';
+import { activePolicyScope, livePolicyScope } from '@/lib/scopes';
 
 const statusColors: Record<string, string> = {
   Lead: 'bg-blue-100 text-blue-700',
@@ -138,12 +140,12 @@ export default function ClientsPage() {
 
     const [hotLeadsRes, expiringRes, allClientsRes, activitiesRes, highValueRes, crossSellRes, policiesRes, fromLeadsRes] = await Promise.all([
       supabase.from('clients').select('id').eq('status', 'Lead').gte('created_at', sevenDaysAgo),
-      supabase.from('policies').select('client_id').ilike('status', 'Active').gte('expiration_date', today).lte('expiration_date', sixtyDaysFromNow),
+      activePolicyScope(supabase.from('policies').select('client_id'), today).lte('expiration_date', sixtyDaysFromNow),
       supabase.from('clients').select('id, phone, email, address_street, created_at, status'),
       supabase.from('activities').select('client_id, activity_date').order('activity_date', { ascending: false }),
-      supabase.from('policies').select('client_id, annual_premium').ilike('status', 'Active'),
+      livePolicyScope(supabase.from('policies').select('client_id, annual_premium')).ilike('status', 'Active'),
       supabase.from('cross_sell_opportunities').select('client_id').eq('status', 'open'),
-      supabase.from('policies').select('client_id, policy_type').ilike('status', 'Active'),
+      livePolicyScope(supabase.from('policies').select('client_id, policy_type')).ilike('status', 'Active'),
       supabase.from('clients').select('id').not('source_lead_id', 'is', null),
     ]);
 
@@ -228,9 +230,9 @@ export default function ClientsPage() {
 
     let policyFilterIds: Set<string> | null = null;
     if (policyTypeFilter !== 'all') {
-      const { data: ptData } = await supabase
-        .from('policies')
-        .select('client_id')
+      const { data: ptData } = await livePolicyScope(
+        supabase.from('policies').select('client_id'),
+      )
         .eq('policy_type', policyTypeFilter)
         .ilike('status', 'Active');
       policyFilterIds = new Set((ptData || []).map((p: any) => p.client_id));
@@ -356,7 +358,7 @@ export default function ClientsPage() {
 
     const { error } = await supabase.from('clients').delete().in('id', ids);
     if (error) {
-      toast.error(`Failed to delete: ${error.message}`);
+      toast.error(friendlyError(error, { action: 'delete those clients' }));
       setBulkActionLoading(false);
       setShowDeleteConfirm(false);
       return;
@@ -417,7 +419,7 @@ export default function ClientsPage() {
       .update({ status: bulkStatus, updated_at: new Date().toISOString() })
       .in('id', ids);
     if (error) {
-      toast.error(`Failed to update: ${error.message}`);
+      toast.error(friendlyError(error, { action: 'update those clients' }));
     } else {
       toast.success(`${ids.length} client${ids.length > 1 ? 's' : ''} moved to ${bulkStatus}`);
       setSelectedIds(new Set());
@@ -459,7 +461,7 @@ export default function ClientsPage() {
         .update({ ...formData, updated_at: new Date().toISOString() })
         .eq('id', editingClient.id);
       if (error) {
-        toast.error(error.message);
+        toast.error(friendlyError(error));
         return;
       }
       toast.success('Client updated');
@@ -475,7 +477,7 @@ export default function ClientsPage() {
         assigned_agent_id: agentId,
       });
       if (error) {
-        toast.error(error.message);
+        toast.error(friendlyError(error));
         return;
       }
       toast.success('Client created');

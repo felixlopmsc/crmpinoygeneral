@@ -17,8 +17,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ClientCombobox } from '@/components/forms/client-combobox';
 import { toast } from 'sonner';
 import { Plus, GripVertical, List, LayoutGrid } from 'lucide-react';
+import { friendlyError } from '@/lib/errors';
 
 const stageBgColors: Record<string, string> = {
   'New Lead': 'bg-blue-50',
@@ -33,7 +35,6 @@ export default function DealsPage() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const [deals, setDeals] = useState<(Deal & { client: Client })[]>([]);
-  const [clients, setClients] = useState<Pick<Client, 'id' | 'first_name' | 'last_name'>[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(searchParams.get('new') === 'true');
   const [view, setView] = useState<'kanban' | 'list'>('kanban');
@@ -49,14 +50,6 @@ export default function DealsPage() {
 
   useEffect(() => { loadDeals(); }, [loadDeals]);
 
-  useEffect(() => {
-    if (showForm) {
-      supabase.from('clients').select('id, first_name, last_name').order('first_name').then(({ data }) => {
-        setClients(data || []);
-      });
-    }
-  }, [showForm]);
-
   const handleStageChange = async (dealId: string, newStage: string) => {
     const probability = STAGE_PROBABILITIES[newStage] ?? 0;
     const status = newStage === 'Closed Won' ? 'Won' : newStage === 'Closed Lost' ? 'Lost' : 'Open';
@@ -71,7 +64,7 @@ export default function DealsPage() {
       assigned_agent_id: user?.id,
       probability: STAGE_PROBABILITIES[formData.stage] ?? 10,
     });
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(friendlyError(error)); return; }
     toast.success('Deal created');
     setShowForm(false);
     loadDeals();
@@ -187,13 +180,13 @@ export default function DealsPage() {
         </Card>
       )}
 
-      <DealFormDialog open={showForm} onOpenChange={setShowForm} clients={clients} onSave={handleSave} preselectedClientId={searchParams.get('client') || ''} />
+      <DealFormDialog open={showForm} onOpenChange={setShowForm} onSave={handleSave} preselectedClientId={searchParams.get('client') || ''} />
     </div>
   );
 }
 
-function DealFormDialog({ open, onOpenChange, clients, onSave, preselectedClientId }: {
-  open: boolean; onOpenChange: (o: boolean) => void; clients: Pick<Client, 'id' | 'first_name' | 'last_name'>[]; onSave: (data: any) => Promise<void>; preselectedClientId: string;
+function DealFormDialog({ open, onOpenChange, onSave, preselectedClientId }: {
+  open: boolean; onOpenChange: (o: boolean) => void; onSave: (data: any) => Promise<void>; preselectedClientId: string;
 }) {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -219,13 +212,12 @@ function DealFormDialog({ open, onOpenChange, clients, onSave, preselectedClient
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <Label>Client</Label>
-            <Select value={form.client_id || 'none'} onValueChange={(v) => setForm({ ...form, client_id: v === 'none' ? '' : v })}>
-              <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Select client</SelectItem>
-                {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.first_name} {c.last_name}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <ClientCombobox
+              value={form.client_id}
+              placeholder="Type a client name…"
+              noneLabel="Select client"
+              onChange={(id) => setForm({ ...form, client_id: id })}
+            />
           </div>
           <div className="space-y-1.5"><Label>Title</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Auto Insurance Quote" required /></div>
           <div className="grid grid-cols-2 gap-3">

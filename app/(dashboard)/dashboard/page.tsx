@@ -36,6 +36,7 @@ import { CrossSellWidget } from '@/components/dashboard/cross-sell-widget';
 import { NewMessagesWidget } from '@/components/dashboard/new-messages-widget';
 import { NewQuoteRequestsWidget } from '@/components/dashboard/new-quote-requests-widget';
 import { useActivePolicyCount } from '@/hooks/use-active-policy-count';
+import { activePolicyScope, isoToday } from '@/lib/scopes';
 import { useClientCounts } from '@/hooks/use-client-counts';
 
 interface DashboardStats {
@@ -90,6 +91,8 @@ export default function DashboardPage() {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59).toISOString();
+    // One date for both periods, so the two counts can't straddle a midnight.
+    const today = isoToday(now);
 
     const [
       policiesRes,
@@ -101,7 +104,12 @@ export default function DashboardPage() {
       dealsLastMonthRes,
       commissionsLastMonthRes,
     ] = await Promise.all([
-      supabase.from('policies').select('id', { count: 'exact', head: true }).ilike('status', 'Active'),
+      // Scoped identically to useActivePolicyCount()'s RPC so the card's
+      // number and its trend arrow describe the same population.
+      activePolicyScope(
+        supabase.from('policies').select('id', { count: 'exact', head: true }),
+        today,
+      ),
       supabase.from('deals').select('*').eq('status', 'Open'),
       supabase.from('commissions').select('commission_amount').eq('payment_status', 'Pending'),
       supabase
@@ -115,7 +123,10 @@ export default function DashboardPage() {
         .select('*, client:clients(id, first_name, last_name)')
         .order('activity_date', { ascending: false })
         .limit(10),
-      supabase.from('policies').select('id', { count: 'exact', head: true }).ilike('status', 'Active').lte('created_at', endOfLastMonth),
+      activePolicyScope(
+        supabase.from('policies').select('id', { count: 'exact', head: true }),
+        today,
+      ).lte('created_at', endOfLastMonth),
       supabase.from('deals').select('value').eq('status', 'Open').lte('created_at', endOfLastMonth),
       supabase.from('commissions').select('commission_amount').eq('payment_status', 'Pending').lte('created_at', endOfLastMonth),
     ]);

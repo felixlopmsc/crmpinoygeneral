@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { Plus, Mail, Send, Eye, MousePointer, Users, CreditCard as Edit, Trash2 } from 'lucide-react';
+import { friendlyError } from '@/lib/errors';
 
 const statusColors: Record<string, string> = {
   Draft: 'bg-gray-100 text-gray-700',
@@ -47,11 +48,11 @@ export default function CampaignsPage() {
   const handleSave = async (formData: Partial<EmailCampaign>) => {
     if (editingCampaign) {
       const { error } = await supabase.from('email_campaigns').update(formData).eq('id', editingCampaign.id);
-      if (error) { toast.error(error.message); return; }
+      if (error) { toast.error(friendlyError(error)); return; }
       toast.success('Campaign updated');
     } else {
       const { error } = await supabase.from('email_campaigns').insert({ ...formData, created_by: user?.id });
-      if (error) { toast.error(error.message); return; }
+      if (error) { toast.error(friendlyError(error)); return; }
       toast.success('Campaign created');
     }
     setShowForm(false);

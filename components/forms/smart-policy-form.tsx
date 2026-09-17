@@ -24,6 +24,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
+import { friendlyError } from '@/lib/errors';
+import { livePolicyScope } from '@/lib/scopes';
 import {
   Car,
   Chrome as Home,
@@ -256,9 +258,9 @@ export function SmartPolicyForm({ open, onOpenChange, clientId, userId, onSaved 
     setStep('copy-picker');
 
     const resolvedClientId = clientId || form.client_id;
-    let query = supabase
-      .from('policies')
-      .select('*, client:clients(id, first_name, last_name, email)')
+    let query = livePolicyScope(
+      supabase.from('policies').select('*, client:clients(id, first_name, last_name, email)'),
+    )
       .order('created_at', { ascending: false })
       .limit(50);
 
@@ -356,7 +358,7 @@ export function SmartPolicyForm({ open, onOpenChange, clientId, userId, onSaved 
       notes: form.notes,
       assigned_agent_id: userId,
     });
-    if (error) toast.error(error.message);
+    if (error) toast.error(friendlyError(error));
     else {
       toast.success('Policy created');
       onOpenChange(false);

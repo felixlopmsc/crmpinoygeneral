@@ -30,7 +30,6 @@ const typeColors: Record<string, string> = {
 export default function DocumentsPage() {
   const { session } = useAuth();
   const [documents, setDocuments] = useState<(Document & { client?: any })[]>([]);
-  const [clients, setClients] = useState<{ id: string; first_name: string; last_name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -58,15 +57,7 @@ export default function DocumentsPage() {
     setLoading(false);
   }, [search, typeFilter]);
 
-  const loadClients = useCallback(async () => {
-    const { data } = await supabase
-      .from('clients')
-      .select('id, first_name, last_name')
-      .order('first_name');
-    setClients(data || []);
-  }, []);
-
-  useEffect(() => { loadDocuments(); loadClients(); }, [loadDocuments, loadClients]);
+  useEffect(() => { loadDocuments(); }, [loadDocuments]);
 
   const handleDelete = async (doc: Document & { client?: any }) => {
     const { error } = await supabase.from('documents').delete().eq('id', doc.id);
@@ -207,7 +198,6 @@ export default function DocumentsPage() {
         open={showUpload}
         onOpenChange={setShowUpload}
         onComplete={loadDocuments}
-        clients={clients}
       />
     </div>
   );

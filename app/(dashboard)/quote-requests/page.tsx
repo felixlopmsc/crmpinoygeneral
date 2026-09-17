@@ -13,9 +13,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { toast } from 'sonner';
+import { quoteRequestInboxScope } from '@/lib/scopes';
+import { friendlyError, NOT_PERMITTED } from '@/lib/errors';
 import {
   Filter,
   Mail,
@@ -27,6 +30,8 @@ import {
   ExternalLink,
   Link2,
   Paperclip,
+  Trash2,
+  X,
 } from 'lucide-react';
 
 type FilterKey = 'all' | 'New' | 'Contacted' | 'Quoted' | 'Won' | 'Lost';
@@ -157,7 +162,11 @@ export default function QuoteRequestsPage() {
   const [creatingLead, setCreatingLead] = useState(false);
 
   const loadCounts = useCallback(async () => {
-    const base = () => supabase.from('quote_requests').select('id', { count: 'exact', head: true }).is('deleted_at', null);
+    // Internal/test submissions never appear in staff counts -- see is_test in
+    // supabase/migrations/20260825010000_quote_requests_is_test_and_contacted_at.sql
+    const base = () => quoteRequestInboxScope(
+      supabase.from('quote_requests').select('id', { count: 'exact', head: true }),
+    );
     const [allRes, newRes, contactedRes, quotedRes, wonRes, lostRes] = await Promise.all([
       base(),
       base().eq('status', 'New'),
@@ -179,11 +188,9 @@ export default function QuoteRequestsPage() {
   const loadQuotes = useCallback(async () => {
     setLoading(true);
     setError(false);
-    let query = supabase
-      .from('quote_requests')
-      .select('*')
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false });
+    let query = quoteRequestInboxScope(
+      supabase.from('quote_requests').select('*'),
+    ).order('created_at', { ascending: false });
     if (activeFilter !== 'all') query = query.eq('status', activeFilter);
 
     const { data, error: err } = await query.limit(200);
@@ -261,6 +268,42 @@ export default function QuoteRequestsPage() {
   function patchSelected(patch: Partial<QuoteRequest>) {
     setSelected((prev) => (prev ? { ...prev, ...patch } : prev));
     setQuotes((qs) => qs.map((q) => (selected && q.id === selected.id ? { ...q, ...patch } : q)));
+  }
+
+  // Soft delete: quote_requests already carries deleted_at and every list
+  // query filters on it, so clearing a row is an UPDATE the existing staff
+  // update policy already permits — no new delete grant, and a mistake is
+  // reversible by clearing the column. Two-step: the button arms, the second
+  // press commits.
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDelete() {
+    if (!selected) return;
+    setDeleting(true);
+
+    const { data, error: delError } = await supabase
+      .from('quote_requests')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', selected.id)
+      .select('id');
+
+    setDeleting(false);
+
+    if (delError) {
+      toast.error(friendlyError(delError, { action: 'remove this quote request' }));
+      return;
+    }
+    if (!data || data.length === 0) {
+      toast.error(NOT_PERMITTED);
+      return;
+    }
+
+    toast.success('Quote request removed');
+    setConfirmingDelete(false);
+    setSelected(null);
+    loadQuotes();
+    loadCounts();
   }
 
   async function handleStatusChange(newStatus: string) {
@@ -350,6 +393,65 @@ export default function QuoteRequestsPage() {
     setAttaching(false);
   }
 
+  // Bulk removal from the list. Same soft delete as the drawer, applied to
+  // every checked row in one UPDATE; the selection is cleared on any filter
+  // change so a stale tick can never remove something that is not on screen.
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [confirmingBulk, setConfirmingBulk] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+
+  useEffect(() => { setChecked(new Set()); setConfirmingBulk(false); }, [activeFilter]);
+
+  const visibleIds = quotes.map((q) => q.id);
+  const allChecked = visibleIds.length > 0 && visibleIds.every((id) => checked.has(id));
+  const someChecked = visibleIds.some((id) => checked.has(id));
+
+  function toggleAll() {
+    setConfirmingBulk(false);
+    setChecked(allChecked ? new Set() : new Set(visibleIds));
+  }
+
+  function toggleOne(id: string) {
+    setConfirmingBulk(false);
+    setChecked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  async function handleBulkDelete() {
+    const ids = visibleIds.filter((id) => checked.has(id));
+    if (ids.length === 0) return;
+    setBulkDeleting(true);
+
+    const { data, error: delError } = await supabase
+      .from('quote_requests')
+      .update({ deleted_at: new Date().toISOString() })
+      .in('id', ids)
+      .select('id');
+
+    setBulkDeleting(false);
+
+    if (delError) {
+      toast.error(friendlyError(delError, { action: 'remove these quote requests' }));
+      return;
+    }
+    const removed = data?.length ?? 0;
+    if (removed === 0) {
+      toast.error(NOT_PERMITTED);
+      return;
+    }
+    toast.success(removed === ids.length
+      ? `${removed} quote request${removed === 1 ? '' : 's'} removed`
+      : `${removed} of ${ids.length} removed — the rest were not permitted`);
+    setChecked(new Set());
+    setConfirmingBulk(false);
+    if (selected && ids.includes(selected.id)) setSelected(null);
+    loadQuotes();
+    loadCounts();
+  }
+
   const coverage = selected ? resolveCoverageColumn(selected) : null;
 
   return (
@@ -373,6 +475,34 @@ export default function QuoteRequestsPage() {
           </button>
         ))}
       </div>
+
+      {someChecked && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#1B2A4A]/[0.15] bg-[#1B2A4A]/[0.04] px-3 py-2">
+          <span className="text-sm font-medium text-[#1B2A4A]">
+            {checked.size} selected
+          </span>
+          <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs text-muted-foreground" onClick={() => { setChecked(new Set()); setConfirmingBulk(false); }}>
+            <X className="h-3.5 w-3.5" /> Clear
+          </Button>
+          <div className="ml-auto flex items-center gap-2">
+            {confirmingBulk ? (
+              <>
+                <span className="text-xs text-muted-foreground">Remove {checked.size} from the inbox?</span>
+                <Button size="sm" variant="outline" className="h-8" onClick={() => setConfirmingBulk(false)} disabled={bulkDeleting}>
+                  Keep them
+                </Button>
+                <Button size="sm" className="h-8 bg-[#8B2D3B] text-white hover:bg-[#6E2330]" onClick={handleBulkDelete} disabled={bulkDeleting}>
+                  <Trash2 className="mr-1.5 h-3.5 w-3.5" /> {bulkDeleting ? 'Removing…' : `Yes, remove ${checked.size}`}
+                </Button>
+              </>
+            ) : (
+              <Button size="sm" variant="outline" className="h-8" onClick={() => setConfirmingBulk(true)}>
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Remove selected
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
 
       <Card>
         <CardContent className="p-0">
@@ -412,6 +542,13 @@ export default function QuoteRequestsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-gray-50/80">
+                    <th className="w-10 px-3 py-3">
+                      <Checkbox
+                        checked={allChecked ? true : someChecked ? 'indeterminate' : false}
+                        onCheckedChange={toggleAll}
+                        aria-label="Select all quote requests on this page"
+                      />
+                    </th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Received</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Name</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Coverage</th>
@@ -427,14 +564,22 @@ export default function QuoteRequestsPage() {
                   {quotes.map((q) => (
                     <tr
                       key={q.id}
-                      onClick={() => setSelected(q)}
-                      className="cursor-pointer hover:bg-gray-50/60 transition-colors"
+                      onClick={() => { setConfirmingDelete(false); setSelected(q); }}
+                      className={`cursor-pointer transition-colors hover:bg-gray-50/60 ${checked.has(q.id) ? 'bg-[#1B2A4A]/[0.04]' : ''}`}
                     >
                       <td
-                        className={`px-4 py-3 text-gray-500 whitespace-nowrap border-l-2 ${
+                        className={`w-10 px-3 py-3 border-l-2 ${
                           q.status === 'New' ? 'border-[#B8962E]' : 'border-transparent'
                         }`}
+                        onClick={(e) => e.stopPropagation()}
                       >
+                        <Checkbox
+                          checked={checked.has(q.id)}
+                          onCheckedChange={() => toggleOne(q.id)}
+                          aria-label={`Select ${fullName(q)}`}
+                        />
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
                         {formatDistanceToNow(new Date(q.created_at), { addSuffix: true })}
                       </td>
                       <td className="px-4 py-3 font-medium text-gray-900 max-w-[160px] truncate">{fullName(q)}</td>
@@ -481,6 +626,16 @@ export default function QuoteRequestsPage() {
                 <p className="text-xs text-muted-foreground">
                   {selected.coverage_type || 'Quote'} · Received {formatDateTime(selected.created_at)}
                 </p>
+                {/* The drawer is for skimming. Rekeying into a carrier portal
+                    wants the full page: nothing truncated, every field
+                    individually copyable, and a window you can put side by
+                    side with Mercury or Progressive. */}
+                <Link
+                  href={`/quote-requests/${selected.id}`}
+                  className="inline-flex items-center gap-1 pt-1 text-xs font-medium text-[#1B2A4A] hover:underline"
+                >
+                  <ExternalLink className="h-3 w-3" /> Open full view for carrier entry
+                </Link>
               </SheetHeader>
 
               <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
@@ -671,6 +826,48 @@ export default function QuoteRequestsPage() {
                     {attaching ? 'Attaching...' : `Attach to ${clientMatches[0].first_name} ${clientMatches[0].last_name}`}
                   </Button>
                 ) : null}
+
+                {/* Destructive, so it sits apart from the actions above and
+                    stays quiet until armed. Crimson only on the confirm step. */}
+                <div className="border-t pt-3">
+                  {confirmingDelete ? (
+                    <div className="space-y-2">
+                      <p className="text-xs text-muted-foreground">
+                        Remove this quote request from the inbox? You can ask an administrator to
+                        restore it later.
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="flex-1"
+                          disabled={deleting}
+                          onClick={handleDelete}
+                        >
+                          {deleting ? 'Removing…' : 'Yes, remove it'}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1"
+                          disabled={deleting}
+                          onClick={() => setConfirmingDelete(false)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="w-full text-muted-foreground hover:text-destructive"
+                      onClick={() => setConfirmingDelete(true)}
+                    >
+                      <Trash2 className="mr-2 h-3.5 w-3.5" /> Remove from inbox
+                    </Button>
+                  )}
+                </div>
               </div>
             </>
           )}
