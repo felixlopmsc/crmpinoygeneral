@@ -19,6 +19,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { toast } from 'sonner';
 import { Plus, Shield, Filter, Zap, Info } from 'lucide-react';
 import { CLAIM_TYPE_BY_POLICY, generateClaimNumber } from '@/lib/form-autocomplete';
+import { friendlyError } from '@/lib/errors';
 
 const statusColors: Record<string, string> = {
   Filed: 'bg-blue-100 text-blue-700',
@@ -61,7 +62,7 @@ export default function ClaimsPage() {
 
   const handleSave = async (formData: any) => {
     const { error } = await supabase.from('claims').insert(formData);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(friendlyError(error)); return; }
     toast.success('Claim filed');
     setShowForm(false);
     loadClaims();

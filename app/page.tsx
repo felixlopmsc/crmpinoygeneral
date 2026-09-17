@@ -131,6 +131,7 @@ const PLANS = [
     name: 'Solo',
     price: '$79',
     cadence: '/month',
+    setup: '$199 one-time setup fee',
     annual: 'or $790/year — 2 months free',
     tagline: 'The independent agent running their own book',
     highlight: false,
@@ -147,6 +148,7 @@ const PLANS = [
     name: 'Agency',
     price: '$199',
     cadence: '/month',
+    setup: '$499 one-time setup fee',
     annual: 'or $1,990/year — 2 months free',
     tagline: 'Growing teams with producers to manage',
     highlight: true,
@@ -164,6 +166,7 @@ const PLANS = [
     name: 'Multi-Office',
     price: '$399',
     cadence: '/month',
+    setup: '$999 one-time setup fee',
     annual: 'or $3,990/year — 2 months free',
     tagline: 'Multiple locations and larger books',
     highlight: false,
@@ -412,6 +415,11 @@ export default function LandingPage() {
               <h3 className="mt-3 text-2xl font-bold text-[#1B2A4A]">
                 $49<span className="text-base font-semibold text-[#1B2A4A]/60">/month, locked for life</span>
               </h3>
+              {/* At 390px this wraps; the nowrap span forces the break onto the em
+                  dash rather than mid-word at "Solo-/tier". */}
+              <p className="mt-2 text-sm font-semibold text-[#1B2A4A]/80">
+                + $199 one-time setup fee — <span className="whitespace-nowrap">the Solo-tier rate</span>
+              </p>
               <p className="mt-2 max-w-xl text-sm text-[#1B2A4A]/70">
                 Full Agency-tier access at the founding rate — permanently, even as the price rises.
                 You get direct roadmap input and hands-on onboarding; we get your honest feedback.
@@ -455,6 +463,12 @@ export default function LandingPage() {
                   {p.cadence}
                 </span>
               </p>
+              {/* Setup fee sits directly under the price, at body weight rather than
+                  footnote weight. This audience's stated fear is discovering costs
+                  after signing, so the one-time fee has to read as part of the price. */}
+              <p className={`mt-2 text-sm font-semibold ${p.highlight ? 'text-white/90' : 'text-[#1B2A4A]/80'}`}>
+                + {p.setup}
+              </p>
               <p className={`mt-1 text-xs ${p.highlight ? 'text-white/50' : 'text-[#1B2A4A]/50'}`}>
                 {p.annual}
               </p>
@@ -490,8 +504,9 @@ export default function LandingPage() {
           ))}
         </div>
         <p className="mt-6 text-center text-xs text-[#1B2A4A]/50">
-          All plans include the quote request inbox and automated renewals. Data migration available
-          as a one-time service on Solo and Agency.
+          All plans include the quote request inbox and automated renewals. The setup fee is billed
+          once at onboarding, not monthly. Data migration available as a one-time service on Solo
+          and Agency.
         </p>
       </section>
 

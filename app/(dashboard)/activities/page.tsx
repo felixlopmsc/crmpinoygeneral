@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Plus, Phone, Mail, Calendar, FileText, SquareCheck as CheckSquare, MessageSquare, Filter } from 'lucide-react';
+import { friendlyError } from '@/lib/errors';
 
 const typeIcons: Record<string, any> = {
   Call: Phone,
@@ -71,7 +72,7 @@ export default function ActivitiesPage() {
       activity_date: new Date().toISOString(),
       created_by: user?.id,
     });
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(friendlyError(error)); return; }
     toast.success('Activity logged');
     setShowForm(false);
     loadActivities();
