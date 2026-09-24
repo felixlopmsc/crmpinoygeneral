@@ -240,6 +240,26 @@ instead of grepping subjects.
 
 ---
 
+## Build gotchas
+
+**`app/global-error.tsx` breaks prerendering on Next 13.5.11.** A root
+`global-error` file triggers a React Server Components bundler bug
+([vercel/next.js#59053](https://github.com/vercel/next.js/issues/59053)): the
+client reference manifest for pages inside a route group is emitted without its
+error-boundary entry, so every page under `app/(dashboard)` fails prerendering
+with `Could not find the module ".../client/components/error-boundary.js#" in
+the React Client Manifest`. It fires during static generation only, so `next
+dev` and `npm run check` stay clean, and it is **intermittent** — identical
+trees pass and fail, because a build either emits a good manifest or does not.
+That is what makes it expensive: every wrong fix looks like it worked on the
+next clean build. **Fix: use a route-level `app/error.tsx` instead.** It covers
+everything below the root layout, which is every screen staff use. Found
+2026-09 during the Sentry wiring (PR #26); cost most of a day across two
+sessions, with the cause misattributed twice (the `withSentryConfig` import
+path, then the wrapper itself) before the shared file was noticed.
+
+---
+
 ## Different repo: `felixlopmsc/pinoy-insurance-portal`
 
 Private, Vite/React (`.jsx`), client-facing quote portal. Last production deploy
