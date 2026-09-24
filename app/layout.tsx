@@ -4,7 +4,6 @@ import { Montserrat } from 'next/font/google';
 import { AuthProvider } from '@/lib/auth-context';
 import { Toaster } from '@/components/ui/sonner';
 import DemoFlagReset from '@/components/layout/demo-flag-reset';
-import SentryInit from '@/components/observability/sentry-init';
 
 const montserrat = Montserrat({ subsets: ['latin'] });
 
@@ -51,7 +50,6 @@ export default function RootLayout({
             pgi-demo flag must not wait on a session, and the staff this exists
             for are the ones who cannot get a session at all. */}
         <DemoFlagReset />
-        <SentryInit />
         <AuthProvider>
           {children}
           <Toaster position="top-right" />

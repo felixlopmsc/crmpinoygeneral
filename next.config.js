@@ -1,3 +1,5 @@
+const { withSentryConfig } = require('@sentry/nextjs');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
@@ -18,15 +20,25 @@ const nextConfig = {
   },
 };
 
-// Sentry runs WITHOUT the withSentryConfig wrapper. The wrapper's webpack
-// injection (entry rewriting, component wrapping, release/route manifest
-// injection) coincided with a build failure on Next 13.5.11: pages under
-// app/(dashboard) intermittently failed prerendering with "Could not find the
-// module .../error-boundary.js# in the React Client Manifest". Without the
-// wrapper: the server and edge SDKs still initialise through
-// instrumentation.ts (Next's own hook), the browser SDK initialises through
-// components/observability/sentry-init.tsx, and app/global-error.tsx still
-// reports React render errors. What is lost is build-time only: source-map
-// upload and automatic server-component wrapping, neither of which this app
-// relied on (no SENTRY_AUTH_TOKEN, tracesSampleRate 0).
-module.exports = nextConfig;
+// The wrapper is what injects sentry.client.config.ts into the client bundle,
+// so the browser SDK initialises with the app instead of after hydration.
+//
+// It was dropped once while the app/(dashboard) prerender failure was being
+// chased, and restored when that turned out to be app/global-error.tsx
+// (vercel/next.js#59053) rather than anything the wrapper does.
+//
+// `withSentryConfig` is imported from the package root, not the
+// `@sentry/nextjs/config` subpath the v10 deprecation notice suggests: on this
+// Next version the subpath export resolves to a different implementation. The
+// warning says the root export stops working in v11, which this app is not on.
+module.exports = withSentryConfig(nextConfig, {
+  // Source maps are only uploaded when SENTRY_AUTH_TOKEN, org and project are
+  // present. Without them the build skips the upload rather than failing, so
+  // this wrapper is safe to merge before any Sentry account wiring exists.
+  silent: true,
+  // Keep the SDK's own debug logging out of the production bundle.
+  // (The old `disableLogger: true` spelling is deprecated in v10.)
+  webpack: { treeshake: { removeDebugLogging: true } },
+  // No tunnelRoute: it would proxy Sentry traffic through this app's own
+  // domain, adding a middleware and auth surface we would rather not add.
+});
