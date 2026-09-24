@@ -9,7 +9,9 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "check:opacity": "node scripts/check-opacity-scale.mjs",
-    "check": "npm run typecheck && npm run check:opacity && npm run lint"
+    "check:demo-host": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-demo-host.mjs",
+    "check": "npm run typecheck && npm run check:opacity && npm run check:demo-host && npm run lint && npm test",
+    "test": "node --test lib/*.test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -56,7 +58,7 @@
     "eslint-config-next": "13.5.1",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.446.0",
-    "next": "13.5.1",
+    "next": "^13.5.11",
     "next-themes": "^0.3.0",
     "postcss": "8.4.30",
     "react": "18.2.0",

@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { ChartBar as BarChart3, TrendingUp, Users, FileText, DollarSign, Download, RefreshCw } from 'lucide-react';
 import { useActivePolicyCount } from '@/hooks/use-active-policy-count';
 import { useClientCounts } from '@/hooks/use-client-counts';
+import { livePolicyScope } from '@/lib/scopes';
 
 interface ReportData {
   totalPolicies: number;
@@ -24,7 +25,6 @@ interface ReportData {
   lostDeals: number;
   pipelineValue: number;
   totalActivities: number;
-  totalClaims: number;
   policyBreakdown: Record<string, number>;
   carrierBreakdown: Record<string, number>;
   dealStageBreakdown: Record<string, number>;
@@ -43,13 +43,12 @@ export default function ReportsPage() {
   async function loadReports() {
     setLoading(true);
     const [
-      policiesRes, commissionsRes, dealsRes, activitiesRes, claimsRes, premiumRes,
+      policiesRes, commissionsRes, dealsRes, activitiesRes, premiumRes,
     ] = await Promise.all([
-      supabase.from('policies').select('*'),
+      livePolicyScope(supabase.from('policies').select('*')),
       supabase.from('commissions').select('*'),
       supabase.from('deals').select('*'),
       supabase.from('activities').select('id', { count: 'exact', head: true }),
-      supabase.from('claims').select('id', { count: 'exact', head: true }),
       supabase.rpc('get_active_premium_total'),
     ]);
 
@@ -93,7 +92,6 @@ export default function ReportsPage() {
       lostDeals: lostDeals.length,
       pipelineValue: openDeals.reduce((sum, d) => sum + (d.value || 0), 0),
       totalActivities: activitiesRes.count || 0,
-      totalClaims: claimsRes.count || 0,
       policyBreakdown,
       carrierBreakdown,
       dealStageBreakdown,
@@ -176,7 +174,6 @@ export default function ReportsPage() {
                 <div className="space-y-4">
                   {[
                     { label: 'Total Activities Logged', value: data.totalActivities },
-                    { label: 'Total Claims Filed', value: data.totalClaims },
                     { label: 'Pipeline Value', value: formatCurrency(data.pipelineValue) },
                     { label: 'Open Deals', value: data.openDeals },
                     { label: 'Deals Won', value: data.wonDeals },

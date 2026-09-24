@@ -12,6 +12,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Search, RefreshCw, ArrowRight, TriangleAlert as AlertTriangle } from 'lucide-react';
+import { friendlyError } from '@/lib/errors';
 
 interface CarrierRow {
   carrier: string;
@@ -65,7 +66,7 @@ export function CarriersTool({ onApplied }: { onApplied: () => void }) {
       p_to: target,
     });
     if (err) {
-      toast.error(err.message || 'Could not apply mapping');
+      toast.error(friendlyError(err));
       setApplying(false);
       setPending(null);
       return;

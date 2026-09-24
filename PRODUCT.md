@@ -55,6 +55,11 @@ systems (AgencyZoom, Better Agency, HawkSoft) start around $199–$399/mo;
 generic CRMs are cheaper but don't model renewals or commissions. Agila's
 published pricing: founding-agency rate $49/mo locked for life (first 20),
 then Solo $79 / Agency $199 / Multi-Office $399, annual at two months free.
+Each tier also carries a one-time setup fee — Solo $199, Agency $499,
+Multi-Office $999, with founding agencies paying the Solo-tier $199. The fee is
+shown on the pricing card itself rather than in a footnote: the buyer's stated
+fear is discovering cost after signing, so burying it would cost more trust
+than the fee costs money.
 Credibility line: built by an agency to run its own book before being sold to
 others.
 
