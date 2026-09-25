@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import {
@@ -616,8 +617,15 @@ export default function LandingPage() {
               <LoginLink className="hover:text-white">Log in</LoginLink>
             </div>
           </div>
-          <div className="mt-8 border-t border-white/10 pt-6 text-center text-xs text-white/40">
-            © {new Date().getFullYear()} Agila Management Systems. All rights reserved.
+          <div className="mt-8 flex flex-col items-center gap-3 border-t border-white/10 pt-6 text-xs text-white/40 sm:flex-row sm:justify-between">
+            <span>© {new Date().getFullYear()} Agila Management Systems. All rights reserved.</span>
+            <span className="flex flex-wrap items-center justify-center gap-4">
+              <Link href="/terms" className="hover:text-white">Terms of Service</Link>
+              <Link href="/privacy" className="hover:text-white">Privacy Policy</Link>
+              <a href="mailto:info@pinoygeneralinsurance.com" className="hover:text-white">
+                info@pinoygeneralinsurance.com
+              </a>
+            </span>
           </div>
         </div>
       </footer>
