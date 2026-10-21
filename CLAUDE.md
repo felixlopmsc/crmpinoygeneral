@@ -31,6 +31,28 @@ client data.
 **Never change Supabase auth or database config without asking.** That includes
 Site URL, redirect URLs, SMTP, and RLS. Ask first, every time.
 
+**Merges to `main` are Felix's, not a session's.** `.claude/settings.json`
+denies `gh pr merge`, the GitHub MCP merge and auto-merge tools, force pushes,
+every spelling of discard-uncommitted-work, `rm -rf` on the repo root and its
+source directories, `supabase db reset`, and any command or read that touches a
+`.env` file. Deny rules hold in every permission mode, including
+`bypassPermissions`, so a session asked to merge should open the PR and stop.
+The allowlist in the same file covers the routine git, `npm run check`, build
+and read commands so an attended session stops prompting for them. Nothing in
+that file makes bypass mode safe with the Supabase MCP connected — the rule
+above still stands, because a deny cannot be downgraded to a prompt and
+`execute_sql` is left undenied on purpose so re-measuring stays possible.
+**One session owns one branch.** Two sessions pushing to one branch cost most of
+a day in September; no permission rule prevents it, only discipline does.
+Three things the docs say that affect whether the file works at all: `deny`
+rules apply the moment the repo is opened, but `allow` rules apply only after
+the folder has been trusted in that session; the file is read only from the
+directory the session starts in, so launch from the repo root; and the
+`mcp__<server>__<tool>` rules match the server *name as configured on that
+machine*, which is `github` / `Supabase` in cloud sessions and may differ in a
+local config. The deny list does not reach Bolt; branch protection on `main`
+is the only control that does.
+
 ---
 
 ## `npm run check` before every commit
@@ -430,7 +452,10 @@ from being a silent empty dashboard.
 
 Supabase Auth can check new passwords against HaveIBeenPwned. It is **disabled
 on purpose**, not overlooked: it sits behind the Supabase Pro plan, and the
-portal is in validation phase with controlled invites.
+portal is in validation phase with controlled invites. Verified 2026-10-21: the
+org is on the Free plan, so the toggle is not available at all yet. It goes in
+with the Pro upgrade (see `BACKLOG.md`), which the first paying agency needs
+anyway for point-in-time recovery and to stop idle pausing.
 
 **Revisit when either is true:** before opening wide client invites, or it
 becomes moot if magic-link becomes the primary sign-in path — there is no
