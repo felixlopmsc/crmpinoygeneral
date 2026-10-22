@@ -68,6 +68,18 @@ export const metadata: Metadata = {
      Emotion — why this exists: built by an agency, for agencies
 --------------------------------------------------------------------------- */
 
+/**
+ * Stripe payment link for the founding-agency offer ($49/mo locked for life,
+ * + $199 one-time setup). Hosted by Stripe; there is no billing integration in
+ * this app, so this link is the entire purchase path.
+ *
+ * Consequence worth knowing before anyone adds a seat counter to the banner:
+ * nothing in this codebase or database learns that a seat was sold. Stripe is
+ * the only record. A "seats claimed" number would have to come from a Stripe
+ * webhook and somewhere to store it, neither of which exists yet.
+ */
+const FOUNDING_SEAT_CHECKOUT_URL = 'https://buy.stripe.com/9B614o2OH89w4pl33YcAo00';
+
 // TENSION — the pains, each paired with the way Agila resolves it.
 const PAINS = [
   {
@@ -425,7 +437,12 @@ export default function LandingPage() {
                 You get direct roadmap input and hands-on onboarding; we get your honest feedback.
               </p>
             </div>
-            <a href="#book-demo" className="flex-shrink-0">
+            {/* Stripe payment link. The CTA used to point at #book-demo, so the
+                one button on the page that says "claim" took no money and just
+                scrolled. Same tab on purpose: this is a deliberate purchase, and
+                a new tab is the one most likely to be swallowed by a mobile
+                popup blocker. */}
+            <a href={FOUNDING_SEAT_CHECKOUT_URL} className="flex-shrink-0">
               <Button size="lg" className="gap-2 bg-[#1B2A4A] font-semibold text-white hover:bg-[#2C3E6B]">
                 Claim a founding seat <ArrowRight className="h-4 w-4" />
               </Button>
