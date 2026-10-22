@@ -76,7 +76,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/sql-read-only.mjs"
+            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/sql-read-only.mjs || exit 2"
           }
         ]
       },
@@ -85,7 +85,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/deny-tool.mjs"
+            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/deny-tool.mjs || exit 2"
           }
         ]
       }
