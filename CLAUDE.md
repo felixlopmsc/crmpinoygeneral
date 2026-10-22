@@ -38,10 +38,17 @@ source directories, `supabase db reset`, and any command or read that touches a
 `.env` file. Deny rules hold in every permission mode, including
 `bypassPermissions`, so a session asked to merge should open the PR and stop.
 The allowlist in the same file covers the routine git, `npm run check`, build
-and read commands so an attended session stops prompting for them. Nothing in
-that file makes bypass mode safe with the Supabase MCP connected — the rule
-above still stands, because a deny cannot be downgraded to a prompt and
-`execute_sql` is left undenied on purpose so re-measuring stays possible.
+and read commands so an attended session stops prompting for them. The same
+file wires a `PreToolUse` hook (`.claude/hooks/sql-read-only.mjs`) on the
+Supabase MCP `execute_sql` tool: SELECT, WITH and EXPLAIN go through, anything
+that writes is blocked in every mode, and a SELECT that calls a mutating
+function (`demo_reset`, `merge_clients`, the invite functions…) is blocked by
+name. A deny rule could not do this, because a deny cannot tell a count from
+a DROP. Mutations go through `apply_migration`, which stays undenied here
+because this repo is where DDL is reviewed. The rule above still stands:
+nothing in that file makes blanket auto-approval safe with the Supabase MCP
+connected. The hook fails closed, cannot be approved around, and must be
+extended by hand when a new writing function is created.
 **One session owns one branch.** Two sessions pushing to one branch cost most of
 a day in September; no permission rule prevents it, only discipline does.
 Three things the docs say that affect whether the file works at all: `deny`

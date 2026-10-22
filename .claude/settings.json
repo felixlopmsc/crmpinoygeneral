@@ -68,5 +68,18 @@
       "Bash(ls)",
       "Bash(ls *)"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__[Ss]upabase__execute_sql",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/sql-read-only.mjs"
+          }
+        ]
+      }
+    ]
   }
 }
