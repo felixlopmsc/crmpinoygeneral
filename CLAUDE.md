@@ -31,6 +31,64 @@ client data.
 **Never change Supabase auth or database config without asking.** That includes
 Site URL, redirect URLs, SMTP, and RLS. Ask first, every time.
 
+**Merges to `main` are Felix's, not a session's.** `.claude/settings.json`
+denies `gh pr merge`, the GitHub MCP merge and auto-merge tools, force pushes,
+every spelling of discard-uncommitted-work, `rm -rf` on the repo root and its
+source directories, `supabase db reset`, and any command or read that touches a
+`.env` file. Deny rules hold in every permission mode, including
+`bypassPermissions`, so a session asked to merge should open the PR and stop.
+The allowlist in the same file covers the routine git, `npm run check`, build
+and read commands so an attended session stops prompting for them. The same
+file wires a `PreToolUse` hook (`.claude/hooks/sql-read-only.mjs`) on the
+Supabase MCP `execute_sql` tool: SELECT, WITH and EXPLAIN go through, anything
+that writes is blocked in every mode, and a SELECT that calls a mutating
+function (`demo_reset`, `merge_clients`, the invite functions…) is blocked by
+name. A deny rule could not do this, because a deny cannot tell a count from
+a DROP. Mutations go through `apply_migration`, which stays undenied here
+because this repo is where DDL is reviewed. The rule above still stands:
+nothing in that file makes blanket auto-approval safe with the Supabase MCP
+connected. The hook fails closed, cannot be approved around, and must be
+extended by hand when a new writing function is created.
+
+Two rules no settings file can enforce. They are the ones that matter most.
+
+1. **One session owns one branch.** Before starting unattended work, confirm no
+   other session has this repo attached, and never push to a branch another
+   session is working. Two sessions on `fix/wire-sentry-nextjs` cost a day in
+   September, and no permission rule prevents it.
+2. **Verify after write.** After any write — a commit, a push, a deploy, a row
+   update, an env change — confirm the thing actually changed before reporting
+   success. Grep the deployed bundle for the ingest host, re-read the row,
+   check the exit code, re-fetch the PR. Never report success from a command
+   whose failure can be swallowed by a pipe or a `|| true`. Five separate bugs
+   this year were "reported success, nothing happened": the Sentry DSN that was
+   never in Vercel, the lint that "passed" on missing `node_modules`, the PR
+   reported merged from a stale listing, the pricing restore that re-asserted
+   a stale fact, and the Bolt overwrite that nobody noticed for three weeks.
+
+Three things the docs say that affect whether the file works at all: `deny`
+rules apply the moment the repo is opened, but `allow` rules apply only after
+the folder has been trusted in that session; the file is read only from the
+directory the session starts in, so launch from the repo root; and the
+`mcp__<server>__<tool>` deny rules match the server *name as configured on
+that host*. That last one is not theoretical: the 2026-10-22 live test found
+that Cowork and child sessions name the Supabase server by UUID
+(`mcp__7849c45f-…__execute_sql`), so a hook matched on `mcp__Supabase__`
+never fired and the delete fell through to a permission prompt. Hook
+matchers are regular expressions, so both hooks now match `^mcp__.*__<tool>$`
+and work on any host; the deny rules stay as a second layer where the names
+line up. A second hook, `.claude/hooks/deny-tool.mjs`, blocks the GitHub
+merge and auto-merge tools and Supabase `pause_project` the same way.
+**Verified live 2026-10-22** (PR #32 comments): a fresh cloud session on
+`97851be` called `execute_sql` with `delete from quote_requests where 1 = 0`
+and was blocked before any permission prompt with the hook's own message,
+server named by UUID, with no trust entry for the checkout in
+`~/.claude.json`, so project hooks fire without folder trust in that
+runtime. Both hook commands end in `|| exit 2`, so a missing `node` or a
+broken script blocks loudly instead of falling through to a prompt. The
+deny list does not reach Bolt; branch protection on `main` is the only
+control that does.
+
 ---
 
 ## `npm run check` before every commit
@@ -430,7 +488,10 @@ from being a silent empty dashboard.
 
 Supabase Auth can check new passwords against HaveIBeenPwned. It is **disabled
 on purpose**, not overlooked: it sits behind the Supabase Pro plan, and the
-portal is in validation phase with controlled invites.
+portal is in validation phase with controlled invites. Verified 2026-10-21: the
+org is on the Free plan, so the toggle is not available at all yet. It goes in
+with the Pro upgrade (see `BACKLOG.md`), which the first paying agency needs
+anyway for point-in-time recovery and to stop idle pausing.
 
 **Revisit when either is true:** before opening wide client invites, or it
 becomes moot if magic-link becomes the primary sign-in path — there is no

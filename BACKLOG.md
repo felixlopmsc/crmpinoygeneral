@@ -6,9 +6,30 @@ Ordered by cost-of-not-doing, not by effort. Delete items as they land.
 
 ## Not in this repo — dashboard only, but highest priority
 
-**Enable leaked-password protection.**
+**Enable leaked-password protection — when the org upgrades to Pro.**
 Supabase → Authentication → Policies. One toggle; checks new passwords against
-HaveIBeenPwned. Currently off. Do this before setting any new password.
+HaveIBeenPwned. Currently off, and **cannot be turned on today**: the Supabase
+docs state it is "available on the Pro Plan and above", and the MSC Innovations
+org (`mggkkmojkfmyhgjbcukh`, both projects) was on the **Free** plan when
+checked 2026-10-21. An earlier version of this entry and Execution Queue v2's
+item B4 both said "two minutes, one toggle" — that was unachievable as written.
+`CLAUDE.md` ("Known gap — leaked-password protection is off, deliberately") had
+it right; canon wins over the queue.
+
+Do it as part of the Pro upgrade, which is required anyway before the first
+paying agency: point-in-time recovery is Pro-only, and Free projects pause after
+inactivity. Sequence: upgrade → enable PITR → flip this toggle → re-run the
+security advisor and confirm `auth_leaked_password_protection` clears.
+
+**Refresh the three LinkedIn launch posts before any of them is used.**
+They live in `Agila_Funnel_Copy.md` (Cowork outputs, not this repo), section 4.
+Written for a launch week that has passed: Post 1 is dated "Monday Aug 10
+(launch)", Post 2 "Wednesday Aug 12", Post 3 "Friday Aug 14". Posts 2 and 3
+carry a literal `[X] of 20 claimed` seat-count placeholder. There is still no
+source of truth for claimed seats (PR #29 omitted the counter on agilams.com for
+the same reason), so either read the true count from Stripe at posting time or
+drop the claim entirely. Never post a guessed number. Caught 2026-10-21 reading
+the Cowork export; not tracked anywhere until now.
 
 ~~**Two unguarded `SECURITY DEFINER` functions.**~~ Done 2026-08-11, and the
 entry was wrong on both counts. Recorded here so it does not get "re-fixed":
