@@ -72,11 +72,20 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "mcp__[Ss]upabase__execute_sql",
+        "matcher": "^mcp__.*__execute_sql$",
         "hooks": [
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/sql-read-only.mjs"
+          }
+        ]
+      },
+      {
+        "matcher": "^mcp__.*__(merge_pull_request|enable_pr_auto_merge|pause_project)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/deny-tool.mjs"
           }
         ]
       }

@@ -70,10 +70,17 @@ Three things the docs say that affect whether the file works at all: `deny`
 rules apply the moment the repo is opened, but `allow` rules apply only after
 the folder has been trusted in that session; the file is read only from the
 directory the session starts in, so launch from the repo root; and the
-`mcp__<server>__<tool>` rules match the server *name as configured on that
-machine*, which is `github` / `Supabase` in cloud sessions and may differ in a
-local config. The deny list does not reach Bolt; branch protection on `main`
-is the only control that does.
+`mcp__<server>__<tool>` deny rules match the server *name as configured on
+that host*. That last one is not theoretical: the 2026-10-22 live test found
+that Cowork and child sessions name the Supabase server by UUID
+(`mcp__7849c45f-…__execute_sql`), so a hook matched on `mcp__Supabase__`
+never fired and the delete fell through to a permission prompt. Hook
+matchers are regular expressions, so both hooks now match `^mcp__.*__<tool>$`
+and work on any host; the deny rules stay as a second layer where the names
+line up. A second hook, `.claude/hooks/deny-tool.mjs`, blocks the GitHub
+merge and auto-merge tools and Supabase `pause_project` the same way. The
+deny list does not reach Bolt; branch protection on `main` is the only
+control that does.
 
 ---
 
