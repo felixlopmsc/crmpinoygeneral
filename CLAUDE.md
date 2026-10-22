@@ -49,8 +49,23 @@ because this repo is where DDL is reviewed. The rule above still stands:
 nothing in that file makes blanket auto-approval safe with the Supabase MCP
 connected. The hook fails closed, cannot be approved around, and must be
 extended by hand when a new writing function is created.
-**One session owns one branch.** Two sessions pushing to one branch cost most of
-a day in September; no permission rule prevents it, only discipline does.
+
+Two rules no settings file can enforce. They are the ones that matter most.
+
+1. **One session owns one branch.** Before starting unattended work, confirm no
+   other session has this repo attached, and never push to a branch another
+   session is working. Two sessions on `fix/wire-sentry-nextjs` cost a day in
+   September, and no permission rule prevents it.
+2. **Verify after write.** After any write — a commit, a push, a deploy, a row
+   update, an env change — confirm the thing actually changed before reporting
+   success. Grep the deployed bundle for the ingest host, re-read the row,
+   check the exit code, re-fetch the PR. Never report success from a command
+   whose failure can be swallowed by a pipe or a `|| true`. Five separate bugs
+   this year were "reported success, nothing happened": the Sentry DSN that was
+   never in Vercel, the lint that "passed" on missing `node_modules`, the PR
+   reported merged from a stale listing, the pricing restore that re-asserted
+   a stale fact, and the Bolt overwrite that nobody noticed for three weeks.
+
 Three things the docs say that affect whether the file works at all: `deny`
 rules apply the moment the repo is opened, but `allow` rules apply only after
 the folder has been trusted in that session; the file is read only from the
