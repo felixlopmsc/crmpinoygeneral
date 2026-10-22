@@ -78,7 +78,14 @@ never fired and the delete fell through to a permission prompt. Hook
 matchers are regular expressions, so both hooks now match `^mcp__.*__<tool>$`
 and work on any host; the deny rules stay as a second layer where the names
 line up. A second hook, `.claude/hooks/deny-tool.mjs`, blocks the GitHub
-merge and auto-merge tools and Supabase `pause_project` the same way. The
+merge and auto-merge tools and Supabase `pause_project` the same way.
+**Verified live 2026-10-22** (PR #32 comments): a fresh cloud session on
+`97851be` called `execute_sql` with `delete from quote_requests where 1 = 0`
+and was blocked before any permission prompt with the hook's own message,
+server named by UUID, with no trust entry for the checkout in
+`~/.claude.json`, so project hooks fire without folder trust in that
+runtime. Both hook commands end in `|| exit 2`, so a missing `node` or a
+broken script blocks loudly instead of falling through to a prompt. The
 deny list does not reach Bolt; branch protection on `main` is the only
 control that does.
 
