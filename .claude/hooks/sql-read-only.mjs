@@ -8,9 +8,19 @@
 // production; a hook is the only mechanism that can tell the two apart.
 //
 // Contract (Claude Code hooks): JSON on stdin with tool_name and tool_input.
-// Exit 2 with a message on stderr blocks the call. Exit 0 lets it proceed.
+// Exit 2 with a message on stderr blocks the call. A read-only statement is
+// answered with an explicit JSON `permissionDecision: "allow"` on stdout and
+// exit 0, which skips the permission prompt entirely; a bare exit 0 would
+// only mean "no opinion" and leave the call to the normal permission flow.
 // Any other exit code is treated as a non-blocking error and the call goes
 // ahead, so every failure path here exits 2 on purpose: fail closed.
+//
+// Why the explicit allow matters (measured 2026-10-23): in a cloud session
+// running in `auto` permission mode, the classifier prompted a human on
+// EVERY Supabase execute_sql call, reads included, and each approval covered
+// one call. An unattended brief that touched the database stalled on its
+// first SELECT. With the allow decision, reads flow without a prompt and
+// writes are still blocked here, so "unattended" means unattended.
 //
 // Two layers, because each alone has a hole:
 //   1. The statement must START with a read-only keyword. Catches DELETE,
@@ -213,4 +223,14 @@ for (const stmt of statements) {
   }
 }
 
+process.stdout.write(
+  JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'allow',
+      permissionDecisionReason:
+        'sql-read-only hook: every statement starts with a read-only keyword, contains no writing keyword and calls no VOLATILE function',
+    },
+  }) + '\n',
+);
 process.exit(0);

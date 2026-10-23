@@ -40,10 +40,13 @@ source directories, `supabase db reset`, and any command or read that touches a
 The allowlist in the same file covers the routine git, `npm run check`, build
 and read commands so an attended session stops prompting for them. The same
 file wires a `PreToolUse` hook (`.claude/hooks/sql-read-only.mjs`) on the
-Supabase MCP `execute_sql` tool: SELECT, WITH and EXPLAIN go through, anything
+Supabase MCP `execute_sql` tool: SELECT, WITH and EXPLAIN are answered with an
+explicit `allow` decision so they run without a permission prompt, anything
 that writes is blocked in every mode, and a SELECT that calls a mutating
 function (`demo_reset`, `merge_clients`, the invite functions…) is blocked by
-name. A deny rule could not do this, because a deny cannot tell a count from
+name. The explicit allow exists because, measured 2026-10-23, a cloud session
+in `auto` mode prompted a human on every `execute_sql` call, reads included,
+one approval per call, so an unattended brief stalled on its first SELECT. A deny rule could not do this, because a deny cannot tell a count from
 a DROP. Mutations go through `apply_migration`, which stays undenied here
 because this repo is where DDL is reviewed. The rule above still stands:
 nothing in that file makes blanket auto-approval safe with the Supabase MCP
