@@ -43,8 +43,22 @@ file wires a `PreToolUse` hook (`.claude/hooks/sql-read-only.mjs`) on the
 Supabase MCP `execute_sql` tool: SELECT, WITH and EXPLAIN go through, anything
 that writes is blocked in every mode, and a SELECT that calls a mutating
 function (`demo_reset`, `merge_clients`, the invite functions…) is blocked by
-name. A deny rule could not do this, because a deny cannot tell a count from
-a DROP. Mutations go through `apply_migration`, which stays undenied here
+name. The same tool is also in `permissions.allow`, spelled three ways
+(`mcp__Supabase__execute_sql`, `mcp__supabase__execute_sql`, and the UUID
+form `mcp__7849c45f-6aff-4d67-b007-006e7a513a90__execute_sql` that cloud and
+Cowork sessions use), because the settings validator rejects a wildcard in
+the server position of an allow rule: `mcp__*__execute_sql` fails with "an
+allow pattern must name the scope it widens", and globs are permitted only
+in the tool position after a literal `mcp__<server>__` prefix. A host that
+names the server some fourth way gets a prompt, not a hole. The allow exists
+because, measured 2026-10-23, a cloud session in `auto` mode prompted a
+human on every `execute_sql` call, reads included, one approval per call,
+and an unattended brief stalled on its first SELECT. Allow rules are
+evaluated before the classifier, so reads stop prompting; the hook still
+fires on every call regardless of allow rules and exits 2 on a write, so the
+allow only ever reaches reads. A hook returning its own `allow` decision was
+tried first and did not get ahead of the prompt (PR #33, closed). A deny
+rule could not do this, because a deny cannot tell a count from a DROP. Mutations go through `apply_migration`, which stays undenied here
 because this repo is where DDL is reviewed. The rule above still stands:
 nothing in that file makes blanket auto-approval safe with the Supabase MCP
 connected. The hook fails closed, cannot be approved around, and must be
