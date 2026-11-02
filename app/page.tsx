@@ -415,14 +415,12 @@ export default function LandingPage() {
               <h3 className="mt-3 text-2xl font-bold text-[#1B2A4A]">
                 $49<span className="text-base font-semibold text-[#1B2A4A]/60">/month, locked for life</span>
               </h3>
-              {/* At 390px this wraps; the nowrap span forces the break onto the em
-                  dash rather than mid-word at "Solo-/tier". */}
-              <p className="mt-2 text-sm font-semibold text-[#1B2A4A]/80">
-                + $199 one-time setup fee — <span className="whitespace-nowrap">the Solo-tier rate</span>
-              </p>
+              {/* No setup-fee line here, on purpose. The Founding Circle is exempt;
+                  the three paid tiers below keep theirs. Nothing is billed up front. */}
               <p className="mt-2 max-w-xl text-sm text-[#1B2A4A]/70">
                 Full Agency-tier access at the founding rate — permanently, even as the price rises.
-                You get direct roadmap input and hands-on onboarding; we get your honest feedback.
+                No setup fee — founding agencies onboard free. You get direct roadmap input and
+                hands-on onboarding; we get your honest feedback.
               </p>
             </div>
             <a href="#book-demo" className="flex-shrink-0">
@@ -504,9 +502,9 @@ export default function LandingPage() {
           ))}
         </div>
         <p className="mt-6 text-center text-xs text-[#1B2A4A]/50">
-          All plans include the quote request inbox and automated renewals. The setup fee is billed
-          once at onboarding, not monthly. Data migration available as a one-time service on Solo
-          and Agency.
+          All plans include the quote request inbox and automated renewals. Founding agencies pay
+          no setup fee. On other tiers the setup fee is billed once at onboarding, not monthly. Data
+          migration available as a one-time service on Solo and Agency.
         </p>
       </section>
 
