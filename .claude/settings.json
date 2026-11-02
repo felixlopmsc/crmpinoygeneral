@@ -67,9 +67,9 @@
       "Bash(npx tsc*)",
       "Bash(ls)",
       "Bash(ls *)",
-      "mcp__Supabase__execute_sql",
       "mcp__supabase__execute_sql",
-      "mcp__7849c45f-6aff-4d67-b007-006e7a513a90__execute_sql"
+      "mcp__7849c45f-6aff-4d67-b007-006e7a513a90__execute_sql",
+      "mcp__claude_ai_Supabase__execute_sql"
     ]
   },
   "hooks": {
